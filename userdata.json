@@ -1,0 +1,29 @@
+{
+    "602651056320675840": {
+        "xp": 0,
+        "level": 1,
+        "xpNeeded": 100,
+        "permissions": {
+            "*": true
+        }
+    },
+    "528309195116642314": {
+        "xp": 0,
+        "level": 1,
+        "xpNeeded": 100,
+        "permissions": {
+            "commands.say": false,
+            "*": false
+        }
+    },
+    "622122161523523624": {
+        "permissions": {
+            "*": true
+        }
+    },
+    "460774900479819778": {
+        "permissions": {
+            "commands.say": true
+        }
+    }
+}
