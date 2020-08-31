@@ -1,3 +1,5 @@
+// main bot script
+
 const Discord = require('discord.js');
 const stuff = require('./stuff');
 const client = new Discord.Client();
@@ -5,15 +7,13 @@ client.commands = new Discord.Collection();
 
 const config = require('../config.json');
 const fs = require('fs');
-const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
-const cooldowns = new Discord.Collection();
-const xpCooldowns = new Discord.Collection();
 
+// command loading thing
+const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 for (const file of commandFiles) {
 	const command = require(`./commands/${file}`);
 
-	// set a new item in the Collection
-	// with the key as the command name and the value as the exported module
+
 	client.commands.set(command.name, command);
 }
 
@@ -24,7 +24,7 @@ client.once('ready', () => {
 
 client.on('message', message => {
 
-    const now = Date.now();
+    
     
     
     
@@ -32,6 +32,8 @@ client.on('message', message => {
         console.log(`${client.user.tag}: ${message.content}`);
     }
 
+    
+    // broken cooldown
     /*
     if (!message.author.bot) {
         if (!xpCooldowns.has(message.author.id)) {
@@ -52,9 +54,13 @@ client.on('message', message => {
         return;
 
     
+    // somehow getting the command the user tried to execute
     const commandName = message.content.substring(1).split(" ")[0];
+    
+    // getting the arguments
     args = message.content.substring(1).split(" "), config.prefix.length;
 
+    // idk
     args.shift();
     
 
@@ -62,17 +68,20 @@ client.on('message', message => {
     
     
     
+    // the command
     const command = client.commands.get(commandName);
     
     
     
     
 
+    // debug stuff
     console.log(args);
     console.log(commandName);
 
     
     
+    // "error" messsage when the command doesn't exist
     if (!client.commands.has(commandName)) {
         message.channel.send("<:v_:736698160281288884>");
         return;
@@ -82,12 +91,17 @@ client.on('message', message => {
             
     
     
+    
+   
+    // try-catch so the bot doesn't die
     try {
         
         
+        // checking if the user can execute the command
         if (stuff.getPermission(message.author.id, command.requiredPermission) || command.requiredPermission == undefined || stuff.getPermission(message.author.id, "*")) {
             command.execute(message, args);
         } else {
+            
             throw "missing permissions"
         }
 
@@ -96,6 +110,13 @@ client.on('message', message => {
         sendError(message.channel, error);
     }
 });
+
+/**
+ * sends an error embed
+ * @param {Discord.Channel} channel 
+ * @param {String} err 
+ */
+
 
 function sendError (channel, err) {
     var msgEmbed = {
@@ -107,6 +128,13 @@ function sendError (channel, err) {
     channel.send({embed: msgEmbed});
 }
 
+/**
+ * unused function
+ * @param {Discord.Channel} channel 
+ * @param {String} title 
+ * @param {String} desc 
+ */
+
 function sendEmbed (channel, title, desc) {
     var msgEmbed = {
         color: 0x00ff00,
@@ -117,4 +145,6 @@ function sendEmbed (channel, title, desc) {
     channel.send({embed: msgEmbed});
 }
 
+
+// login
 client.login(config.token);
