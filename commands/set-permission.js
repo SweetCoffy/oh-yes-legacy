@@ -16,12 +16,12 @@ module.exports = {
         
         // another questionable error message
         if (args.length < 3) {
-            throw "***no***";
+            return message.channel.send("Not enough args");
         }
 
         // idk
         if (args[2] != "true" && args[2] != "false") {
-            throw "invalid type";
+            return message.channel.send("You must set <value> to true or false");
         }
         
         
