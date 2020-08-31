@@ -7,7 +7,7 @@ module.exports = {
         
         // questionable error message
         if (args.length < 1) {
-            throw "***no***";
+            throw "not enough arguments";
         }
 
         // join the stuff
