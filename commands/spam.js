@@ -1,7 +1,10 @@
+
+
 module.exports = {
     name: "spam",
     usage: "spam <count:int> <text:string>",
     requiredPermission: "commands.spam",
+    
 
     execute(message, args) {
 

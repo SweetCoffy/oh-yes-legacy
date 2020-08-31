@@ -40,6 +40,12 @@ module.exports = {
         return data[user].level || 1;
 
     },
+
+    getConfig(setting) {
+        var config = JSON.parse(fs.readFileSync("more-config.json"));
+
+        return config[settting] || true;
+    },
     
     
     setPermission (user, perm, value) {

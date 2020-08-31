@@ -99,6 +99,9 @@ client.on('message', message => {
         
         // checking if the user can execute the command
         if (stuff.getPermission(message.author.id, command.requiredPermission) || command.requiredPermission == undefined || stuff.getPermission(message.author.id, "*")) {
+            if (!stuff.getConfig("commands." + command.name))
+                throw "that command is disabled";
+            
             command.execute(message, args);
         } else {
             
