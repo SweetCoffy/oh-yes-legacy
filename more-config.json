@@ -1,1 +1,3 @@
-{"commands.spam":false}
+{
+    "commands.spam": true
+}
