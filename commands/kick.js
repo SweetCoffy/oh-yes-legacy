@@ -15,7 +15,7 @@ module.exports = {
 
             
             member.kick(reason.join(" ")).then(() => {
-                message.channel.send("succesfully kicked " + member.displayName + ", reason: " + reason.join(" "));
+                message.channel.send("succesfully kicked " + member.displayName + ", reason: " + (reason.join(" ") || "none") );
             }).catch (error => {
                 throw error;
             })
