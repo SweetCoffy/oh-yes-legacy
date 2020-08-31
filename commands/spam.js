@@ -11,6 +11,10 @@ module.exports = {
         _args.shift();
 
         // check if the count is a valid number
+        if (_args.join(" ").contains("@everyone") || _args.join(" ").contains("@here")) {
+            throw "***no.***"
+        }
+        
         if (isNaN(count)) {
             throw "`count` must be of type integer";
         }
