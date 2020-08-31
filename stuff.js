@@ -56,7 +56,7 @@ module.exports = {
         var config = JSON.parse(fs.readFileSync("more-config.json"));
         config[setting] = value;
 
-        fs.writeFileSync("more-config.json", JSON.stringify(config));
+        fs.writeFileSync("more-config.json", JSON.stringify(config, undefined, 4));
     },
     
     

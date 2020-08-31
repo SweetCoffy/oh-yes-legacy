@@ -9,11 +9,15 @@ module.exports = {
 
     execute (message, args) {
 
+        var val = args[1];
+        
         if (args[1] == 'true') {
-            stuff.set(args[0], true);
+            val = true;
         } else if (args[1] == 'false') {
-            stuff.set(args[0], false);
+            val = false;
         }
+
+        message.channel.send("set `" + args[0] + "` to `" + val + "`");
 
     }
 }
