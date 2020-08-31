@@ -13,6 +13,17 @@ module.exports = {
 
 
 
+    
+    clamp (number, min, max) {
+        if (number > max) {
+            return max;
+        } else if (number < min) {
+            return min;
+        } else {
+            return number;
+        }
+    },
+    
     addXp (user, amount) {
         var data = JSON.parse(fs.readFileSync("userdata.json"));
         data[user].xp = (data[user].xp || 0) + amount;

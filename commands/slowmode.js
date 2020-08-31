@@ -1,5 +1,7 @@
 // slowmode command
 
+const stuff = require("../stuff")
+
 module.exports = {
     name: "slowmode",
     usage: "slowmode <amount:number>",
@@ -12,8 +14,14 @@ module.exports = {
             throw "`amount` must be of type number";
         }
 
-        message.channel.setRateLimitPerUser(num).then(() => {
-            message.channel.send("lol");
-        });
+        num = stuff.clamp(num, 0, 21600);
+
+        message.channel.setRateLimitPerUser(num).catch (error => {
+            throw error;
+        }).then(() => {
+            message.channel.send("set slowmode of #" + message.channel.name + " to " + num.toFixed(1) + " seconds");
+        })
+            
+        
     }
 }
