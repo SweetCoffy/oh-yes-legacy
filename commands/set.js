@@ -17,6 +17,8 @@ module.exports = {
             val = false;
         }
 
+        stuff.set(args[0], val);
+
         message.channel.send("set `" + args[0] + "` to `" + val + "`");
 
     }
