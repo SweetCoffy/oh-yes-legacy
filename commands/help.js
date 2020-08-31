@@ -1,3 +1,5 @@
+// help command
+
 module.exports = {
     name: "help",
     description: "shows command info",
@@ -7,6 +9,7 @@ module.exports = {
         const commands = message.client.commands;
         
         
+        // if the user specified a command, show info about it
         if (args[0]) {
 
             if (commands.has(args[0]) ) {
@@ -31,7 +34,9 @@ module.exports = {
             }
 
 
-        } else {
+        } 
+        // otherwise show a list of commands
+        else {
 
             commandNames = [];
 

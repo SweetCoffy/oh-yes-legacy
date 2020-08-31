@@ -10,10 +10,12 @@ module.exports = {
 
         _args.shift();
 
+        // check if the count is a valid number
         if (isNaN(count)) {
             throw "invalid type";
         }
 
+        // loop
         for (let i = 0; i < count; i++) {
             
             message.channel.send (_args.join(" "));
