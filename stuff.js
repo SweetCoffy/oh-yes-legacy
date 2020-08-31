@@ -43,8 +43,20 @@ module.exports = {
 
     getConfig(setting) {
         var config = JSON.parse(fs.readFileSync("more-config.json"));
+        
 
-        return config[settting] || true;
+        if (config[setting] == undefined) {
+            return true;
+        }
+
+        return config[setting];
+    },
+
+    set(setting, value) {
+        var config = JSON.parse(fs.readFileSync("more-config.json"));
+        config[setting] = value;
+
+        fs.writeFileSync("more-config.json", JSON.stringify(config));
     },
     
     
