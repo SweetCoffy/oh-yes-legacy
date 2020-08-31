@@ -1,7 +1,7 @@
 module.exports = {
     name: "say",
     requiredPermission: "commands.say",
-    usage: "say <text>",
+    usage: "say <text:string>",
 
     execute (message, args) {
         

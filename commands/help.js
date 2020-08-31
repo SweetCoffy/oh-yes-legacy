@@ -3,7 +3,7 @@
 module.exports = {
     name: "help",
     description: "shows command info",
-    usage: "help [commandname]",
+    usage: "help [commandname:string]",
 
     execute (message, args) {
         const commands = message.client.commands;
