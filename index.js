@@ -83,7 +83,7 @@ client.on('message', message => {
     
     // "error" messsage when the command doesn't exist
     if (!client.commands.has(commandName)) {
-        message.channel.send("<:v_:736698160281288884>");
+        message.channel.send("<:v_:750422544494100500>");
         return;
     }
 
