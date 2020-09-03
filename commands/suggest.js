@@ -1,3 +1,6 @@
+
+const stuff = require('../stuff')
+
 module.exports = {
     name: "suggest",
 
@@ -11,14 +14,19 @@ module.exports = {
         }
 
         const msgEmbed = {
-            author: message.author,
+            author: {
+                name: message.author.username,
+                icon_url: message.author.avatarURL,
+            },
+
+            color: 0xee0000,
 
             title: `${message.author.username} suggested:`,
 
             description: args.join(" ")
         }
 
-        message.channel.send({embed: msgEmbed}).then (msg => {
+        message.client.channels.cache.get(stuff.getConfig("suggestionsChannel")).send({embed: msgEmbed}).then (msg => {
             msg.react('737474912666648688');
             msg.react('740298713267962058');
             msg.react('737493602011316326');
