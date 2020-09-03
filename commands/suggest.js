@@ -26,9 +26,16 @@ module.exports = {
         }
 
         message.client.channels.cache.get(stuff.getConfig("suggestionsChannel")).send({embed: msgEmbed}).then (msg => {
-            msg.react('737474912666648688');
-            msg.react('740298713267962058');
-            msg.react('737493602011316326');
+            msg.react('737474912666648688').then(() => {
+                msg.react('740298713267962058').then(() => {
+                    msg.react('737493602011316326').then (() => {
+                        message.channel.send("Your suggestion has been sent to <#" + stuff.getConfig("suggestionsChannel") + ">!");
+                    })
+                })
+            })
+            
+           
+            
             
         });
 
