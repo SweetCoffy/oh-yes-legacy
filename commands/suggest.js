@@ -18,7 +18,7 @@ module.exports = {
                 url: message.author.avatarURL(),
             },
 
-            color: 0x00ff00,
+            color: 0x00ee00,
 
             title: `${message.author.username} suggested:`,
 
@@ -30,6 +30,9 @@ module.exports = {
                 msg.react('740298713267962058').then(() => {
                     msg.react('737493602011316326').then (() => {
                         const msgEmbed = {
+                            
+                            color: 0x00ee00,
+
                             thumbnail: {
                                 url: "https://cdn.discordapp.com/emojis/737493602011316326.png?v=1"
                             },
