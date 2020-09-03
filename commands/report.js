@@ -14,7 +14,7 @@ module.exports = {
 
         _args.shift();
         
-        if (args.length < 2) {
+        if (args.length < 1) {
             throw "not enough arguments";
         }
 
