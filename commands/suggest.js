@@ -20,7 +20,7 @@ module.exports = {
 
             color: 0x00ee00,
 
-            title: `${message.author.username} suggested:`,
+            title: `${message.author.username} has suggested:`,
 
             description: args.join(" ")
         }
