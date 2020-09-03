@@ -16,10 +16,10 @@ module.exports = {
         const msgEmbed = {
             author: {
                 name: message.author.username,
-                icon_url: message.author.avatarURL,
+                icon_url: message.author.avatarURL(),
             },
 
-            color: 0xee0000,
+            color: 0x00ff00,
 
             title: `${message.author.username} suggested:`,
 
@@ -30,7 +30,7 @@ module.exports = {
             msg.react('737474912666648688');
             msg.react('740298713267962058');
             msg.react('737493602011316326');
-            message.delete(1000);
+            
         });
 
 
