@@ -14,9 +14,8 @@ module.exports = {
         }
 
         const msgEmbed = {
-            author: {
-                name: message.author.username,
-                icon_url: message.author.avatarURL(),
+            thumbnail: {
+                url: message.author.avatarURL(),
             },
 
             color: 0x00ff00,
