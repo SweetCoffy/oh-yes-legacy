@@ -44,7 +44,11 @@ module.exports = {
                             description: "Your suggestion has been sent to <#" + stuff.getConfig("suggestionsChannel") + "> succesfully!"
                         }
                         
-                        message.channel.send({embed: msgEmbed})
+                        message.channel.send({embed: msgEmbed}).then(m => {
+                            var ping = m.createdTimestamp - message.createdTimestamp;
+
+                            m.edit("took " + ping + "ms to react");
+                        })
                     })
                 })
             })

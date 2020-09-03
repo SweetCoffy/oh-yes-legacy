@@ -44,29 +44,23 @@ module.exports = {
         }
 
         message.client.channels.cache.get(stuff.getConfig("reportsChannel")).send({embed: msgEmbed}).then (msg => {
-            msg.react('737474912666648688').then(() => {
-                msg.react('740298713267962058').then(() => {
-                    msg.react('737493602011316326').then (() => {
-                        const msgEmbed = {
+
+            const msgEmbed = {
                             
-                            color: 0xee0000,
+                color: 0xee0000,
 
-                            thumbnail: {
-                                url: "https://cdn.discordapp.com/emojis/737474912666648688.png?v=1"
-                            },
+                thumbnail: {
+                    url: "https://cdn.discordapp.com/emojis/737474912666648688.png?v=1"
+                },
 
 
 
-                            title: "oh no",
-                            
-                            description: "Your report has been sent to <#" + stuff.getConfig("reportsChannel") + ">"
-                        }
-                        
-                        message.channel.send({embed: msgEmbed})
-                    })
-                })
-            })
+                title: "oh no",
+                
+                description: "Your report has been sent to <#" + stuff.getConfig("reportsChannel") + ">"
+            }
             
+            message.channel.send({embed: msgEmbed})
            
             
             
