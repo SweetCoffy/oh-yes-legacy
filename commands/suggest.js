@@ -29,7 +29,19 @@ module.exports = {
             msg.react('737474912666648688').then(() => {
                 msg.react('740298713267962058').then(() => {
                     msg.react('737493602011316326').then (() => {
-                        message.channel.send("Your suggestion has been sent to <#" + stuff.getConfig("suggestionsChannel") + ">!");
+                        const msgEmbed = {
+                            thumbnail: {
+                                url: "https://cdn.discordapp.com/emojis/737493602011316326.png?v=1"
+                            },
+
+
+
+                            title: "oh yes",
+                            
+                            description: "Your suggestion has been sent to <#" + stuff.getConfig("suggestionsChannel") + "> succesfully!"
+                        }
+                        
+                        message.channel.send({embed: msgEmbed})
                     })
                 })
             })
