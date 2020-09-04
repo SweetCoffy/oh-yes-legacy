@@ -3,5 +3,6 @@
     "suggestionsChannel": "736730736219914321",
     "reportsChannel": "751179205315919952",
     "command.report": false,
-    "commands.report": true
+    "commands.report": true,
+    "commands.suggest": true
 }
