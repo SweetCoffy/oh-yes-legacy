@@ -13,7 +13,7 @@ module.exports = {
             throw "not enough arguments";
         }
 
-        const msgEmbed = {
+        var msgEmbed = {
             thumbnail: {
                 url: message.author.avatarURL(),
             },
@@ -22,7 +22,15 @@ module.exports = {
 
             title: `${message.author.username} has suggested:`,
 
-            description: args.join(" ")
+            description: args.join(" "),
+
+
+        }
+
+        if (message.attachments.first() != undefined) {
+            msgEmbed.image = {
+                url: message.attachments.first().url
+            }
         }
 
         message.client.channels.cache.get(stuff.getConfig("suggestionsChannel")).send({embed: msgEmbed}).then (msg => {
