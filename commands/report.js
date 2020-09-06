@@ -22,6 +22,12 @@ module.exports = {
             throw "`user` must be of type mention"
         }
 
+        if (user.id == message.author.id) {
+            throw "you can't report yourself";
+        }
+
+        
+
         var msgEmbed = {
             thumbnail: {
                 url: user.avatarURL(),
