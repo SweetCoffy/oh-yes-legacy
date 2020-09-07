@@ -6,17 +6,14 @@ module.exports = {
 
     description: "report someone lol",
 
-    usage: "suggest <user:mention> <thing:string>",
+    usage: "report <user:mention> [reason:string]",
 
     execute (message, args) {
         var user = message.mentions.users.first();
         var _args = args;
 
         _args.shift();
-        
-        if (args.length < 1) {
-            throw "not enough arguments";
-        }
+
 
         if (!user) {
             throw "`user` must be of type mention"
@@ -42,7 +39,7 @@ module.exports = {
             fields: [
                 {
                     name: "reason",
-                    value: _args.join(" ")
+                    value: _args.join(" ") || "*no reason specified*"
                 },
                 {
                     name: "channel",
