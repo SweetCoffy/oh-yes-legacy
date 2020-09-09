@@ -47,7 +47,7 @@ client.on('message', message => {
 
     */
     
-    if (message.author.bot && message.author.id != config.ohnoId)
+    if (message.author.bot)
         return;
 
     if (!message.content.startsWith(config.prefix))
