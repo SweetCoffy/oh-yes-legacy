@@ -81,9 +81,13 @@ client.on('message', message => {
 
     
     
-    // "error" messsage when the command doesn't exist
+    
     if (!client.commands.has(commandName)) {
-        message.channel.send("<:v_:750422544494100500>");
+        
+        // i should delete this instead of commenting it
+        //message.channel.send("<:v_:750422544494100500>");
+        
+        // return because reasons
         return;
     }
 
