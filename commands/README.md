@@ -5,10 +5,7 @@ self explanatory
 to make a command, create a new file called `[command name].js` and paste on it the following code snippet:
 ```js
 module.exports = {
-    name: "name", // must be file name withtout extension
-    description: "", // optional
-
-    usage: "", // also optional
+    name: "name", // must be file name withtout extension, required
 
     // required
     execute(message, args) {
@@ -21,3 +18,8 @@ module.exports = {
     }
 }
 ```
+
+**some other properties that are optional:**
+* `description` text that will be shown in the command's help embed, if not present it will show `<eggs>`
+* `usage` usage that will be shown in the command's help embed, intended format: `[command name] [arg1:type] [arg2:type] [arg3:type] [etc...]`
+* `requiredPermission` permission required to use this command, defaults to `""` (anyone can use it)
