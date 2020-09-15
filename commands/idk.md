@@ -35,7 +35,8 @@ client.on("message", msg => {
 
         // check if the user is the bot
         if (user.id === "bot id goes here") {
-
+            // do stuff
+            msg.reply("u pinged me");
         }
     });   
 ```
