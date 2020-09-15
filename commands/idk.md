@@ -25,3 +25,17 @@ client.on("message", msg => {
 })
 
 ```
+
+## how 2 react to pings 
+
+```js  
+    client.on("message", msg => {
+        // get the first user
+        var user = msg.mentions.users.first();
+
+        // check if the user is the bot
+        if (user.id === "bot id goes here") {
+
+        }
+    });   
+```
