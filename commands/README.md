@@ -5,7 +5,7 @@ self explanatory
 to make a command, create a new file called `[command name].js` and paste on it the following code snippet:
 ```js
 module.exports = {
-    name: "name", // must be file name withtout extension, required
+    name: "name", // must be file name without extension, required
 
     // required
     execute(message, args) {
