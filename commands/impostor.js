@@ -15,6 +15,8 @@ module.exports = {
             }
         }
 
+
+
         message.channel.send({embed: {
             title: 'vOtE aLerT!',
             description: `${message.author} voted, **1/${client.requiredVotes}**`
@@ -35,6 +37,10 @@ module.exports = {
             {   
                 if (this.voters.includes(asUser.id)) {
                     throw "you can't vote twice!";
+                }
+
+                if (this.ended) {
+                    throw "this vote already ended!";
                 }
                 
                 this.votes++;

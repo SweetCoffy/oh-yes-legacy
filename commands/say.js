@@ -14,6 +14,8 @@ module.exports = {
         const txt = args.join(" ");
 
         // actually sending the message
-        message.channel.send(txt);
+        message.channel.send(txt).then(() => {
+            message.delete();
+        })
     }
 }

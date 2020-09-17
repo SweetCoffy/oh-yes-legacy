@@ -10,17 +10,27 @@ module.exports = {
         
 
         if (args[0] == "everyone") {
-            message.guild.fetchMembers().then(guild => {
-                guild.members.forEach(member => {
-                    if (client.impostors.includes(member.user.id)) {
-                        continue;
-                    }
-                    client.impostors.push(member.user.id);
+            message.guild.members.fetch().then(members => {
 
+                members.forEach(member => {
+                    if (!client.impostors.includes(member.user.id))
+                        client.impostors.push(member.user.id);
                 })
 
                 
-            }).then(() => message.delete())
+                // wait a bit before deleting the message because yes
+                setTimeout(() => {
+                    message.delete();
+                }, 1000)
+                
+                
+                
+                
+                
+            }).then(() => {
+            })
+
+            return;
         }
         
         if (!user) {
