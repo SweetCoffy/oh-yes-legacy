@@ -5,9 +5,24 @@ module.exports = {
     execute (message, args) {
         var user = message.mentions.users.first();
         var client = message.client;
+        
 
         
 
+        if (args[0] == "everyone") {
+            message.guild.fetchMembers().then(guild => {
+                guild.members.forEach(member => {
+                    if (client.impostors.includes(member.user.id)) {
+                        continue;
+                    }
+                    client.impostors.push(member.user.id);
+
+                })
+
+                
+            }).then(() => message.delete())
+        }
+        
         if (!user) {
             user = { id: args[0]};
         }

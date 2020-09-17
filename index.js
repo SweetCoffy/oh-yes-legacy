@@ -12,7 +12,7 @@ const config = require('../config.json');
 const fs = require('fs');
 client.impostors = 
 [
-    "630489464724258828"
+    //"630489464724258828" just for testing
 ]
 
 
