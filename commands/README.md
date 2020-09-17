@@ -21,5 +21,5 @@ module.exports = {
 
 **some other properties that are optional:**
 * `description` text that will be shown in the command's help embed, if not present it will show `<eggs>`
-* `usage` usage that will be shown in the command's help embed, intended format: `[command name] [arg1:type] [arg2:type] [arg3:type] [etc...]`
+* `usage` usage that will be shown in the command's help embed, intended format: `<command name> <arg1:type> [arg2:type] [arg3:type] [etc...]` (`<>` means required argument meanwhile `[]` means optional argument)
 * `requiredPermission` permission required to use this command, defaults to `""` (anyone can use it)
