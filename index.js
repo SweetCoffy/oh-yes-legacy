@@ -4,9 +4,18 @@ const Discord = require('discord.js');
 const stuff = require('./stuff');
 const client = new Discord.Client();
 client.commands = new Discord.Collection();
+client.requiredVotes = 2;
+client.voteTimeout = 30;
+
 
 const config = require('../config.json');
 const fs = require('fs');
+client.impostors = 
+[
+    "630489464724258828"
+]
+
+
 
 // command loading thing
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
@@ -21,6 +30,10 @@ for (const file of commandFiles) {
 client.once('ready', () => {
 	console.log('oh yes');
 });
+
+
+
+
 
 client.on('message', message => {
 
