@@ -5,7 +5,7 @@ const stuff = require('./stuff');
 const client = new Discord.Client();
 client.commands = new Discord.Collection();
 client.requiredVotes = 2;
-client.voteTimeout = 30;
+client.voteTimeout = 35;
 
 
 const config = require('../config.json');
