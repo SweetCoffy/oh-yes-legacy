@@ -3,10 +3,11 @@
 const Discord = require('discord.js');
 const stuff = require('./stuff');
 const client = new Discord.Client();
+stuff.client = client;
 client.commands = new Discord.Collection();
 client.requiredVotes = 2;
 client.voteTimeout = 35;
-
+console.log(stuff.createData);
 
 const config = require('../config.json');
 const fs = require('fs');
@@ -32,7 +33,28 @@ client.once('ready', () => {
 });
 
 
-
+client.on('messageReactionAdd', (reaction, user) => {
+    try {
+        var author = reaction.message.author.id;
+        if (reaction.emoji.id == stuff.getConfig("v_")) {
+            stuff.addPoints(author, 10 * Math.random() * stuff.getMultiplier(author)); 
+        } else if (reaction.emoji.id == stuff.getConfig("ohyes")) {
+            stuff.addPoints(author, -0.5 * Math.random());        
+        } else if (reaction.emoji.id == stuff.getConfig("ohno")) {
+            stuff.addPoints(author, 3 * Math.random() * stuff.getMultiplier(author));
+        } else if (reaction.emoji.id == stuff.getConfig("oO")) {
+            stuff.addPoints(author, 7.5 * Math.random() * stuff.getMultiplier(author));
+        } else if (reaction.emoji.id == stuff.getConfig("deepfriedv_")) {
+            stuff.addPoints(author, 5 * Math.random() * stuff.getMultiplier(author));
+        } else if (reaction.emoji.id == stuff.getConfig("madv_")) {
+            stuff.addPoints(author, 9 * Math.random() * stuff.getMultiplier(author));
+        }
+    
+        
+    } catch (err) {
+        console.log(err);
+    }  
+})
 
 
 client.on('message', message => {
@@ -117,7 +139,32 @@ client.on('message', message => {
         // checking if the user can execute the command
         if (stuff.getPermission(message.author.id, command.requiredPermission) || command.requiredPermission == undefined || stuff.getPermission(message.author.id, "*")) {
             if (stuff.getConfig("commands." + command.name)) {
-                command.execute(message, args);
+                if (command.removed) throw "this command has been removed, but not entirely (maybe it will come back if <@602651056320675840> wants to)";
+                
+                var joinedArgs = args.join(" ");
+                var regex = /--([^(--) ]*)='(.*)'|--(.*)/g
+
+                
+                
+                var matches = (regex.exec(joinedArgs) || []).filter(function(el) {
+                    return el != "" && el != null && el != undefined;
+                });
+
+                
+                
+                var extraArgs = (matches || []).slice(1, 3) || [];
+
+                joinedArgs = joinedArgs.replace(regex, "");
+
+
+                var newArgs = joinedArgs.split(" ").filter(function(el) {
+                    return el != "" && el != null && el != undefined;
+                });
+                
+                
+
+                
+                command.execute(message, newArgs, extraArgs);
             } else{
                 throw "that command is disabled";
             }

@@ -1,7 +1,7 @@
 module.exports = {
     name: "test",
 
-    execute(message, args) {
-        message.channel.send("henlo");
+    execute(message, args, extraArgs) {
+        message.channel.send(`henlo, arguments passed: [${args}], [${extraArgs}]`);
     }
 }

@@ -5,5 +5,26 @@
     "command.report": false,
     "commands.report": true,
     "commands.suggest": true,
-    "archiveCategory": "750194381516177529"
+    "archiveCategory": "750194381516177529",
+    "botChannel": "749724758978986105",
+    "commands.ghostping": true,
+    "fancierHelpMode": true,
+    "v_": "755546914715336765",
+    "someRandomFloat": 69.42,
+    "someRandomBool": false,
+    "someRandomArray": [
+        "eggs",
+        "are",
+        "gud"
+    ],
+    "eggs": [
+        "are",
+        "gud"
+    ],
+    "someRandomObject": "{\"h\": \"hhhhhh\", \"array\": [\"lol\", \"h\"]} -asObject",
+    "ohno": "737474912666648688",
+    "ohyes": "737493602011316326",
+    "oO": "749319330503852084",
+    "deepfriedv_": "750501468385050624",
+    "madv_": "758760245455224903"
 }

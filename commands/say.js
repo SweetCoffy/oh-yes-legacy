@@ -3,18 +3,28 @@ module.exports = {
     requiredPermission: "commands.say",
     usage: "say <text:string>",
 
-    execute (message, args) {
+    execute (message, args, extraArgs) {
         
         // questionable error message
-        if (args.length < 1) {
+        if (args.length < 1 && extraArgs.length < 1) {
             throw "not enough arguments";
         }
 
+
+
         // join the stuff
-        const txt = args.join(" ");
+        var cont = args.join(" ");
+
+        
+        if (extraArgs[0] == "embed") {
+            var oldCont = cont;
+
+            cont = {embed: JSON.parse(extraArgs[1]), content: oldCont};
+        }
+        
 
         // actually sending the message
-        message.channel.send(txt).then(() => {
+        message.channel.send(cont).then(() => {
             message.delete();
         })
     }
