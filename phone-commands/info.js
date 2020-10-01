@@ -1,6 +1,8 @@
 module.exports = {
     name: "info",
-    execute(message, phoneData) {
+    package: "h",
+    author: "Sebo2205",
+    execute(message, args, phoneData) {
         var embed = {
             title: "phone info",
             fields: [
