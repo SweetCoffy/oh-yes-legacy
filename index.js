@@ -85,6 +85,9 @@ client.on('message', message => {
     if (message.author.bot && message.author.id != config.ohnoId)
         return;
 
+    try {stuff.addPoints(message.author.id, 0.7 * Math.random() * stuff.clamp(message.content.length, 1, 500) * stuff.getMultiplier(message.author.id));}
+    catch (err) {console.log(err)}
+
     if (!message.content.startsWith(config.prefix))
         return;
 

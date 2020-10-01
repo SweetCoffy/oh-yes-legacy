@@ -25,15 +25,38 @@ module.exports = {
                 }
             },
             "oo": {
-                name: `Thicc ${require('./stuff').getConfig("oO")}`,
-                icon: ":spaghetti:",
-                price: 75,
+                name: `Thicc v_`,
+                icon: "<:oO:749319330503852084>",
+                price: 50,
                 inStock: 10,
                 onUse: function(user) {
                     const stuff = require('./stuff');
-                    stuff.addMultiplier(user, 1)
-                    stuff.removeItem(user, "spaghet");
+                    stuff.addMultiplier(user, 0.5)
+                    stuff.removeItem(user, "oo");
                     return true;
+                }
+            },
+            "eggs": {
+                name: `Eggs`,
+                icon: "<:eggs:744607071244124230>",
+                price: 3000,
+                inStock: 10,
+                onUse: function(user) {
+                    const stuff = require('./stuff');
+                    stuff.addMultiplier(user, 25)
+                    stuff.removeItem(user, "eggs");
+                    return true;
+                }
+            },
+            "phone": {
+                name: "Phone",
+                icon: ":mobile_phone:",
+                price: 700,
+                inStock: 5,
+                onUse: function(user, message, args) {
+                    var u = message.guild.members.cache.get(user).user;
+                    message.channel.send(`${u.username}, Your phone doesn't know how to \`${args[0]}\``);
+                    return false;
                 }
             }
     },
@@ -44,28 +67,28 @@ module.exports = {
     },
 
     getMultiplier(user) {
-        var data = JSON.parse(fs.readFileSync('userdata.json', 'utf-8'));
+        var data = JSON.parse(fs.readFileSync('userdata.json', 'utf8'));
         return (data[user] || {}).multiplier || 1;
     },
 
     getInventory(user) {
-        var data = JSON.parse(fs.readFileSync('userdata.json', 'utf-8'));
+        var data = JSON.parse(fs.readFileSync('userdata.json', 'utf8'));
         return (data[user] || {}).inventory || [];
     },
     
     addMultiplier(user, amount) {
-        var data = JSON.parse(fs.readFileSync('userdata.json', 'utf-8'));
+        var data = JSON.parse(fs.readFileSync('userdata.json', 'utf8'));
         if (data[user] == undefined) {
             require('./stuff').createData(user);
             return;
         }
 
         data[user].multiplier = (data[user].multiplier || 1) + amount;
-        fs.writeFileSync('userdata.json', JSON.stringify(data));
+        fs.writeFileSync('userdata.json', JSON.stringify(data, undefined, 4).toString().replace("}}", "}"));
     },
 
     addItem(user, item) {
-        var data = JSON.parse(fs.readFileSync('userdata.json', 'utf-8'));
+        var data = JSON.parse(fs.readFileSync('userdata.json', 'utf8'));
         if (data[user] == undefined) {
             require('./stuff').createData(user);
             return;
@@ -76,11 +99,11 @@ module.exports = {
         }
 
         data[user].inventory.push(item);
-        fs.writeFileSync('userdata.json', JSON.stringify(data));
+        fs.writeFileSync('userdata.json', JSON.stringify(data, undefined, 4).toString().replace("}}", "}"));
     },
 
-    removeItem(user, itemName) {
-        var data = JSON.parse(fs.readFileSync('userdata.json', 'utf-8'));
+    removeItem(user, itemName, count = 1) {
+        var data = JSON.parse(fs.readFileSync('userdata.json', 'utf8'));
         if (data[user] == undefined) {
             require('./stuff').createData(user);
             return;
@@ -91,14 +114,15 @@ module.exports = {
         }
 
         var inv = data[user].inventory;
-        var i = 0;
-        inv.forEach(element => {
-            if (element.id == itemName) {
-                data[user].inventory.splice(i)
+        var times = 0;
+        for (let i = 0; i < array.length; i++) {
+            const element = inv[i];
+            if (element.id == itemName && times < count) {
+                data[user].inventory.splice(i, 1);
+                times++;
             }
-            i++;
-        })
-        fs.writeFileSync('userdata.json', JSON.stringify(data));
+        }
+        fs.writeFileSync('userdata.json', JSON.stringify(data, undefined, 4).toString().replace("}}", "}"));
     },
 
 
@@ -139,14 +163,14 @@ module.exports = {
             if (err){
                 return console.log(err);
             }
-            var data = JSON.parse(d);
+            var data = JSON.parse(d.toString().replace("}}", "}"));
 
             if (data[user] == undefined) {
                 return require('./stuff').createData(user);
                 
             } else {
                 data[user].points = (data[user].points || 0) + amount;
-                fs.writeFile("userdata.json", JSON.stringify(data, undefined, 4), 'utf8', function(err) {
+                fs.writeFile("userdata.json", JSON.stringify(data, undefined, 4).toString().replace("}}", "}"), function(err) {
                     if (err) {
                         console.log(err);
                     }
@@ -160,12 +184,12 @@ module.exports = {
     },
 
     getPoints (user) {
-        var data = JSON.parse(fs.readFileSync("userdata.json", "utf8"));
+        var data = JSON.parse(fs.readFileSync("userdata.json", "utf8").toString().toString().replace("}}", "}"));
         return data[user].points || 0;
     },
 
     getConfig(setting) {
-        var config = JSON.parse(fs.readFileSync("more-config.json"));
+        var config = JSON.parse(fs.readFileSync("more-config.json").toString().toString().replace("}}", "}"));
         
 
         if (config[setting] == undefined) {
@@ -176,15 +200,15 @@ module.exports = {
     },
 
     set(setting, value) {
-        var config = JSON.parse(fs.readFileSync("more-config.json"));
+        var config = JSON.parse(fs.readFileSync("more-config.json").toString().toString().replace("}}", "}"));
         config[setting] = value;
 
-        fs.writeFileSync("more-config.json", JSON.stringify(config, undefined, 4));
+        fs.writeFileSync("more-config.json", JSON.stringify(config, undefined, 4).toString().replace("}}", "}"));
     },
     
     
     setPermission (user, perm, value) {
-        var data = JSON.parse(fs.readFileSync("userdata.json"));
+        var data = JSON.parse(fs.readFileSync("userdata.json").toString().toString().replace("}}", "}"));
 
         if (value == "false") {
             value = false;
@@ -201,6 +225,8 @@ module.exports = {
                 level: 1,
 
                 xpNeeded: 100,
+
+                inventory: [{name: "Phone", id: "phone", icon: ":mobile_phone:"}],
                 
                 permissions: {
 
@@ -211,7 +237,7 @@ module.exports = {
         
         data[user].permissions[perm] = value;
 
-        fs.writeFileSync("userdata.json", JSON.stringify(data, undefined, 4));
+        fs.writeFileSync("userdata.json", JSON.stringify(data, undefined, 4).toString().replace("}}", "}"));
     },
     
     
@@ -254,7 +280,7 @@ module.exports = {
     createData: function(user) {
 
         if (fs.existsSync("userdata.json")) {
-            var data = JSON.parse(fs.readFileSync("userdata.json", 'utf8'));
+            var data = JSON.parse(fs.readFileSync("userdata.json", 'utf8')).toString().replace("}}", "}");
             if (!data[user]) {
                 data[user] = {
                     xp: 0,
@@ -266,6 +292,8 @@ module.exports = {
                     points: 0,
 
                     multiplier: 1,
+
+                    inventory: [{name: "Phone", id: "phone", icon: ":mobile_phone:"}],
                     
                     permissions: {
     
@@ -274,7 +302,7 @@ module.exports = {
             }
             
 
-            fs.writeFileSync("userdata.json", JSON.stringify(data, undefined, 4));
+            fs.writeFileSync("userdata.json", JSON.stringify(data, undefined, 4).toString().replace("}}", "}"));
         } else {
             
             var data = {
@@ -291,13 +319,15 @@ module.exports = {
                 points: 0,
 
                 multiplier: 1,
+
+                inventory: [{name: "Phone", id: "phone", icon: ":mobile_phone:"}],
                 
                 permissions: {
 
                 }
             }
             
-            fs.writeFileSync("userdata.json", JSON.stringify(data, undefined, 4));
+            fs.writeFileSync("userdata.json", JSON.stringify(data, undefined, 4).toString().replace("}}", "}"));
         }
         
         
@@ -314,7 +344,7 @@ module.exports = {
 
         if ( fs.existsSync("userdata.json") ) {
             
-            const data = JSON.parse(fs.readFileSync("userdata.json", 'utf8'));
+            const data = JSON.parse(fs.readFileSync("userdata.json", 'utf8').toString().toString().replace("}}", "}"));
 
             if (data[user]) {
 
