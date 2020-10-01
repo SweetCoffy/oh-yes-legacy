@@ -83,7 +83,7 @@ module.exports = {
                     if (!cmd) {
                         throw `The command \`<base>/author unknown/${args[0]}\` is not available`;
                     } else {
-                        if (!installedPackages.includes(cmd.package) && cmd.package != undefined) throw `The command \`${cmd.package || "unknown"}/${cmd.name || "invalid-command"}\` is not available, use \`add ${cmd.package}\` and try again`;
+                        if (!installedPackages.includes(cmd.package) && cmd.package != undefined) throw `The command \`${cmd.package || "unknown"}/${cmd.author || "author unknown"}/${cmd.name || "invalid-command"}\` is not available, use \`add ${cmd.package}\` and try again`;
                         cmd.execute(message, _args, phoneData, slot);
                     }
                     
@@ -100,8 +100,10 @@ module.exports = {
 
     loadPhoneCommands() {
         
-        const commandFiles = fs.readdirSync('./phone-commands').filter(file => file.endsWith('.js'));
+        const commandFiles = fs.readdirSync('./phone-commands');
         for (const file of commandFiles) {
+            
+            
             delete require.cache[resolve(`./phone-commands/${file}`)]
             
             const command = require(`./phone-commands/${file}`);
@@ -152,7 +154,7 @@ module.exports = {
             
 
             data.inventory[slot].extraData.packages.push(package);    
-            fs.writeFileSync(`userdata/${user}.json`, JSON.stringify(data, undefined, 4).toString().replace("}}", "}"));
+            fs.writeFileSync(`userdata/${user}.json`, JSON.stringify(data, null, '\t').toString().replace("}}", "}"));
 
             
 
@@ -170,7 +172,7 @@ module.exports = {
         }
 
         data.multiplier = (data.multiplier || 1) + amount;
-        fs.writeFileSync(`userdata/${user}.json`, JSON.stringify(data, undefined, 4).toString().replace("}}", "}"));
+        fs.writeFileSync(`userdata/${user}.json`, JSON.stringify(data, null, '\t').toString().replace("}}", "}"));
     },
 
     addItem(user, item) {
@@ -185,7 +187,7 @@ module.exports = {
         }
 
         data.inventory.push(item);
-        fs.writeFileSync(`userdata/${user}.json`, JSON.stringify(data, undefined, 4).toString().replace("}}", "}"));
+        fs.writeFileSync(`userdata/${user}.json`, JSON.stringify(data, null, '\t').toString().replace("}}", "}"));
     },
 
     removeItem(user, itemName, count = 1) {
@@ -208,7 +210,7 @@ module.exports = {
                 times++;
             }
         }
-        fs.writeFileSync(`userdata/${user}.json`, JSON.stringify(data, undefined, 4).toString().replace("}}", "}"));
+        fs.writeFileSync(`userdata/${user}.json`, JSON.stringify(data, null, '\t').toString().replace("}}", "}"));
     },
 
 
@@ -256,7 +258,7 @@ module.exports = {
                 
             } else {
                 data.points = (data.points || 0) + amount;
-                fs.writeFile(`userdata/${user}.json`, JSON.stringify(data, undefined, 4).toString().replace("}}", "}"), function(err) {
+                fs.writeFile(`userdata/${user}.json`, JSON.stringify(data, null, '\t').toString().replace("}}", "}"), function(err) {
                     if (err) {
                         console.log(err);
                     }
@@ -323,7 +325,7 @@ module.exports = {
         
         data.permissions[perm] = value;
 
-        fs.writeFileSync(`userdata/${user}.json`, JSON.stringify(data, undefined, 4).toString().replace("}}", "}"));
+        fs.writeFileSync(`userdata/${user}.json`, JSON.stringify(data, null, '\t').toString().replace("}}", "}"));
     },
     
     
@@ -388,7 +390,7 @@ module.exports = {
             }
             
 
-            fs.writeFileSync(`userdata/${user}.json`, JSON.stringify(data, undefined, 4).toString().replace("}}", "}"));
+            fs.writeFileSync(`userdata/${user}.json`, JSON.stringify(data, null, '\t').toString().replace("}}", "}"));
         } else {
             
             var data = {
@@ -413,7 +415,7 @@ module.exports = {
                 }
             }
             
-            fs.writeFileSync(`userdata/${user}.json`, JSON.stringify(data, undefined, 4).toString().replace("}}", "}"));
+            fs.writeFileSync(`userdata/${user}.json`, JSON.stringify(data, null, '\t').toString().replace("}}", "}"));
         }
         
         
@@ -430,7 +432,7 @@ module.exports = {
 
         if ( fs.existsSync(`userdata/${user}.json`) ) {
             
-            const data = JSON.parse(fs.readFileSync(`userdata/${user}.json`, 'utf8').toString().toString().replace("}}", "}"));
+            const data = JSON.parse(fs.readFileSync(`userdata/${user}.json`, 'utf8').toString().replace("}}", "}"));
 
             if (data) {
 
