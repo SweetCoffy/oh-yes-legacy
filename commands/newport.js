@@ -13,7 +13,9 @@ module.exports = {
 
         var game2embedTitle = {
             "terraria": "New terraria port",
-            "minecraft": "New minecraft port"
+            "minecraft": "New minecraft port",
+            "mc": "New minecraft port",
+            "mcpe": "New minecraft port"
         }
         
         var embed = {
