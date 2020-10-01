@@ -1,5 +1,7 @@
 const { Collection } = require('discord.js');
 const fs = require('fs');
+const { resolve } = require('path');
+const { pathToFileURL } = require('url');
 
 // extra stuff script
 
@@ -14,7 +16,8 @@ module.exports = {
     ],
 
     validPackages: [
-        "eggs"
+        "eggs",
+        "h"
     ],
     
     shopItems : {
@@ -22,7 +25,7 @@ module.exports = {
                 name: "Spaghet",
                 icon: ":spaghetti:",
                 price: 75,
-                inStock: 10,
+                inStock: 9999999,
                 onUse: function(user) {
                     const stuff = require('./stuff');
                     stuff.addMultiplier(user, 1)
@@ -34,7 +37,7 @@ module.exports = {
                 name: `Thicc v_`,
                 icon: "<:oO:749319330503852084>",
                 price: 50,
-                inStock: 10,
+                inStock: 999999999,
                 onUse: function(user) {
                     const stuff = require('./stuff');
                     stuff.addMultiplier(user, 0.5)
@@ -46,7 +49,7 @@ module.exports = {
                 name: `Eggs`,
                 icon: "<:eggs:744607071244124230>",
                 price: 3000,
-                inStock: 10,
+                inStock: 999999999,
                 onUse: function(user) {
                     const stuff = require('./stuff');
                     stuff.addMultiplier(user, 25)
@@ -58,7 +61,7 @@ module.exports = {
                 name: "Phone",
                 icon: ":mobile_phone:",
                 price: 700,
-                inStock: 5,
+                inStock: 9999999999,
                 onUse: function(user, message, args, slot) {
                     
                     const stuff = require('./stuff');
@@ -78,7 +81,7 @@ module.exports = {
                     
                         
                     if (!cmd) {
-                        throw `The command \`<base>/${cmd.name}\` is not available`;
+                        throw `The command \`<base>/${args[0]}\` is not available`;
                     } else {
                         if (!installedPackages.includes(cmd.package) && cmd.package != undefined) throw `The command \`${cmd.package || "unknown"}/${cmd.name || "invalid-command"}\` is not available`;
                         cmd.execute(message, _args, phoneData);
@@ -96,37 +99,45 @@ module.exports = {
     },
 
     loadPhoneCommands() {
+        
         const commandFiles = fs.readdirSync('./phone-commands').filter(file => file.endsWith('.js'));
         for (const file of commandFiles) {
+            delete require.cache[resolve(`./phone-commands/${file}`)]
+            
             const command = require(`./phone-commands/${file}`);
         
+            
         
             this.phoneCommands.set(command.name, command);
         }
+        
     },
 
     getMultiplier(user) {
-        var data = JSON.parse(fs.readFileSync('userdata.json', 'utf8'));
-        return (data[user] || {}).multiplier || 1;
+        var data = JSON.parse(fs.readFileSync(`userdata/${user}.json`, 'utf8'));
+        return (data || {}).multiplier || 1;
     },
 
     getInventory(user) {
-        var data = JSON.parse(fs.readFileSync('userdata.json', 'utf8'));
-        return (data[user] || {}).inventory || [];
+        var data = JSON.parse(fs.readFileSync(`userdata/${user}.json`, 'utf8'));
+        return (data || {}).inventory || [];
     },
 
     addPackage: function(user, slot, package) {  
-        var data = JSON.parse(fs.readFileSync('userdata.json', 'utf8'));
+        var data = JSON.parse(fs.readFileSync(`userdata/${user}.json`, 'utf8'));
         const stuff = require('./stuff');
+
+        if (data.inventory[slot].extraData == undefined) {
+            data.inventory[slot].extraData = {packages: []};
+        }
         
         if (stuff.validPackages.includes(package)) {
             
 
             
 
-            data[user].inventory[slot].extraData.packages.push(package);    
-            fs.writeFileSync('userdata.json', JSON.stringify(data, undefined, 4).toString().replace("}}", "}"));
-            resolve();
+            data.inventory[slot].extraData.packages.push(package);    
+            fs.writeFileSync(`userdata/${user}.json`, JSON.stringify(data, undefined, 4).toString().replace("}}", "}"));
 
             
 
@@ -137,52 +148,52 @@ module.exports = {
     },
     
     addMultiplier(user, amount) {
-        var data = JSON.parse(fs.readFileSync('userdata.json', 'utf8'));
-        if (data[user] == undefined) {
+        var data = JSON.parse(fs.readFileSync(`userdata/${user}.json`, 'utf8'));
+        if (data == undefined) {
             require('./stuff').createData(user);
             return;
         }
 
-        data[user].multiplier = (data[user].multiplier || 1) + amount;
-        fs.writeFileSync('userdata.json', JSON.stringify(data, undefined, 4).toString().replace("}}", "}"));
+        data.multiplier = (data.multiplier || 1) + amount;
+        fs.writeFileSync(`userdata/${user}.json`, JSON.stringify(data, undefined, 4).toString().replace("}}", "}"));
     },
 
     addItem(user, item) {
-        var data = JSON.parse(fs.readFileSync('userdata.json', 'utf8'));
-        if (data[user] == undefined) {
+        var data = JSON.parse(fs.readFileSync(`userdata/${user}.json`, 'utf8'));
+        if (data == undefined) {
             require('./stuff').createData(user);
             return;
         }
 
-        if (data[user].inventory == undefined) {
-            data[user].inventory = [];
+        if (data.inventory == undefined) {
+            data.inventory = [];
         }
 
-        data[user].inventory.push(item);
-        fs.writeFileSync('userdata.json', JSON.stringify(data, undefined, 4).toString().replace("}}", "}"));
+        data.inventory.push(item);
+        fs.writeFileSync(`userdata/${user}.json`, JSON.stringify(data, undefined, 4).toString().replace("}}", "}"));
     },
 
     removeItem(user, itemName, count = 1) {
-        var data = JSON.parse(fs.readFileSync('userdata.json', 'utf8'));
-        if (data[user] == undefined) {
+        var data = JSON.parse(fs.readFileSync(`userdata/${user}.json`, 'utf8'));
+        if (data == undefined) {
             require('./stuff').createData(user);
             return;
         }
 
-        if (data[user].inventory == undefined) {
-            data[user].inventory = [];
+        if (data.inventory == undefined) {
+            data.inventory = [];
         }
 
-        var inv = data[user].inventory;
+        var inv = data.inventory;
         var times = 0;
         for (let i = 0; i < inv.length; i++) {
             const element = inv[i];
             if (element.id == itemName && times < count) {
-                data[user].inventory.splice(i, 1);
+                data.inventory.splice(i, 1);
                 times++;
             }
         }
-        fs.writeFileSync('userdata.json', JSON.stringify(data, undefined, 4).toString().replace("}}", "}"));
+        fs.writeFileSync(`userdata/${user}.json`, JSON.stringify(data, undefined, 4).toString().replace("}}", "}"));
     },
 
 
@@ -219,18 +230,18 @@ module.exports = {
     },
     
     addPoints (user, amount) {
-        fs.readFile("userdata.json", "utf8", function(err, d) {
+        fs.readFile(`userdata/${user}.json`, "utf8", function(err, d) {
             if (err){
                 return console.log(err);
             }
             var data = JSON.parse(d.toString().replace("}}", "}"));
 
-            if (data[user] == undefined) {
+            if (data == undefined) {
                 return require('./stuff').createData(user);
                 
             } else {
-                data[user].points = (data[user].points || 0) + amount;
-                fs.writeFile("userdata.json", JSON.stringify(data, undefined, 4).toString().replace("}}", "}"), function(err) {
+                data.points = (data.points || 0) + amount;
+                fs.writeFile(`userdata/${user}.json`, JSON.stringify(data, undefined, 4).toString().replace("}}", "}"), function(err) {
                     if (err) {
                         console.log(err);
                     }
@@ -244,8 +255,8 @@ module.exports = {
     },
 
     getPoints (user) {
-        var data = JSON.parse(fs.readFileSync("userdata.json", "utf8").replace("}}", "}"));
-        return data[user].points || 0;
+        var data = JSON.parse(fs.readFileSync(`userdata/${user}.json`, "utf8").replace("}}", "}"));
+        return data.points || 0;
     },
 
     getConfig(setting) {
@@ -268,7 +279,7 @@ module.exports = {
     
     
     setPermission (user, perm, value) {
-        var data = JSON.parse(fs.readFileSync("userdata.json").toString().replace("}}", "}"));
+        var data = JSON.parse(fs.readFileSync(`userdata/${user}.json`).toString().replace("}}", "}"));
 
         if (value == "false") {
             value = false;
@@ -278,8 +289,8 @@ module.exports = {
             value = true;
         }
         
-        if (!data[user]) {
-            data[user] = {
+        if (!data) {
+            data = {
                 xp: 0,
 
                 level: 1,
@@ -295,9 +306,9 @@ module.exports = {
         }
 
         
-        data[user].permissions[perm] = value;
+        data.permissions[perm] = value;
 
-        fs.writeFileSync("userdata.json", JSON.stringify(data, undefined, 4).toString().replace("}}", "}"));
+        fs.writeFileSync(`userdata/${user}.json`, JSON.stringify(data, undefined, 4).toString().replace("}}", "}"));
     },
     
     
@@ -339,10 +350,10 @@ module.exports = {
     
     createData: function(user) {
 
-        if (fs.existsSync("userdata.json")) {
-            var data = JSON.parse(fs.readFileSync("userdata.json", 'utf8').toString().replace("}}", "}"));
-            if (!data[user]) {
-                data[user] = {
+        if (fs.existsSync(`userdata/${user}.json`)) {
+            var data = JSON.parse(fs.readFileSync(`userdata/${user}.json`, 'utf8').toString().replace("}}", "}"));
+            if (!data) {
+                data = {
                     xp: 0,
 
                     level: 1,
@@ -362,14 +373,14 @@ module.exports = {
             }
             
 
-            fs.writeFileSync("userdata.json", JSON.stringify(data, undefined, 4).toString().replace("}}", "}"));
+            fs.writeFileSync(`userdata/${user}.json`, JSON.stringify(data, undefined, 4).toString().replace("}}", "}"));
         } else {
             
             var data = {
 
             }
 
-            data[user] = {
+            data = {
                 xp: 0,
 
                 level: 1,
@@ -387,7 +398,7 @@ module.exports = {
                 }
             }
             
-            fs.writeFileSync("userdata.json", JSON.stringify(data, undefined, 4).toString().replace("}}", "}"));
+            fs.writeFileSync(`userdata/${user}.json`, JSON.stringify(data, undefined, 4).toString().replace("}}", "}"));
         }
         
         
@@ -402,13 +413,13 @@ module.exports = {
     
      getPermission(user, perm) {
 
-        if ( fs.existsSync("userdata.json") ) {
+        if ( fs.existsSync(`userdata/${user}.json`) ) {
             
-            const data = JSON.parse(fs.readFileSync("userdata.json", 'utf8').toString().toString().replace("}}", "}"));
+            const data = JSON.parse(fs.readFileSync(`userdata/${user}.json`, 'utf8').toString().toString().replace("}}", "}"));
 
-            if (data[user]) {
+            if (data) {
 
-                return data[user].permissions[perm];
+                return data.permissions[perm] || false;
 
             } else {
                 return false;
