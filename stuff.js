@@ -154,7 +154,7 @@ module.exports = {
             
 
             data.inventory[slot].extraData.packages.push(package);    
-            fs.writeFileSync(`userdata/${user}.json`, JSON.stringify(data, null, '\t').toString().replace(/} ?\n?}/gm, "}"));
+            fs.writeFileSync(`userdata/${user}.json`, JSON.stringify(data, null, '\t').toString().replace("}}", "}"));
 
             
 
@@ -172,7 +172,7 @@ module.exports = {
         }
 
         data.multiplier = (data.multiplier || 1) + amount;
-        fs.writeFileSync(`userdata/${user}.json`, JSON.stringify(data, null, '\t').toString().replace(/} ?\n?}/gm, "}"));
+        fs.writeFileSync(`userdata/${user}.json`, JSON.stringify(data, null, '\t').toString().replace("}}", "}"));
     },
 
     addItem(user, item) {
@@ -187,7 +187,7 @@ module.exports = {
         }
 
         data.inventory.push(item);
-        fs.writeFileSync(`userdata/${user}.json`, JSON.stringify(data, null, '\t').toString().replace(/} ?\n?}/gm, "}"));
+        fs.writeFileSync(`userdata/${user}.json`, JSON.stringify(data, null, '\t').toString().replace("}}", "}"));
     },
 
     removeItem(user, itemName, count = 1) {
@@ -210,7 +210,7 @@ module.exports = {
                 times++;
             }
         }
-        fs.writeFileSync(`userdata/${user}.json`, JSON.stringify(data, null, '\t').toString().replace(/} ?\n?}/gm, "}"));
+        fs.writeFileSync(`userdata/${user}.json`, JSON.stringify(data, null, '\t').toString().replace("}}", "}"));
     },
 
 
@@ -251,14 +251,14 @@ module.exports = {
             if (err){
                 return console.log(err);
             }
-            var data = JSON.parse(d.toString().replace(/} ?\n?}/gm, "}"));
+            var data = JSON.parse(d.toString().replace("}}", "}"));
 
             if (data == undefined) {
                 return require('./stuff').createData(user);
                 
             } else {
                 data.points = (data.points || 0) + amount;
-                fs.writeFile(`userdata/${user}.json`, JSON.stringify(data, null, '\t').toString().replace(/} ?\n?}/gm, "}"), function(err) {
+                fs.writeFile(`userdata/${user}.json`, JSON.stringify(data, null, '\t').toString().replace("}}", "}"), function(err) {
                     if (err) {
                         console.log(err);
                     }
@@ -272,12 +272,12 @@ module.exports = {
     },
 
     getPoints (user) {
-        var data = JSON.parse(fs.readFileSync(`userdata/${user}.json`, "utf8").replace(/} ?\n?}/gm, "}"));
+        var data = JSON.parse(fs.readFileSync(`userdata/${user}.json`, "utf8").replace("}}", "}"));
         return data.points || 0;
     },
 
     getConfig(setting) {
-        var config = JSON.parse(fs.readFileSync("more-config.json").toString().replace(/} ?\n?}/gm, "}"));
+        var config = JSON.parse(fs.readFileSync("more-config.json").toString().replace("}}", "}"));
         
 
         if (config[setting] == undefined) {
@@ -288,15 +288,15 @@ module.exports = {
     },
 
     set(setting, value) {
-        var config = JSON.parse(fs.readFileSync("more-config.json").toString().replace(/} ?\n?}/gm, "}"));
+        var config = JSON.parse(fs.readFileSync("more-config.json").toString().replace("}}", "}"));
         config[setting] = value;
 
-        fs.writeFileSync("more-config.json", JSON.stringify(config, undefined, 4).toString().replace(/} ?\n?}/gm, "}"));
+        fs.writeFileSync("more-config.json", JSON.stringify(config, undefined, 4).toString().replace("}}", "}"));
     },
     
     
     setPermission (user, perm, value) {
-        var data = JSON.parse(fs.readFileSync(`userdata/${user}.json`).toString().replace(/} ?\n?}/gm, "}"));
+        var data = JSON.parse(fs.readFileSync(`userdata/${user}.json`).toString().replace("}}", "}"));
 
         if (value == "false") {
             value = false;
@@ -325,7 +325,7 @@ module.exports = {
         
         data.permissions[perm] = value;
 
-        fs.writeFileSync(`userdata/${user}.json`, JSON.stringify(data, null, '\t').toString().replace(/} ?\n?}/gm, "}"));
+        fs.writeFileSync(`userdata/${user}.json`, JSON.stringify(data, null, '\t').toString().replace("}}", "}"));
     },
     
     
@@ -368,7 +368,7 @@ module.exports = {
     createData: function(user) {
 
         if (fs.existsSync(`userdata/${user}.json`)) {
-            var data = JSON.parse(fs.readFileSync(`userdata/${user}.json`, 'utf8').toString().replace(/} ?\n?}/gm, "}"));
+            var data = JSON.parse(fs.readFileSync(`userdata/${user}.json`, 'utf8').toString().replace("}}", "}"));
             if (!data) {
                 data = {
                     xp: 0,
@@ -390,7 +390,7 @@ module.exports = {
             }
             
 
-            fs.writeFileSync(`userdata/${user}.json`, JSON.stringify(data, null, '\t').toString().replace(/} ?\n?}/gm, "}"));
+            fs.writeFileSync(`userdata/${user}.json`, JSON.stringify(data, null, '\t').toString().replace("}}", "}"));
         } else {
             
             var data = {
@@ -415,7 +415,7 @@ module.exports = {
                 }
             }
             
-            fs.writeFileSync(`userdata/${user}.json`, JSON.stringify(data, null, '\t').toString().replace(/} ?\n?}/gm, "}"));
+            fs.writeFileSync(`userdata/${user}.json`, JSON.stringify(data, null, '\t').toString().replace("}}", "}"));
         }
         
         
@@ -432,7 +432,7 @@ module.exports = {
 
         if ( fs.existsSync(`userdata/${user}.json`) ) {
             
-            const data = JSON.parse(fs.readFileSync(`userdata/${user}.json`, 'utf8').toString().replace(/} ?\n?}/gm, "}"));
+            const data = JSON.parse(fs.readFileSync(`userdata/${user}.json`, 'utf8').toString().replace("}}", "}"));
 
             if (data) {
 
