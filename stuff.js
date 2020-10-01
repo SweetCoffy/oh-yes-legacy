@@ -1,3 +1,4 @@
+const { Collection } = require('discord.js');
 const fs = require('fs');
 
 // extra stuff script
@@ -6,11 +7,16 @@ const fs = require('fs');
 module.exports = {
     somehugenumber: 99999999,
     client: "",
+    phoneCommands: new Collection(),
     funnyNumbers: [
         69,
         420
     ],
 
+    validPackages: [
+        "eggs"
+    ],
+    
     shopItems : {
             "spaghet": {
                 name: "Spaghet",
@@ -53,9 +59,32 @@ module.exports = {
                 icon: ":mobile_phone:",
                 price: 700,
                 inStock: 5,
-                onUse: function(user, message, args) {
+                onUse: function(user, message, args, slot) {
+                    
+                    const stuff = require('./stuff');
+                    
+                    var phoneData = stuff.getInventory(user)[slot].extraData || {};
+                    var installedPackages = phoneData.packages || [];
+                    
                     var u = message.guild.members.cache.get(user).user;
-                    message.channel.send(`${u.username}, Your phone doesn't know how to \`${args[0]}\``);
+
+
+                    
+                    var cmdName = args[0];
+                    var _args = args.slice(1);
+
+                    var cmd = stuff.phoneCommands.get(cmdName);
+
+                    
+                        
+                    if (!cmd) {
+                        throw `The command \`<base>/${cmd.name}\` is not available`;
+                    } else {
+                        if (!installedPackages.includes(cmd.package) && cmd.package != undefined) throw `The command \`${cmd.package || "unknown"}/${cmd.name || "invalid-command"}\` is not available`;
+                        cmd.execute(message, _args, phoneData);
+                    }
+                    
+                    
                     return false;
                 }
             }
@@ -66,6 +95,16 @@ module.exports = {
         ohyes: '737493602011316326',
     },
 
+    loadPhoneCommands() {
+        const commandFiles = fs.readdirSync('./phone-commands').filter(file => file.endsWith('.js'));
+        for (const file of commandFiles) {
+            const command = require(`./phone-commands/${file}`);
+        
+        
+            this.phoneCommands.set(command.name, command);
+        }
+    },
+
     getMultiplier(user) {
         var data = JSON.parse(fs.readFileSync('userdata.json', 'utf8'));
         return (data[user] || {}).multiplier || 1;
@@ -74,6 +113,27 @@ module.exports = {
     getInventory(user) {
         var data = JSON.parse(fs.readFileSync('userdata.json', 'utf8'));
         return (data[user] || {}).inventory || [];
+    },
+
+    addPackage: function(user, slot, package) {  
+        var data = JSON.parse(fs.readFileSync('userdata.json', 'utf8'));
+        const stuff = require('./stuff');
+        
+        if (stuff.validPackages.includes(package)) {
+            
+
+            
+
+            data[user].inventory[slot].extraData.packages.push(package);    
+            fs.writeFileSync('userdata.json', JSON.stringify(data, undefined, 4).toString().replace("}}", "}"));
+            resolve();
+
+            
+
+        } else {
+            throw `could not find package \`${package}\``
+        }
+        
     },
     
     addMultiplier(user, amount) {
@@ -115,7 +175,7 @@ module.exports = {
 
         var inv = data[user].inventory;
         var times = 0;
-        for (let i = 0; i < array.length; i++) {
+        for (let i = 0; i < inv.length; i++) {
             const element = inv[i];
             if (element.id == itemName && times < count) {
                 data[user].inventory.splice(i, 1);
@@ -184,12 +244,12 @@ module.exports = {
     },
 
     getPoints (user) {
-        var data = JSON.parse(fs.readFileSync("userdata.json", "utf8").toString().toString().replace("}}", "}"));
+        var data = JSON.parse(fs.readFileSync("userdata.json", "utf8").replace("}}", "}"));
         return data[user].points || 0;
     },
 
     getConfig(setting) {
-        var config = JSON.parse(fs.readFileSync("more-config.json").toString().toString().replace("}}", "}"));
+        var config = JSON.parse(fs.readFileSync("more-config.json").toString().replace("}}", "}"));
         
 
         if (config[setting] == undefined) {
@@ -200,7 +260,7 @@ module.exports = {
     },
 
     set(setting, value) {
-        var config = JSON.parse(fs.readFileSync("more-config.json").toString().toString().replace("}}", "}"));
+        var config = JSON.parse(fs.readFileSync("more-config.json").toString().replace("}}", "}"));
         config[setting] = value;
 
         fs.writeFileSync("more-config.json", JSON.stringify(config, undefined, 4).toString().replace("}}", "}"));
@@ -208,7 +268,7 @@ module.exports = {
     
     
     setPermission (user, perm, value) {
-        var data = JSON.parse(fs.readFileSync("userdata.json").toString().toString().replace("}}", "}"));
+        var data = JSON.parse(fs.readFileSync("userdata.json").toString().replace("}}", "}"));
 
         if (value == "false") {
             value = false;
@@ -280,7 +340,7 @@ module.exports = {
     createData: function(user) {
 
         if (fs.existsSync("userdata.json")) {
-            var data = JSON.parse(fs.readFileSync("userdata.json", 'utf8')).toString().replace("}}", "}");
+            var data = JSON.parse(fs.readFileSync("userdata.json", 'utf8').toString().replace("}}", "}"));
             if (!data[user]) {
                 data[user] = {
                     xp: 0,

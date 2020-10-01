@@ -8,7 +8,7 @@
     "archiveCategory": "750194381516177529",
     "botChannel": "749724758978986105",
     "commands.ghostping": true,
-    "fancierHelpMode": true,
+    "fancierHelpMode": false,
     "v_": "755546914715336765",
     "someRandomFloat": 69.42,
     "someRandomBool": false,
