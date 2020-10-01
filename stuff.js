@@ -113,6 +113,8 @@ module.exports = {
         
     },
 
+
+
     getMultiplier(user) {
         var data = JSON.parse(fs.readFileSync(`userdata/${user}.json`, 'utf8'));
         return (data || {}).multiplier || 1;
