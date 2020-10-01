@@ -128,8 +128,8 @@ client.on('message', message => {
 function sendError (channel, err) {
     var msgEmbed = {
         color: 0xff0000,
-        title: "oof",
-        description: err.toString()
+        title: err.name,
+        description: err.message
 
     }
     channel.send({embed: msgEmbed});
