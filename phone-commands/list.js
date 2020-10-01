@@ -14,7 +14,7 @@ module.exports = {
             });
     
             available.forEach(el => {
-                cmdNames.push(`\`${(el.package || "<base>")}/${el.name}\``);
+                cmdNames.push(`\`${(el.package || "<base>")}/${el.author || "author unknown"}/${el.name}\``);
             })
     
             var embed = {
@@ -25,12 +25,19 @@ module.exports = {
         } else if (mode == "packages" || mode == "pkgs") {
             var pkgNames = [];
             stuff.validPackages.forEach(el => {
-                pkgNames.push("`" + el + "`");
-                var embed = {
-                    title: "phone command list",
-                    description: pkgNames.join("\n")
-                }
+                var pkgCommands = stuff.phoneCommands.filter(el => el.package == el).length;
+                
+                pkgNames.push(`\`${el}\`, +${pkgCommands}`);
+
             })
+            var embed = {
+                title: "phone packages list",
+                description: pkgNames.join("\n"),
+                footer: {
+                    text: "add <package name> to add a package lol"
+                }
+            }
+            message.channel.send({embed: embed})
         } else {
             throw `list mode \`${mode}\` not found`
         }

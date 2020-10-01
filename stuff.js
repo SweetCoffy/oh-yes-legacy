@@ -84,7 +84,7 @@ module.exports = {
                         throw `The command \`<base>/${args[0]}\` is not available`;
                     } else {
                         if (!installedPackages.includes(cmd.package) && cmd.package != undefined) throw `The command \`${cmd.package || "unknown"}/${cmd.name || "invalid-command"}\` is not available`;
-                        cmd.execute(message, _args, phoneData);
+                        cmd.execute(message, _args, phoneData, slot);
                     }
                     
                     
