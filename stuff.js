@@ -81,9 +81,9 @@ module.exports = {
                     
                         
                     if (!cmd) {
-                        throw `The command \`<base>/${args[0]}\` is not available`;
+                        throw `The command \`<base>/author unknown/${args[0]}\` is not available`;
                     } else {
-                        if (!installedPackages.includes(cmd.package) && cmd.package != undefined) throw `The command \`${cmd.package || "unknown"}/${cmd.name || "invalid-command"}\` is not available`;
+                        if (!installedPackages.includes(cmd.package) && cmd.package != undefined) throw `The command \`${cmd.package || "unknown"}/${cmd.name || "invalid-command"}\` is not available, use \`add ${cmd.package}\` and try again`;
                         cmd.execute(message, _args, phoneData, slot);
                     }
                     
@@ -136,6 +136,15 @@ module.exports = {
         if (data.inventory[slot].extraData == undefined) {
             data.inventory[slot].extraData = {packages: []};
         }
+
+        if (data.inventory[slot].extraData.os == undefined) {
+            data.inventory[slot].extraData.os = "Egg OS"
+        }
+        if (data.inventory[slot].extraData.ver == undefined) {
+            data.inventory[slot].extraData.ver = 0.69;
+        }
+
+        
         
         if (stuff.validPackages.includes(package)) {
             
