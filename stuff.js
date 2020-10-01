@@ -105,6 +105,10 @@ module.exports = {
             delete require.cache[resolve(`./phone-commands/${file}`)]
             
             const command = require(`./phone-commands/${file}`);
+
+            if (!this.validPackages.includes(command.package) && command.package != undefined) {
+                this.validPackages.push(command.package);
+            }
         
             
         
