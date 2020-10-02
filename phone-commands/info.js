@@ -8,7 +8,7 @@ module.exports = {
             fields: [
                 {
                     name: (phoneData.os || "unknown os") + " version",
-                    value: (phoneData.ver || "unknown version")
+                    value: `${phoneData.verName || "h"} (${(phoneData.ver || "unknown version")})`
                 }
             ]
         }

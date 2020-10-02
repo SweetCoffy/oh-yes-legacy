@@ -38,7 +38,7 @@ module.exports = {
                     } else {      
                         var it = stuff.shopItems[item];
                         
-                        stuff.addItem(message.author.id, {name: it.name, onUse: it.onUse, icon: it.icon, id: item})
+                        stuff.addItem(message.author.id, {name: it.name, onUse: it.onUse, icon: it.icon, id: item, extraData: it.extraData})
                         stuff.addPoints(message.author.id, -it.price)
     
                         var embed = {

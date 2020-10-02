@@ -62,6 +62,12 @@ module.exports = {
                 icon: ":mobile_phone:",
                 price: 700,
                 inStock: 9999999999,
+                extraData: {
+                    packages: [],
+                    os: "Egg OS",
+                    ver: 0.69,
+                    verName: "0.69b"
+                },
                 onUse: function(user, message, args, slot) {
                     
                     const stuff = require('./stuff');
@@ -314,7 +320,12 @@ module.exports = {
 
                 xpNeeded: 100,
 
-                inventory: [{name: "Phone", id: "phone", icon: ":mobile_phone:"}],
+                inventory: [{name: "Phone", id: "phone", icon: ":mobile_phone:", extraData: {
+                    packages: [],
+                    os : "Egg OS",
+                    ver: 0.7,
+                    verName: "0.7b"
+                }}],
                 
                 permissions: {
 
@@ -381,7 +392,12 @@ module.exports = {
 
                     multiplier: 1,
 
-                    inventory: [{name: "Phone", id: "phone", icon: ":mobile_phone:"}],
+                    inventory: [{name: "Phone", id: "phone", icon: ":mobile_phone:", extraData: {
+                        packages: [],
+                        os : "Egg OS",
+                        ver: 0.7,
+                        verName: "0.7b"
+                    }}],
                     
                     permissions: {
     
