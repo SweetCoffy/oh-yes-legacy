@@ -19,7 +19,7 @@ module.exports = {
             var startFrom = 0 + (10 * page);
 
             entries.forEach(entry => {
-                itemNames.push(`${entry[1].icon} \`${entry[0]}\` **${entry[1].name}** ─ __${stuff.format(entry[1].price)} <:ip:763937198764326963>__ ${(discount < 1) ? `${(1 - discount) * 100}% OFF` : ``}${(entry[1].type) ? ` ─ ${entry[1].type}` : ``}${(entry[1].extraInfo) ? `\n${entry[1].extraInfo}` : ``}`);
+                itemNames.push(`${entry[1].icon} \`${entry[0]}\` **${entry[1].name}** ─ <:ip:763937198764326963> __${stuff.format(entry[1].price)}__ ${(discount < 1) ? `${(1 - discount) * 100}% OFF` : ``}${(entry[1].type) ? ` ─ ${entry[1].type}` : ``}${(entry[1].extraInfo) ? `\n${entry[1].extraInfo}` : ``}`);
             })
 
             var embed = {
