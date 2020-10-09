@@ -14,7 +14,7 @@ module.exports = {
         // command code goes here
         // example:
         message.channel.send(
-            `<@${message.author.id}> get pinged lol, the first argument entered is: ${args[0]}`
+			`<@${message.author.id}> get pinged lol, the first argument entered is: ${args[0]}`
             
         );
     }
@@ -30,6 +30,7 @@ module.exports = {
 | usage | string | text shown in the command's help embed
 | requiredPermission | string | permission required to perform the command
 | removed | bool | wether or not this command has been removed, when true any attempts to perform the command will result in an error
+| execute | function | function that accepts up to 3 arguments (message, args, extraArgs), will be called when the command is performed
 
 ## **how 2 make stuff**
 i've made some example code ~~that nobody will ever read~~ about some stuff h
