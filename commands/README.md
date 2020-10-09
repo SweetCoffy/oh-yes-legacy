@@ -19,7 +19,15 @@ module.exports = {
 }
 ```
 
-**some other properties that are optional:**
-* `description` text that will be shown in the command's help embed, if not present it will show `<eggs>`
-* `usage` usage that will be shown in the command's help embed, intended format: `<command name> <arg1:type> [arg2:type] [arg3:type] [etc...]` (`<>` means required argument meanwhile `[]` means optional argument)
-* `requiredPermission` permission required to use this command, defaults to `""` (anyone can use it)
+## **command file properties**
+(* = required)
+| name | type | description |
+|------|------|------------ |
+| name* | string | property used for some stuff, must be the same as the file name without the extension to work properly
+|description | string | text shown in the command's help embed description
+| usage | string | text shown in the command's help embed
+| requiredPermission | string | permission required to perform the command
+| removed | bool | wether or not this command has been removed, when true any attempts to perform the command will result in an error
+
+
+
