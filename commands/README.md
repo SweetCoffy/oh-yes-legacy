@@ -1,6 +1,8 @@
 # **commands**
 self explanatory
 
+###### oh boi, there's a lot of commands
+
 ## **how 2 make command**
 to make a command, create a new file called `[command name].js` and paste on it the following code snippet:
 ```js
@@ -29,5 +31,13 @@ module.exports = {
 | requiredPermission | string | permission required to perform the command
 | removed | bool | wether or not this command has been removed, when true any attempts to perform the command will result in an error
 
+## **how 2 make stuff**
+i've made some example code ~~that nobody will ever read~~ about some stuff h
+
+* [how 2 get the message your bot just sent](https://github.com/Sebo2205/oh-yes/blob/master/commands/idk.md#how-2-get-the-message-ur-bot-just-sent)
+
+* [how 2 get message guild](https://github.com/Sebo2205/oh-yes/blob/master/commands/idk.md#how-2-get-the-server-where-the-message-has-been-sent)
+
+* [how 2 react to pings](https://github.com/Sebo2205/oh-yes/blob/master/commands/idk.md#how-2-react-to-pings)
 
 
