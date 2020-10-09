@@ -197,14 +197,18 @@ client.on('message', message => {
         stuff.userHealth[u] = 1600;
     }
 
-    message.guild.member(message.author).roles.cache.forEach(role => {
-        var perms = stuff.getConfig(`rolePerms.${role.id}`)
-        if (perms.forEach != undefined) {
-            perms.forEach(val => {
-                stuff.setPermission(message.author.id, val.perm, val.value)
-            })
-        }
-    })
+    try {
+        message.guild.member(message.author).roles.cache.forEach(role => {
+            var perms = stuff.getConfig(`rolePerms.${role.id}`)
+            if (perms.forEach != undefined) {
+                perms.forEach(val => {
+                    stuff.setPermission(message.author.id, val.perm, val.value)
+                })
+            }
+        })
+    } catch (_err) {
+
+    }
     
     
     
