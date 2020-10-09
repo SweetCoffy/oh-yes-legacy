@@ -16,16 +16,25 @@ class CommandError {
     footer;
 
     /**
+     * Returns a string representation of a CommandError
+     */
+    toString() {
+
+    }
+
+    /**
      * @param {String} name The error name
      * @param {String} message The error message
      */
-    
     constructor(name, message, footer = undefined) {
         this.name = name;
         this.message = message;
         this.footer = footer;
+        
     }
-
+    /**
+     * Returns a discord embed representation of a CommandError
+     */
     toEmbed() {
         var embed ={
             title: this.name,
