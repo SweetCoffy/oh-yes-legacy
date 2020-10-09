@@ -1,12 +1,12 @@
 {
-    "commands.spam": true,
+    "commands.spam": false,
     "suggestionsChannel": "736730736219914321",
     "reportsChannel": "751179205315919952",
     "command.report": false,
     "commands.report": true,
     "commands.suggest": true,
     "archiveCategory": "750194381516177529",
-    "botChannel": "749724758978986105",
+    "botChannel": "762442342426738748",
     "commands.ghostping": true,
     "fancierHelpMode": false,
     "v_": "755546914715336765",
@@ -30,5 +30,22 @@
     "announcements": "736697212213657680",
     "someRandomInt": 69,
     "regexGud": true,
-    "server-info": "736691780140924979"
+    "server-info": "736691780140924979",
+    "unarchiveSuggestions": "762795455649284126",
+    "autosave": null,
+    "autosave-interval": 10000,
+    "season": 7,
+    "rolePerms.729094522264485979": [
+        {
+            "perm": "*",
+            "value": true
+        }
+    ],
+    "rolePerms.749397852295266327": [
+        {
+            "perm": "commands.archive",
+            "value": true
+        }
+    ],
+    "ip": "<:ip:763937198764326963>"
 }

@@ -2,6 +2,7 @@ const stuff = require('../stuff');
 
 module.exports = {
     name: "add",
+    minVer: 0.001,
     execute (message, args, phoneData, slot) {
         
         var pkg = args[0];

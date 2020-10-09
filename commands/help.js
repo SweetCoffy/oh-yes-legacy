@@ -34,22 +34,29 @@ module.exports = {
                     }
                 }
 
+                var cmd = commands.get(args[0]);
+                
                 if (commands.get(args[0]).removed) {
                     e.title = args[0] + " (removed)"
                 }
-
-                if (commandEnabled && !commandRemoved) {
-                    e.footer.text = `${en} this command is enabled`
-                } else if (!commandRemoved){
-                    e.footer.text = `${en} this command is disabled`
-                } else {
-                    e.footer.text = `⬛ this command has been removed`;
+                if (!stuff.getConfig(`commands.${cmd.name}`) && !cmd.removed) {
+                    e.title = args[0] + " (disabled)"
                 }
+
+ 
 
 
 
                 if (commands.get(args[0]).usage || commands.get(args[0]).requiredPermission) {
                     e.fields = [];
+                }
+
+                if (!cmd.removed && stuff.getConfig(`commands.${cmd.name}`)) {
+                    e.color = 0x71ed18;
+                } else if (!cmd.removed) {
+                    e.color = 0xed2a18;
+                } else {
+                    e.color = 0x687a78;
                 }
 
                 if (commands.get(args[0]).usage) {
@@ -121,46 +128,25 @@ module.exports = {
                 }
             });
 
+            var page = 0;
+            if (extraArgs[0] == "page") {
+                page = (extraArgs[1] || 1) - 1
+            }
+            var startFrom = 0 + (20 * page);
+
             var embed = {
                 title: "command list",
-                description: commandNames.join(currSeparator),
+                description: commandNames.slice(startFrom, startFrom + 20).join(currSeparator),
                 footer: {
-                    text: 'use ;help <command name> for info about that command',
+                    text: `use ;help <command name> for info about that command, page ${page + 1}/${Math.ceil(commandNames.length / 20)}`,
                 }
             }
 
-            if (inBotChannel) {
-                if (fancierMode) {
-                    embed.description = undefined;
-                    embed.fields = [];
-                    commands.forEach(element => {
-                        var commandRemoved = element.removed;
-                        var commandEnabled = stuff.getConfig("commands." + element.name.toLowerCase());
-                        var en;
-        
-                        if (commandEnabled && !commandRemoved) {
-                            en = "\🟩";
-                        } else if (!commandRemoved){
-                            en = "\🟥";
-                        } else {
-                            en = "\⬛";
-                        }
-                        if (!commandRemoved || showRemovedCommands) {
-                            embed.fields.push(
-                                {
-                                    name: `\`${en}\` ` + element.name,
-                                    value: element.description || "<eggs>",
-                                    inline: true,
-                                }
-                            );
-                        }
-                        
 
-                    })
-                }
-            }
 
-            message.channel.send({embed: embed});
+            message.channel.send({embed: embed}).then(m => {
+                m.react('◀️').then(r => r.message.react('▶️').then(r => r.message.react('🏓')))
+            })
 
         }
     }

@@ -24,6 +24,8 @@ module.exports = {
 
             description: args.join(" "),
 
+            embedType: "suggestion",
+
 
         }
 

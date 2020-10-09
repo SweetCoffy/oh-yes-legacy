@@ -12,7 +12,7 @@ module.exports = {
 
         var embed = {
             title: `${user.username} has`,
-            description: `${points.toFixed(1)} Internet Points\™️, Multiplier: ${multiplier.toFixed(1)}`
+            description: `${stuff.format(points)} Internet Points\™️, Multiplier: ${stuff.format(multiplier)}`
         }
 
         message.channel.send({embed: embed})

@@ -2,6 +2,7 @@ const stuff = require('../stuff');
 
 module.exports = {
     name: "list",
+    minVer: 0.0001,
     execute(message, args, phoneData) {
         var mode = "commands"
 
@@ -14,7 +15,7 @@ module.exports = {
             });
     
             available.forEach(el => {
-                cmdNames.push(`\`${(el.package || "<base>")}/${el.author || "author unknown"}/${el.name}\``);
+                cmdNames.push(`\`${(el.package || "<base>")}/${el.author || "author unknown"}/${el.name}\` ${((el.minVer || 1) <= phoneData.ver) ? "" : `(requires version ${el.minVer || 1} or newer)`}`);
             })
     
             var embed = {

@@ -7,28 +7,28 @@
         },
         {
             "title": "Shop",
-            "description": "You can buy items from the shop with Internet Points™️, use `;buy <item>` to buy that item, you can use `;buy` to see a list of items"
+            "description": "You can buy items from the shop with Internet Points™️, use '**;buy <item>**' to buy that item, you can use '**;buy**' to see a list of items"
         }
     ],
     "extra-args":
     [
         {
             "title": "Extra args",
-            "description": "You can pass and extra argument to commands, to do so, you have to add `--<argument name>='<argument value>'` after the normal arguments, it also accepts the `--<argument name>` format"
+            "description": "You can pass and extra argument to commands, to do so, you have to add '**--<argument name>='<argument value>'**' after the normal arguments, it also accepts the '**--<argument name>**' format"
         }
     ],
     "help":
     [
         {
             "title": "Help",
-            "description": "just use `;help` for a list of commands or `;help <command name>` for info about that command lol"
+            "description": "just use ';help' for a list of commands or ';help <command name>' for info about that command lol"
         }
     ],
     "items":
     [
         {
             "title": "Items",
-            "description": "They are currently useless, use `;inventory` to see a list of all your items"
+            "description": "They are currently useless, use '**;inventory**' to see a list of all your items"
         }
     ]
 }

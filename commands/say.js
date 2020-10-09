@@ -1,3 +1,5 @@
+const stuff = require("../stuff");
+
 module.exports = {
     name: "say",
     requiredPermission: "commands.say",
@@ -13,8 +15,9 @@ module.exports = {
 
 
         // join the stuff
-        var cont = args.join(" ");
+        var cont = stuff.stringThing(args.join(" "));
 
+        
         
         if (extraArgs[0] == "embed") {
             var oldCont = cont;

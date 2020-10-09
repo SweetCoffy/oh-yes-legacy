@@ -6,11 +6,15 @@ module.exports = {
     execute(message, args) {
         var authorId = message.author.id;
         var inv = stuff.getInventory(authorId);
+        var page = (parseInt(args[0]) || 1) - 1;
+        var startFrom = 0 + (20 * page);
+
         
         if (inv.length < 1) {
             throw "you don't have any items in your inventory!"
         } else {
             var itemNames = [];
+           
 
             var i = 0;
             inv.forEach(item => {
@@ -20,7 +24,10 @@ module.exports = {
 
             var embed = {
                 title: "inventory",
-                description: itemNames.join("\n")
+                description: itemNames.slice(startFrom, startFrom + 20).join("\n"),
+                footer: {
+                    text: `page ${page + 1}/${Math.floor(inv.length / 20) + 1}`
+                }
             }
             message.channel.send({embed: embed});
         }
