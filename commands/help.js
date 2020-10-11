@@ -41,6 +41,7 @@ module.exports = {
                 }
                 if (!stuff.getConfig(`commands.${cmd.name}`) && !cmd.removed) {
                     e.title = args[0] + " (disabled)"
+                    
                 }
 
  
@@ -63,9 +64,13 @@ module.exports = {
                     e.fields.push({name: "usage", value: commands.get(args[0]).usage})
                 }
 
+                e.fields.push({name: "cooldown", value: commands.get(args[0]).cooldown | 1 + `second(s)`})
+
                 if (commands.get(args[0]).requiredPermission) {
                     e.fields.push({name: "requires permission", value: commands.get(args[0]).requiredPermission})
                 }
+
+                
 
                 if (commands.get(args[0]).description) {
                     e.description = commands.get(args[0]).description;
@@ -151,3 +156,15 @@ module.exports = {
         }
     }
 }
+
+/*
+       ----
+       |  |
+       |  |
+       |  |
+@Keanu |  |<----<
+       |  |
+       |  |
+       |  |
+       ----
+*/

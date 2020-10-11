@@ -14,7 +14,7 @@ const pageNumbers = new Discord.Collection();
 const config = require('../config.json');
 const fs = require('fs');
 const CommandError = require('./CommandError');
-const { resolve } = require('path');
+const { resolve, join } = require('path');
 const cooldowns = new Discord.Collection();
 var rolePerms = JSON.parse(fs.readFileSync("roleperms.json", 'utf8').toString())
 client.impostors = 
@@ -197,18 +197,7 @@ client.on('message', message => {
         stuff.userHealth[u] = 1600;
     }
 
-    try {
-        message.guild.member(message.author).roles.cache.forEach(role => {
-            var perms = stuff.getConfig(`rolePerms.${role.id}`)
-            if (perms.forEach != undefined) {
-                perms.forEach(val => {
-                    stuff.setPermission(message.author.id, val.perm, val.value)
-                })
-            }
-        })
-    } catch (_err) {
 
-    }
     
     
     
@@ -318,7 +307,16 @@ client.on('message', message => {
                 }
 
                 var joinedArgs = args.join(" ");
-                var regex = /--([^(--) ]*)='(.*)'|--(.*)/g
+                var regex = /--([^- ]*)='([^']*)'|--([^- ]*)/gm
+
+                var extraArgsObject = {};
+
+                var _matches = joinedArgs.matchAll(regex);
+
+                for (const match of _matches) {
+                    var filteredMatch = match.filter(el => el != "" && el != " " && el != undefined)
+                    extraArgsObject[filteredMatch[1]] = filteredMatch[2] || true;
+                }
 
                 
                 
@@ -340,7 +338,7 @@ client.on('message', message => {
                 
 
                 
-                command.execute(message, newArgs, extraArgs);
+                command.execute(message, newArgs, extraArgs, extraArgsObject);
             } else{
                 throw "that command is disabled";
             }

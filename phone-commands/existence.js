@@ -51,7 +51,7 @@ module.exports = {
             if (args[0] == "shop+") {
                 var buyCmd = message.client.commands.get("buy");
                 var _args = args.slice(1);
-                buyCmd.execute(message, _args, [], 0.4)
+                buyCmd.execute(message, _args, [], {}, 0.4)
             }
 
         } else {

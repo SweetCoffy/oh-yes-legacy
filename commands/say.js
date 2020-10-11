@@ -15,7 +15,7 @@ module.exports = {
 
 
         // join the stuff
-        var cont = stuff.stringThing(args.join(" ")).replace(/(<|)[@!&]\S*(>|)/gm, "<no ping>");
+        var cont = stuff.stringThing(args.join(" ")).replace(/(<|)[@!&]\S*(>|)/gm, `<@${message.author.id}>`);
 
         
         

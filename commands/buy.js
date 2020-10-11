@@ -4,9 +4,9 @@ module.exports = {
     name: "buy",
     description: "buys something from the shop",
     usage: "buy <item>",
-    cooldown: 6,
+    cooldown: 10,
 
-    execute(message, args, extraArgs, discount = 1) {
+    execute(message, args, extraArgs, _extraArgsObject, discount = 1) {
         var item = args[0];
 
 

@@ -12,7 +12,12 @@ module.exports = {
                 }, {max: 1, time: 15000, errors: ['time']}).then(() => {
                     
                     message.channel.send("Okay then, resetting data and starting a new season");
-                    stuff.db.delete("/");
+                    var entries = Object.entries(stuff.db.getData("/"));
+                    entries.forEach(el => {
+                        stuff.db.push(`/${el[0]}/points`, 0)
+                        stuff.db.push(`/${el[0]}/multiplier`, 1)
+                        stuff.db.push(`/${el[0]}/inventory`, [])
+                    })
                     stuff.set("season", stuff.getConfig("season") + 1)
                     message.channel.send("Data reset and started a new season!");
                     message.client.commands.get("announce").execute(message, [`Season ${stuff.getConfig("season")} of "get the phone and break the economy any% speedrun" started!!1!!!1!!`], ["title", "new season alert!!1!!!1"])

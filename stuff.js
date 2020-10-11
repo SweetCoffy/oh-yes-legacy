@@ -309,8 +309,7 @@ module.exports = {
                         happiness: stuff.clamp(1 * Math.random(), 0.2, 1),
                         baseMultiplierAdd: 25
                     })
-                    message.channel.send("You summoned a <:oO:749319330503852084> pet!");
-                    return false;
+                    return true;
                 }
             },
             "router-alloy": {
@@ -338,8 +337,7 @@ module.exports = {
                         happiness: stuff.clamp(0.6 * Math.random(), 0.25, 0.7),
                         food: "bread"
                     })
-                    message.channel.send("You summoned a router pet!");
-                    return false;
+                    return true;
                 }
             },
             "web": {
@@ -371,8 +369,21 @@ module.exports = {
                         baseMultiplierAdd: 350,
                         food: "spaghet"
                     })
-                    message.channel.send("You summoned a spider pet!");
-                    return false;
+                    if (!stuff.currentBoss && Math.random() < 0.1) {
+                        stuff.currentBoss = {
+                            name: "Giant Tarantula",
+                            health: 95000,
+                            damageReduction: 1.3,
+                            drops: 100000000000000000,
+                            maxHealth: 95000,
+                            damage: 700,
+                            fighting: [
+                                user
+                            ]
+                        }
+                        message.channel.send("Giant Tarantula has awoken!")
+                    }
+                    return true;
                 }
             },
             "cooked-egg": {
@@ -612,8 +623,13 @@ module.exports = {
 
 
 
-    getMultiplier(user) {
-        return this.db.getData(` /${user}/multiplier`);
+    getMultiplier(user, raw = true) {
+        if (raw) return this.db.getData(`/${user}/multiplier`);
+        if (!raw) return this.db.getData(`/${user}/multiplier`) * (this.db.getData(`/${user}/`).multiplierMultiplier || 1);
+    },
+
+    getMultiplierMultiplier(user) {
+        return this.db.getData(`/${user}/`).multiplierMultiplier || 1;
     },
 
     getInventory(user) {
@@ -739,16 +755,18 @@ module.exports = {
     
     addPoints (user, amount) {
 
-        if ((this.db.getData(` /${user}/points`) + amount) == NaN) return this.db.push(` /${user}/points`, 0);
+        
 
-        this.db.push(` /${user}/points`, this.db.getData(` /${user}/points`) + amount)
+        console.log(`added ${amount || 0} to ${user}`)
+        console.log(amount)
+        this.db.push(`/${user}/points`, (this.db.getData(`/${user}/points`) || 0) + (amount || 0))
         
 
         
     },
 
     getPoints (user) {
-        return this.db.getData(` /${user}/points`)
+        return this.db.getData(` /${user}/points`) || 0;
     },
 
     setPhoneVer (user, slot, ver, verName) {

@@ -17,9 +17,9 @@ module.exports = {
             })
             var embed = {
                 title: `${message.author.username}'s pets`,
-                description: petNames.join("\n"),
+                description: petNames.slice(0, 20).join("\n"),
                 footer: {
-                    text: "use ;pets <index> to see info about that specific pet"
+                    text: `use ;pets <index> to see info about that specific pet, you have ${petNames.length} pets h`
                 }
             };
             message.channel.send({embed: embed});
