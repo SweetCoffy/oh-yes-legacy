@@ -52,17 +52,17 @@ client.on('messageReactionAdd', (reaction, user) => {
         var message = reaction.message;
         if (user.id == author) return;
         if (reaction.emoji.id == stuff.getConfig("v_")) {
-            stuff.addPoints(author, 10 * Math.random() * stuff.getMultiplier(author)); 
+            stuff.addPoints(author, 10 * Math.random() * stuff.getMultiplier(author, false)); 
         } else if (reaction.emoji.id == stuff.getConfig("ohyes")) {
             stuff.addPoints(author, -0.5 * Math.random());        
         } else if (reaction.emoji.id == stuff.getConfig("ohno")) {
-            stuff.addPoints(author, 3 * Math.random() * stuff.getMultiplier(author));
+            stuff.addPoints(author, 3 * Math.random() * stuff.getMultiplier(author, false));
         } else if (reaction.emoji.id == stuff.getConfig("oO")) {
-            stuff.addPoints(author, 7.5 * Math.random() * stuff.getMultiplier(author));
+            stuff.addPoints(author, 7.5 * Math.random() * stuff.getMultiplier(author, false));
         } else if (reaction.emoji.id == stuff.getConfig("deepfriedv_")) {
-            stuff.addPoints(author, 5 * Math.random() * stuff.getMultiplier(author));
+            stuff.addPoints(author, 5 * Math.random() * stuff.getMultiplier(author, false));
         } else if (reaction.emoji.id == stuff.getConfig("madv_")) {
-            stuff.addPoints(author, 9 * Math.random() * stuff.getMultiplier(author));
+            stuff.addPoints(author, 9 * Math.random() * stuff.getMultiplier(author, false));
         }
 
         if (user.bot) return;
@@ -225,7 +225,7 @@ client.on('message', message => {
     if (message.author.bot && message.author.id != config.ohnoId)
         return;
 
-    try {stuff.addPoints(message.author.id, 0.5 * Math.random() * stuff.clamp(message.content.length, 0.5 * Math.random(), 2000 * Math.random()), 1, 500 * stuff.getMultiplier(message.author.id));}
+    try {stuff.addPoints(message.author.id, 0.5 * Math.random() * stuff.clamp(message.content.length, 0.5 * Math.random(), 2000 * Math.random()), 1, 500 * stuff.getMultiplier(message.author.id, false));}
     catch (err) {console.log(err)}
 
     if (!message.content.startsWith(config.prefix))

@@ -4,7 +4,7 @@ module.exports = {
     name: "use",
     description: "use an item ~~what did you expect lol~~",
     usage: "use <itemIndex:int> [repeat:int=1]",
-    cooldown: 10,
+    cooldown: 3,
 
     execute(message, args) {
         var author = message.author.id;

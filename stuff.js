@@ -200,6 +200,42 @@ module.exports = {
                     return true;
                 }
             },
+            "cake": {
+                type: "Consumable",
+                description: "Normal cake",
+                addedMultiplier: 0.7,
+                extraInfo: "Increases multiplier multiplier",
+                inStock: 0,
+                rarity: Rarity.red,
+                unlisted: true,
+                icon: "🍰",
+                name: "Cake",
+                onUse(user) {
+                    var stuff = require('./stuff')
+                    stuff.addMultiplierMultiplier(user, 0.7);
+                    stuff.removeItem(user, "cake")
+                    return true;
+                }
+            },
+            "coin": {
+                type: "Consumable",
+                extraInfo: "Gives points",
+                extraData: {
+                    pointCount: 1000000000
+                },
+                inStock: 0,
+                rarity: Rarity.red,
+                unlisted: true,
+                icon: "<:ip:763937198764326963>",
+                name: "Coin",
+                onUse(user, _message, _args, slot) {
+                    var stuff = require('./stuff')
+                    var it = stuff.getInventory(user)[slot]
+                    stuff.addPoints(user, it.extraData.pointCount)
+                    stuff.removeItem(user, "coin")
+                    return true;
+                }
+            },      
             "car": {
                 name: "Venezuela car",
                 icon: "🚗",
@@ -220,6 +256,15 @@ module.exports = {
                                 drops: 1000000000000000000,
                                 maxHealth: 50000,
                                 damage: 350,
+                                itemDrops: [
+                                    "cake",
+                                    "cake",
+                                    "coin",
+                                    "coin",
+                                    "milk",
+                                    "baguette",
+
+                                ],
                                 fighting: [
                                     user
                                 ]
@@ -271,6 +316,7 @@ module.exports = {
                                 health: 2000,
                                 drops: 100000000000000,
                                 maxHealth: 2000,
+                                itemDrops: ["eggs", "coin", "cake"],
                                 fighting: [
                                     user
                                 ]
@@ -375,6 +421,7 @@ module.exports = {
                             health: 95000,
                             damageReduction: 1.3,
                             drops: 100000000000000000,
+                            itemDrops: ["cake", "coin", "baguette", "madkeanu"],
                             maxHealth: 95000,
                             damage: 700,
                             fighting: [
@@ -386,6 +433,42 @@ module.exports = {
                     return true;
                 }
             },
+            "credit-card": {
+                name: "Credit Card",
+                icon: "💳",
+                price: 5000,
+                inStock: 999999999,
+                extraInfo: "It can hold moni",
+                extraData: {
+                    storedPoints: 5000,
+                },
+                rarity: Rarity.blue,
+                onUse(user, message, args, slot) {
+                    const stuff = require('./stuff')
+                    var data = stuff.getInventory(user)[slot];
+                    if (args[0] == "moni") {
+                        message.channel.send(`Your credit card has ${stuff.format(data.extraData.storedPoints)} <:ip:763937198764326963>`);
+                    } else if (args[0] == "pay") {
+                        var amount = parseFloat(args[2])
+                        if (args[2] == "all") amount = data.extraData.storedPoints
+                        if (!amount) throw "e";
+                        if (amount > data.extraData.storedPoints) throw "not enough moni"
+                        var u = message.mentions.users.first();
+                        if (!u) throw "you can't pay to void!"
+                        stuff.addPoints(u.id, amount);
+                        stuff.setItemProperty(user, slot, "storedPoints", stuff.getItemProperty(user, slot, "storedPoints") - amount)
+                        message.channel.send(`You paid ${stuff.format(amount)} <:ip:763937198764326963> to ${u.username}`);
+                    } else if (args[0] == "store") {
+                        var amount = parseFloat(args[1])
+                        if (args[1] == "all") amount = stuff.getPoints(user);
+                        if (!amount) throw "e";
+                        if (amount > stuff.getPoints(user)) throw "not enough moni"
+                        stuff.addPoints(user, -amount)
+                        stuff.setItemProperty(user, slot, "storedPoints", stuff.getItemProperty(user, slot, "storedPoints") + amount)
+                        message.channel.send(`You stored ${stuff.format(amount)} <:ip:763937198764326963> in your credit card`)
+                    }
+                }
+            },
             "cooked-egg": {
                 name: `Cooked egg`,
                 icon: ":cooking:",
@@ -393,12 +476,29 @@ module.exports = {
                 inStock: 999999999,
                 rarity: Rarity.green,
                 description: "You should feel bad about that unborn chicken!",
-                type: "Consumable",
+                type: "Consumable & Boss Summon",
+                extraInfo: "Summons Egg Lord Prime",
                 addedMultiplier: 7,
-                onUse: function(user) {
+                onUse: function(user, message) {
                     const stuff = require('./stuff');
                     stuff.addMultiplier(user, 7)
                     stuff.removeItem(user, "cooked-egg");
+                    if (!stuff.currentBoss) {
+                        stuff.currentBoss = {
+                            name: "Egg Lord Prime",
+                            health: 65000,
+                            drops: 1000000000000000,
+                            damageReduction: 2,
+                            damage: 900,
+                            maxHealth: 100000,
+                            itemDrops: ["eggs", "coin", "cake", "cake", "eggs", "egg", "coin", "cake"],
+                            fighting: [
+                                user
+                            ]
+                        }
+                        message.channel.send("Egg Lord Prime has awoken!")
+                        
+                    }
                     return true;
                 }
             },
@@ -452,6 +552,7 @@ module.exports = {
                             health: 21000,
                             drops: 10000000000000000,
                             maxHealth: 21000,
+                            itemDrops: ["milk", "baguette"],
                             damage: 100,
                             fighting: [
                                 user
@@ -541,6 +642,68 @@ module.exports = {
 
                     var cmd = stuff.phoneCommands.get(cmdName);
 
+                    if (cmd.computerOnly) throw `You can only perform that command in a computer`
+
+                    
+                        
+                    if (!cmd) {
+                        throw `The command \`<base>/author unknown/${args[0]}\` is not available`;
+                    } else {
+                        if (!installedPackages.includes(cmd.package) && cmd.package != undefined) throw `The command \`${cmd.package || "unknown"}/${cmd.author || "author unknown"}/${cmd.name || "invalid-command"}\` is not available, use \`add ${cmd.package}\` and try again`;
+                        if ((cmd.minVer || 1) < phoneData.ver) {
+                            cmd.execute(message, _args, phoneData, slot);
+                        } else {
+                            throw `the command \`${cmd.name}\` requires version ${(cmd.minVer || 1).toFixed(1)} or newer, run \`update\` and try again`
+                        }
+                        
+                    }
+                    
+                    
+                    return false;
+                }
+            },
+            "cd-1": {
+                name: "Suspicious looking CD",
+                icon: ":cd:",
+                price: 50,
+                inStock: 9999999999,
+                rarity: Rarity.white,
+                type: "Other",
+                onUse() {},
+                addedPackage: "sus",
+            },
+            "computer": {
+                name: "Computer",
+                icon: ":computer:",
+                price: 10000,
+                inStock: 9999999999,
+                rarity: Rarity.red,
+                type: "Other",
+                description: "Remember to add that one package called `h`!",
+                extraInfo: "Better version of the phone",
+                extraData: {
+                    packages: [],
+                    os: "Egg OS (Computer)",
+                    ver: 2, // phone version number, will be used in the future for command compatibility
+                    verName: "2b",
+                    discs: []
+                },
+                onUse: function(user, message, args, slot) {
+                    
+                    const stuff = require('./stuff');
+                    
+                    var phoneData = stuff.getInventory(user)[slot].extraData || {};
+                    var installedPackages = phoneData.packages || [];
+                    
+                    var u = message.guild.members.cache.get(user).user;
+
+
+                    
+                    var cmdName = args[0];
+                    var _args = args.slice(1);
+
+                    var cmd = stuff.phoneCommands.get(cmdName);
+
                     
                         
                     if (!cmd) {
@@ -589,6 +752,13 @@ module.exports = {
             throw `the command \`${cmd}\` doesn't exist`
         }
     },
+
+    getItemProperty(user, slot, prop) {
+        return this.db.getData(`/${user}/inventory[${slot}]/extraData/${prop}`)
+    },
+    setItemProperty(user, slot, prop, value) {
+        this.db.push(`/${user}/inventory[${slot}]/extraData/${prop}`, value)
+    },
     
     loadPhoneCommands() {
         
@@ -624,8 +794,8 @@ module.exports = {
 
 
     getMultiplier(user, raw = true) {
-        if (raw) return this.db.getData(`/${user}/multiplier`);
-        if (!raw) return this.db.getData(`/${user}/multiplier`) * (this.db.getData(`/${user}/`).multiplierMultiplier || 1);
+        if (raw) return this.db.getData(`/${user}/multiplier`) || 1;
+        if (!raw) return (this.db.getData(`/${user}/multiplier`) || 1) * (this.db.getData(`/${user}/`).multiplierMultiplier || 1);
     },
 
     getMultiplierMultiplier(user) {
@@ -695,11 +865,17 @@ module.exports = {
         var newAmount = this.db.getData(` /${user}/multiplier`);
         console.log(`added ${(newAmount - oldAmount).toFixed(1)} multiplier to ${user}`)
     },
+    addMultiplierMultiplier(user, amount) {
+        this.db.push(` /${user}/multiplierMultiplier`, this.getMultiplierMultiplier(user) + amount)
+    },
 
-    addItem(user, item) {
-        var inv = this.db.getData(` /${user}/inventory`)
-        inv.push(item);
-        this.db.push(` /${user}/inventory/`, inv)
+    addItem(user, item) {   
+        var _item = item;
+        if (typeof item == 'string') {
+            var items = this.shopItems;
+            _item = items[item];
+        }
+        this.db.push(`/${user}/inventory[]`, {id: item.id || _item.id || item, name: _item.name, extraData: _item.extraData, icon: _item.icon})
     },
 
     removeItem(user, itemName, count = 1) {

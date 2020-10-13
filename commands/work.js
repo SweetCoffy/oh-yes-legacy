@@ -8,21 +8,24 @@ module.exports = {
         var things = [
             {
                 message: "You did the cat and lost Internet Points\™️",
-                amount: -50,
+                amount: -10,
             },
             {
                 message: "You got free Internet Points\™️ from someone... h",
-                amount: 100,
+                amount: 700,
             },
             {
                 message: "You gave eggs to the Sky Egg Lord and got Internet Points\™ in exchange",
-                amount: 300,
+                amount: 1000,
             }
         ]
 
         
         var thing = stuff.randomArrayElement(things);
         var amount = thing.amount * Math.random();
+        if (amount > 0) {
+            amount *= stuff.clamp(stuff.getMultiplier(message.author.id, false) * Math.random(), 1, Infinity)
+        }
         var embed = {
             title: "stonks",
             color: 0x40ff60,
@@ -31,11 +34,12 @@ module.exports = {
                 text: `earned ${stuff.format(amount)} Internet Points\™️`
             }
         }
-        if (amount < 0.1) {
+        if (amount < 0) {
             embed.title = "not stonks"
             embed.color = 0xff4040;
             embed.footer.text = `lost ${stuff.format(-amount)} Internet Points\™️`
-        }
+        } 
+        
         stuff.addPoints(message.author.id, amount);
         message.channel.send({embed: embed});
     }

@@ -9,10 +9,28 @@ module.exports = {
 
         var points = stuff.getPoints(user.id);
         var multiplier = stuff.getMultiplier(user.id);
+        var totalMultiplier = stuff.getMultiplier(user.id, false);
 
         var embed = {
-            title: `${user.username} has`,
-            description: `${stuff.format(points)} Internet Points\™️, Multiplier: ${stuff.format(multiplier)}`
+            title: `${user.username}'s stats`,
+            fields: [
+                {
+                    name: "moni",
+                    value: `<:ip:763937198764326963> ${stuff.format(points)}️`
+                },
+                {
+                    name: "multiplier",
+                    value: `${stuff.format(multiplier)}`
+                },
+                {
+                    name: "multiplier's multiplier",
+                    value: `${stuff.format(stuff.getMultiplierMultiplier(user.id))}`
+                },
+                {
+                    name: "total multiplier",
+                    value: `${stuff.format(totalMultiplier)}`,
+                }
+            ]
         }
 
         message.channel.send({embed: embed})

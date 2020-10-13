@@ -17,6 +17,7 @@ module.exports = {
                         stuff.db.push(`/${el[0]}/points`, 0)
                         stuff.db.push(`/${el[0]}/multiplier`, 1)
                         stuff.db.push(`/${el[0]}/inventory`, [])
+                        stuff.db.push(`/${el[0]}/pets`, [])
                     })
                     stuff.set("season", stuff.getConfig("season") + 1)
                     message.channel.send("Data reset and started a new season!");

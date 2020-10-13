@@ -16,7 +16,7 @@ module.exports = {
                 i++;
             })
             var embed = {
-                title: `${message.author.username}'s pets`,
+                title: `${message.author.username}'s basement`,
                 description: petNames.slice(0, 20).join("\n"),
                 footer: {
                     text: `use ;pets <index> to see info about that specific pet, you have ${petNames.length} pets h`
@@ -92,20 +92,11 @@ module.exports = {
                     stuff.currentBoss.fighting.push(message.author.id);
                     
                 }
-                if (stuff.currentBoss.health <= 0) {
-                    message.channel.send(`${stuff.currentBoss.name} has been defeated!`)
-                    stuff.currentBoss.fighting.forEach(u => {
-                        stuff.addPoints(u, stuff.currentBoss.drops / stuff.currentBoss.fighting.length);
-                    })
-                    stuff.currentBoss = undefined;
-                    return;
-                }
-
+                var dmg = (stuff.currentBoss.damage || 200) * stuff.clamp(Math.random() * 1.2, 0.5, 1.2);
                 if (Math.random() < 0.6) {
-                    var dmg = (stuff.currentBoss.damage || 200) * stuff.clamp(Math.random() * 1.2, 0.5, 1.2);
+                    
                     
                     stuff.userHealth[message.author.id] -= dmg;
-                    message.channel.send(`${message.author.username}\n${stuff.format(stuff.userHealth[message.author.id])}/${stuff.format(stuff.getMaxHealth(message.author.id))} **-${stuff.format(dmg)}**`);
                     if (stuff.userHealth[message.author.id] <= 0) {
                         message.channel.send({embed: {description: `${message.author} died, respawning in 10 seconds`}})
                         setTimeout(() => {
@@ -114,10 +105,46 @@ module.exports = {
                         }, 10000)
                         return;
                     }
+                } else {
+                    dmg = 0;
                 }
+                var helth = stuff.userHealth[message.author.id];
+                var maxHelth = stuff.getMaxHealth(message.author.id);
+                var embed = {
+                    title: `${(stuff.currentBoss.fighting.length == 1) ? "1 Player" : `${stuff.currentBoss.fighting.length} Players`} vs ${stuff.currentBoss.name}`,
+                    fields: [
+                        {
+                            name: stuff.currentBoss.name,
+                            value: `${"▮".repeat(stuff.clamp(stuff.currentBoss.health / stuff.currentBoss.maxHealth * 20, 0, Infinity))}${"▯".repeat(stuff.clamp((1 - (stuff.currentBoss.health / stuff.currentBoss.maxHealth)) * 20, 0, Infinity))} ${stuff.format(stuff.currentBoss.health)}/${stuff.format(stuff.currentBoss.maxHealth)} **-${stuff.format(damageDealt)}**`
+                        },
+                        {
+                            name: message.author.username,
+                            value: `${"▮".repeat(stuff.clamp(helth / maxHelth * 20, 0, Infinity))}${"▯".repeat(stuff.clamp((1 - (helth / maxHelth)) * 20, 0, Infinity))} ${stuff.format(stuff.userHealth[message.author.id])}/${stuff.format(stuff.getMaxHealth(message.author.id))} **-${stuff.format(dmg)}**`
+                        }
+                    ]
+                }
+                message.channel.send({embed: embed})
+                if (stuff.currentBoss.health <= 0) {
+                    message.channel.send(`${stuff.currentBoss.name} has been defeated!`)
+                    stuff.currentBoss.fighting.forEach(u => {
+                        stuff.addPoints(u, stuff.currentBoss.drops / stuff.currentBoss.fighting.length);
+                        var itemDrops = stuff.currentBoss.itemDrops;
+                        if (itemDrops) {
+                            itemDrops.forEach(it => {
+                                stuff.addItem(u, it)
+                            })
+                        }
+                    })
+                    stuff.currentBoss = undefined;
+                    return;
+                }
+
                 
                 
-                message.channel.send(`${stuff.currentBoss.name}\n${"▮".repeat(stuff.clamp(stuff.currentBoss.health / stuff.currentBoss.maxHealth * 50, 0, Infinity))} ${stuff.format(stuff.currentBoss.health)}/${stuff.format(stuff.currentBoss.maxHealth)} **-${stuff.format(damageDealt)}**`);
+                
+            } else if (args[1] == "release") {
+                message.channel.send(`Your ${stuff.db.getData(`/${message.author.id}/pets[${i}]/`).name} is now gone forever h`);
+                stuff.db.delete(`/${message.author.id}/pets[${i}]/`);
             } else {
                 var happiness = stuff.db.getData(`/${message.author.id}/pets[${i}]/happiness`);
                 var mult = pet.baseMultiplierAdd || 250;

@@ -13,6 +13,8 @@ module.exports = {
         if (!item) {
             var entries = Object.entries(stuff.shopItems).sort(function(a, b) {
                 return b[1].price - a[1].price;
+            }).filter(el => {
+                return !el[1].unlisted
             })
             var itemNames = []
             var page = (parseInt(extraArgs[0]) || 1) - 1;
@@ -38,6 +40,7 @@ module.exports = {
 
                 var repeatAmount = stuff.clamp(parseInt(args[1]) || 1, 1, 250);
                 var it = stuff.shopItems[item];
+                if (it.unlisted) throw `You can't buy that item lol`
                 var embed = {
                     title: `${it.icon} ${it.name}`,
                     description: `You bought ${it.icon} ${it.name} for ${stuff.format(it.price * discount)} Internet Points\™️`

@@ -26,7 +26,7 @@ module.exports = {
         
         
         // setting the permission
-        stuff.setPermission(args[0], args[1], args[2]);
+        stuff.setPermission(args[0], args[1], stuff.string2bool(args[2]));
 
         // sending a message
         message.channel.send("set permission `" + args[1] + "` of `" + args[0] + "` to `" + args[2] + "`");
