@@ -4,7 +4,7 @@ module.exports = {
     name: "buy",
     description: "buys something from the shop",
     usage: "buy <item>",
-    cooldown: 10,
+    cooldown: 7,
 
     execute(message, args, extraArgs, _extraArgsObject, discount = 1) {
         var item = args[0];
@@ -38,7 +38,7 @@ module.exports = {
         } else {
             if (stuff.shopItems[item] != undefined) {
 
-                var repeatAmount = stuff.clamp(parseInt(args[1]) || 1, 1, 250);
+                var repeatAmount = stuff.clamp(parseInt(args[1]) || 1, 1, 500);
                 var it = stuff.shopItems[item];
                 if (it.unlisted) throw `You can't buy that item lol`
                 var embed = {

@@ -43,6 +43,10 @@ client.once('ready', () => {
 	console.log('oh yes');
 });
 
+client.on('guildMemberRemove', member => {
+    try {stuff.addMedal(member.id, stuff.medals.kicc)} catch (err) {console.log(err)}
+})
+
 
 
 
@@ -192,9 +196,9 @@ client.on('message', message => {
         stuff.db.push(`/${message.author.id}/pets`, []);
     }
 
-    if (stuff.getMaxHealth(u) > 1600) {
-        stuff.db.push(`/${u}/maxHealth`, 1600);
-        stuff.userHealth[u] = 1600;
+    if (stuff.getMaxHealth(u) > 1000000) {
+        stuff.db.push(`/${u}/maxHealth`, 1000000);
+        stuff.userHealth[u] = 1000000;
     }
 
 
@@ -369,13 +373,9 @@ client.on('message', message => {
 function sendError (channel, err) {
     var _err = err;
     console.log(typeof err)
-
     if (typeof err == 'string') {
         _err = CommandError.fromString(err);
-    }
-
-
-    
+    } 
     var msgEmbed = {
         color: 0xff0000,
         title: _err.name || "oof",
@@ -390,14 +390,9 @@ function sendError (channel, err) {
             }
         ]
     }
-
     if (_err.footer) {
         msgEmbed.footer = {text: _err.footer}
     }
-
-    
-
-    
     channel.send({embed: msgEmbed});
 }
 
@@ -418,7 +413,7 @@ function sendEmbed (channel, title, desc) {
     channel.send({embed: msgEmbed});
 }
 
-stuff.sendError = sendError;
+
 
 
 

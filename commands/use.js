@@ -8,7 +8,7 @@ module.exports = {
 
     execute(message, args) {
         var author = message.author.id;
-        var repeatAmount = stuff.clamp(parseInt(args[1]) || 1, 1, 150);
+        var repeatAmount = stuff.clamp(parseInt(args[1]) || 1, 1, 500);
         stuff.repeat(() => {
             var it = stuff.getInventory(author)[parseInt(args[0])];
             if (it == undefined) throw `you don't have an item at slot \`${parseInt(args[0])}\``
@@ -16,8 +16,9 @@ module.exports = {
             if (onUse(author, message, args.slice(1), parseInt(args[0])) && repeatAmount < 2) {
                 message.channel.send(`You used the item ${it.icon} ${it.name}!`);
             }
-        }, repeatAmount).then(iter => {
+        }, repeatAmount).then(([iter, err]) => {
             message.channel.send(`You used ${iter} items!`)
+            if (err) stuff.sendError(message.channel, err)
         })
     }
 }

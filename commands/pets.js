@@ -30,7 +30,7 @@ module.exports = {
                 stuff.db.push(`/${message.author.id}/pets[${i}]/happiness`, 0.5);
             }
             if (args[1] == "feed") {
-                var repeat = stuff.clamp(parseInt(args[2]) || 1, 1, 200);
+                var repeat = stuff.clamp(parseInt(args[2]) || 1, 1, 500);
                 
                 var mult = pet.baseMultiplierAdd || 250;
                 var happiness = stuff.db.getData(`/${message.author.id}/pets[${i}]/happiness`);
@@ -43,7 +43,7 @@ module.exports = {
     
                         
                         
-                        stuff.db.push(`/${message.author.id}/pets[${i}]/happiness`, _happiness + (0.1 * Math.random()));
+                        stuff.db.push(`/${message.author.id}/pets[${i}]/happiness`, _happiness + (5 * Math.random()));
     
                         
     
@@ -61,7 +61,7 @@ module.exports = {
                         stuff.addMultiplier(message.author.id, mult * happiness)
                         throw new CommandError("Item not found", `You don't have ${stuff.shopItems[pet.food].icon} ${stuff.shopItems[pet.food].name} in your inventory!1!!!1!`)
                     }
-                }, repeat).then(repeat => {
+                }, repeat).then(([repeat, err]) => {
                     stuff.addMultiplier(message.author.id, -mult * happiness)
                     happiness = stuff.db.getData(`/${message.author.id}/pets[${i}]/happiness`);
                     stuff.addMultiplier(message.author.id, mult * happiness)
@@ -72,6 +72,7 @@ module.exports = {
                             description: `You gave **${pet.name}**: ${repeat}x ${stuff.shopItems[pet.food].icon} ${stuff.shopItems[pet.food].name} h`
                         }})
                     }
+                    if (err) stuff.sendError(message.channel, err)
                 })
                 
             } else if (args[1] == "attack") {

@@ -3,6 +3,7 @@ const fs = require('fs');
 const { resolve } = require('path');
 const request = require('request');
 const jsonDb = require('node-json-db');
+const CommandError = require('./CommandError');
 const Rarity = {
     gray: 0x5d6c85,
     white: 0xedf0f5,
@@ -51,6 +52,15 @@ module.exports = {
 
     },
 
+    medals: {
+        "kicc": {
+            name: "Kicc",
+            id: "kicc",
+            description: "ha ha yes you've been kicked",
+            icon: "<:kicc:766778996330725376>"
+        }
+    },
+
     currentBoss: undefined,
 
     
@@ -73,6 +83,13 @@ module.exports = {
             generated += c;
         }
         return generated;
+    },
+
+    addMedal(user, medal) {
+        var db = this.db;
+        if (db.getData(`/${user}/`).medals.map(el => el.id).includes(medal.id)) return
+        if (!db.exists(`/${user}/medals`)) db.push(`/${user}/medals`, [])
+        db.push(`/${user}/medals[]`, medal)
     },
 
     stringThing(str) {
@@ -138,6 +155,12 @@ module.exports = {
 
 
 
+    /**
+     * Repeats `callback` `times` times asynchronously
+     * @param {function(Number)} callback The code to repeat
+     * @param {Number} times The amount of times to repeat `callback`
+     * @returns {Promise<Number, Error | CommandError>} Promise for the completion of the loop
+     */
     repeat (callback, times) {
         return new Promise(resolve => {
             var iterations = 0;
@@ -146,14 +169,40 @@ module.exports = {
                     callback(i);
                     iterations++;
                 }
-                return resolve(iterations);
+                return resolve([iterations, undefined]);
             } catch (err) {
                 console.log(err);
-                return resolve(iterations);
+                return resolve([iterations, err]);
             }
         })
         
 
+    },
+
+    sendError (channel, err) {
+        var _err = err;
+        console.log(typeof err)
+        if (typeof err == 'string') {
+            _err = CommandError.fromString(err);
+        } 
+        var msgEmbed = {
+            color: 0xff0000,
+            title: _err.name || "oof",
+            description: _err.message || _err.toString(),
+    
+        }
+        if (_err.stack) {
+            msgEmbed.fields = [
+                {
+                    name: "stack trace:",
+                    value: _err.stack
+                }
+            ]
+        }
+        if (_err.footer) {
+            msgEmbed.footer = {text: _err.footer}
+        }
+        channel.send({embed: msgEmbed});
     },
 
     getMaxHealth(user) {
@@ -235,7 +284,24 @@ module.exports = {
                     stuff.removeItem(user, "coin")
                     return true;
                 }
-            },      
+            },  
+            "life-drink": {
+                type: "Consumable",
+                extraInfo: "Significantly increases max health\nOnly usable when max health is 1.6k or higher",
+                inStock: 0,
+                rarity: Rarity.purple,
+                unlisted: true,
+                icon: "🥤",
+                name: "Life Drink",
+                onUse(user, _message, _args, slot) {
+                    var stuff = require('./stuff')
+                    if (stuff.getMaxHealth(user) < 1600) throw "You can't use this item until 1.6k max health!"
+                    stuff.removeItem(user, "life-drink")
+                    stuff.db.push(`/${user}/maxHealth`, stuff.getMaxHealth(user) + 100)
+                    stuff.userHealth[user] = stuff.getMaxHealth(user);
+                    return true;
+                }
+            }, 
             "car": {
                 name: "Venezuela car",
                 icon: "🚗",
@@ -263,7 +329,7 @@ module.exports = {
                                     "coin",
                                     "milk",
                                     "baguette",
-
+                                    "life-drink"
                                 ],
                                 fighting: [
                                     user
@@ -283,11 +349,11 @@ module.exports = {
                 addedMultiplier: 750000000,
                 description: "Donate them to the Sky Egg Lord!",
                 type: "Consumable",
-                extraInfo: "Increases max health by 40\nFully recovers health",
+                extraInfo: "Increases max health by 20 until 1.6k max health\nFully recovers health",
                 rarity: Rarity.purple,
                 onUse: function(user) {
                     const stuff = require('./stuff');
-                    stuff.db.push(`/${user}/maxHealth`, stuff.getMaxHealth(user) + 40)
+                    if (!(stuff.getMaxHealth(user) >= 1600)) stuff.db.push(`/${user}/maxHealth`, stuff.getMaxHealth(user) + 20)
                     stuff.userHealth[user] = stuff.getMaxHealth(user);
                     stuff.addMultiplier(user, 750000000)
                     stuff.removeItem(user, "eggs");
@@ -307,7 +373,6 @@ module.exports = {
                 onUse: function(user, message) {
                     const stuff = require('./stuff');
                     stuff.addMultiplier(user, 750000)
-                    stuff.db.push(`/${user}/maxHealth`, stuff.getMaxHealth(user) + 20)
                     stuff.removeItem(user, "egg");
                     setTimeout(() => {
                         if (!stuff.currentBoss) {
@@ -472,9 +537,9 @@ module.exports = {
             "cooked-egg": {
                 name: `Cooked egg`,
                 icon: ":cooking:",
-                price: 2000,
+                price: 750000,
                 inStock: 999999999,
-                rarity: Rarity.green,
+                rarity: Rarity.red,
                 description: "You should feel bad about that unborn chicken!",
                 type: "Consumable & Boss Summon",
                 extraInfo: "Summons Egg Lord Prime",
@@ -491,7 +556,7 @@ module.exports = {
                             damageReduction: 2,
                             damage: 900,
                             maxHealth: 100000,
-                            itemDrops: ["eggs", "coin", "cake", "cake", "eggs", "egg", "coin", "cake"],
+                            itemDrops: ["eggs", "coin", "cake", "cake", "eggs", "egg", "coin", "cake", "life-drink", "life-drink"],
                             fighting: [
                                 user
                             ]
