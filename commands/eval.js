@@ -4,7 +4,7 @@ const vm2 = require('../node_modules/vm2');
 class EvalConsole {
     out = [];
     constructor() {}
-    print = function(x) {
+    log = function(x) {
         this.out.push(x);
         return this.out.length
     }
@@ -18,7 +18,95 @@ class EvalConsole {
         return oldOut;
     }
 }
+class EvalDisplay {
+    drawQueue = []
+    wasModified = false
+    /**
+     * big boi array
+     */
+    entries = []
+    setSize(width, height = width) {
+        this.entries = [];
+        for (var x = 0; x < width; x++) {
+            var thing = [];
+            for (var y = 0; y < height; y++) {
+                thing.push(" ");
+            }
+            this.entries.push(thing);
+        }
+    }
+    constructor() {}
+    getPos(x, y) {
+        return this.entries[x][y]
+    }
+    draw(x, y, char = "◼", autoFlush = true) {
+        this.drawQueue.push({
+                x: x, 
+                y: y, 
+                char: char
+            })
+        if (autoFlush) {
+            this.flush();
+        }
+    }
+    clear = function() {
+        this.setSize(this.entries.length, (this.entries[0] || []).length || this.entries.length)
+    }
+    drawRect(x, y, width, height, char = '◼') {
+        for (var _x = 0; _x < width; _x++) {
+            for (var _y = 0; _y < height; _y++) {
+                this.draw(x + _x, y + _y, char)
+            }
+        }
+    }
+    flush() {
+        if (this.entries.length < 1) {
+            this.setSize(24, 24)
+        }
+        for (var i = 0; i < this.drawQueue.length; i++) {
+            var el = this.drawQueue.pop();
+            this.entries[el.x][el.y] = el.char.slice(0, 1);
+        }
+        this.wasModified = true;
+    }
+    toString() {
+        var i2 = 0;
+        var result = "";
+        for (var x = 0; x < this.entries.length; x++) {
+            for (var y = 0; y < this.entries[x].length; y++) {
+                result += this.entries[x][y]
+                i2++
+                if (i2 > this.entries.length - 1) {
+                    i2 = 0
+                    result += "\n"
+                };
+            }
+        }
+        return result;
+    }
+}
+class Yes {
+    constructor() {}
+    getObjectProperties(obj) {
+        var keys = Object.keys(obj);
+        var result = [];
+        var self = this;
+        for (const key of keys) {
+            if (typeof obj[key] == 'object') {
+                var vals = self.getObjectProperties(obj[key])
+                for (const k of vals) {
+                    result.push([`${key}/${k[0]}/`, obj[key][k]])
+                }
+            } else {
+                result.push([`${key}/`, obj[key]])
+            }
+        }
+        return result;
+    }
+}
 const c = new EvalConsole()
+const d = new EvalDisplay();
+const y = new Yes();
 const context = {
     h: "h",
     eggs: "yes",
@@ -26,17 +114,24 @@ const context = {
         420, 69,
         69420, 42069
     ],
-    output: c,
+    console: c,
+    display: d,
+    yes: y,
 }
-var cloneContext = Object.freeze({
+
+var cloneContext = {
     h: "h",
     eggs: "yes",
     funnyNumbers: [
         420, 69,
         69420, 42069
     ],
-    output: c,
-})
+    console: c,
+    display: d,
+    yes: y,
+}
+
+
 
 
 module.exports = {
@@ -49,7 +144,7 @@ module.exports = {
     execute(message, args) {
         
         var vm = new vm2.VM({
-            timeout: 1000,
+            timeout: 2000,
             sandbox: cloneContext
         })
         
@@ -81,17 +176,25 @@ module.exports = {
             ]
         }
 
-        if (cloneContext.output.out.length > 0) {
+        if (cloneContext.console.out.length > 0) {
             embed.fields.unshift({
                 name: "console",
-                value: `\`\`\`\n${cloneContext.output.out.join("\n")}\n\`\`\``,
+                value: `\`\`\`\n${cloneContext.console.out.join("\n").slice(0, 1980)}\n\`\`\``,
+            })
+        }
+
+        if (cloneContext.display.wasModified) {
+            embed.fields.unshift({
+                name: "display",
+                value: `\`\`\`AsciiArt\n${cloneContext.display.toString()}\n\`\`\``
             })
         }
         
         
         message.channel.send({embed: embed})
         cloneContext = context
-        cloneContext.output.clear()
+        cloneContext.console.clear()
+        cloneContext.display.clear();
     }
 }
 

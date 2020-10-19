@@ -70,7 +70,7 @@ client.on('messageReactionAdd', (reaction, user) => {
         }
 
         if (user.bot) return;
-        if (reaction.emoji.name != "◀️" && reaction.emoji.name != "▶️" && reaction.emoji.name != "🏓") return;
+        if (reaction.emoji.name != "◀️" && reaction.emoji.name != "▶️") return;
 
         if (!pageNumbers.has(user.id)) {
             pageNumbers.set(user.id, 0);
@@ -85,21 +85,7 @@ client.on('messageReactionAdd', (reaction, user) => {
                         pageNumbers.set(user.id, pageNumbers.get(user.id) + 1)
                     } else if (reaction.emoji.name == "◀️") {
                         pageNumbers.set(user.id, pageNumbers.get(user.id) - 1)
-                    } else if (reaction.emoji.name == "🏓") {
-                        var now = Date.now();
-                        reaction.message.channel.send("pinging...").then(m => {
-                            var ping = Date.now() - now;
-                            m.edit({embed: {
-                                title: "pong",
-                                description: "ms: " + stuff.format(ping),
-                                footer: {
-                                    text: "this message will autodestruct in 7 seconds"
-                                }
-                            }, content: user}).then(m => {
-                                setTimeout(() => m.delete(), 7 * 1000)
-                            })
-                        })
-                    }
+                    } 
                     
                     var commandNames = [];
                     client.commands.forEach(el => {
