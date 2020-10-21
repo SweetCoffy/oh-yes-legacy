@@ -1,4 +1,5 @@
 const vm2 = require('../node_modules/vm2');
+const stuff = require('../stuff')
 
 
 class EvalConsole {
@@ -47,6 +48,11 @@ class EvalDisplay {
             })
         if (autoFlush) {
             this.flush();
+        }
+    }
+    drawDiagonal(x, y, length, width = 1, height = 1, char = "◼") {
+        for(var i = 0; i < length; i++) {
+            this.drawRect(x + i, y + i, width, height, char);
         }
     }
     clear = function() {
@@ -107,6 +113,15 @@ class Yes {
 const c = new EvalConsole()
 const d = new EvalDisplay();
 const y = new Yes();
+const m = {
+    "output": {
+        display: d,
+        console: c,
+    },
+    "other": {
+        yes: y,
+    }
+}
 const context = {
     h: "h",
     eggs: "yes",
@@ -114,21 +129,76 @@ const context = {
         420, 69,
         69420, 42069
     ],
-    console: c,
-    display: d,
-    yes: y,
+    get Display() {
+        try {
+            return this["display"] || this["output"].display
+        } catch (_err) {
+            return undefined;
+        }
+    },
+    get Console() {
+        try {
+            return this["console"] || this["output"].console
+        } catch (_err) {
+            return undefined;
+        }
+    },
+    format: stuff.format,
+    i(md) {
+        /**
+         * @type {string[]}
+         */
+        var segments = md.split("/");
+        var val = m;
+        
+        for (const segment of segments) {
+            var oldVal = val;
+            val = oldVal[segment];
+            console.log(segment);
+        }
+        console.log(val);
+        return val;
+    }
 }
 
 var cloneContext = {
     h: "h",
     eggs: "yes",
+    get Display() {
+        try {
+            return this["display"] || this["output"].display
+        } catch (_err) {
+            return undefined;
+        }
+    },
+    get Console() {
+        try {
+            return this["console"] || this["output"].console
+        } catch (_err) {
+            return undefined;
+        }
+    },
     funnyNumbers: [
         420, 69,
         69420, 42069
     ],
-    console: c,
-    display: d,
-    yes: y,
+    format: stuff.format,
+    i(md) {
+        /**
+         * @type {string[]}
+         */
+        var segments = md.split("/");
+        var val = m;
+        
+        for (const segment of segments) {
+            var oldVal = val;
+            val = oldVal[segment];
+            console.log(segment);
+        }
+        console.log(val);
+        return val;
+    }
+
 }
 
 
@@ -141,7 +211,7 @@ module.exports = {
     requiredPermission: "commands.eval",
     removed: false,
 
-    execute(message, args) {
+    execute(message, args, _extraArgs, extraArgs) {
         
         var vm = new vm2.VM({
             timeout: 2000,
@@ -150,6 +220,14 @@ module.exports = {
         
         
         var code = args.join(" ");
+
+        if (extraArgs.import) {
+            var autoImports = extraArgs.import.split(",").map(el => el.trim())
+            autoImports.forEach(el => {
+                var h = el.split("/");
+                cloneContext[h[h.length - 1]] = cloneContext.i(el)
+            })
+        }
         
         if (!code) {
             throw "e"
@@ -176,25 +254,33 @@ module.exports = {
             ]
         }
 
-        if (cloneContext.console.out.length > 0) {
-            embed.fields.unshift({
-                name: "console",
-                value: `\`\`\`\n${cloneContext.console.out.join("\n").slice(0, 1980)}\n\`\`\``,
-            })
+        var hasConsole = (cloneContext.console || (cloneContext.output || {}).console)
+        var hasDisplay = (cloneContext.display || (cloneContext.output || {}).display)
+
+        if (hasConsole) {
+            if (cloneContext.Console.out.length > 0) {
+                embed.fields.unshift({
+                    name: "console",
+                    value: `\`\`\`\n${cloneContext.Console.out.join("\n").slice(0, 1980)}\n\`\`\``,
+                })
+            }
         }
 
-        if (cloneContext.display.wasModified) {
-            embed.fields.unshift({
-                name: "display",
-                value: `\`\`\`AsciiArt\n${cloneContext.display.toString()}\n\`\`\``
-            })
+        if (hasDisplay) {
+            if (cloneContext.Display.wasModified) {
+                embed.fields.unshift({
+                    name: "display",
+                    value: `\`\`\`AsciiArt\n${cloneContext.Display.toString()}\n\`\`\``
+                })
+            }
         }
+
         
         
         message.channel.send({embed: embed})
+        if (hasConsole) cloneContext.Console.clear()
+        if (hasDisplay) cloneContext.Display.clear();
         cloneContext = context
-        cloneContext.console.clear()
-        cloneContext.display.clear();
     }
 }
 

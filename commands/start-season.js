@@ -16,8 +16,16 @@ module.exports = {
                     entries.forEach(el => {
                         stuff.db.push(`/${el[0]}/points`, 0)
                         stuff.db.push(`/${el[0]}/multiplier`, 1)
+                        stuff.db.push(`/${el[0]}/maxHealth`, 100)
+                        stuff.db.push(`/${el[0]}/multiplierMultiplier`, stuff.getMultiplierMultiplier(el[0]) * 0.25)
+                        stuff.db.push(`/${el[0]}/gold`, stuff.getGold(el[0]) * 0.25)
                         stuff.db.push(`/${el[0]}/inventory`, [])
                         stuff.db.push(`/${el[0]}/pets`, [])
+                        stuff.db.push(`/${el[0]}/defense`, 0)
+                        stuff.db.push(`/${el[0]}/equipment`, [])
+                        stuff.db.push(`/${el[0]}/equipmentSlots`, 6)
+                        stuff.db.push(`/${el[0]}/achievements`, [])
+                        stuff.userHealth = [];
                     })
                     stuff.set("season", stuff.getConfig("season") + 1)
                     message.channel.send("Data reset and started a new season!");

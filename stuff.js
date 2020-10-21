@@ -4,6 +4,7 @@ const { resolve } = require('path');
 const request = require('request');
 const jsonDb = require('node-json-db');
 const CommandError = require('./CommandError');
+var numeral = require('numeral');
 const Rarity = {
     gray: 0x5d6c85,
     white: 0xedf0f5,
@@ -13,6 +14,25 @@ const Rarity = {
     pink: 0xff78ff, // totally not copying terraria
     purple: 0xf403fc // eggs
 }
+numeral.register('locale', 'test', {
+    delimiters: {
+        thousands: ' ',
+        decimal: '.'
+    },
+    abbreviations: {
+        thousand: 'k',
+        million: 'M',
+        billion: 'B',
+        trillion: 'T'
+    },
+    ordinal : function (number) {
+        return number === 1 ? '' : 's';
+    },
+    currency: {
+        symbol: 'Internet Points'
+    }
+});
+numeral.locale('test')
 
 
 
@@ -22,6 +42,7 @@ const Rarity = {
 module.exports = {
     somehugenumber: 99999999,
     client: "",
+    rarity: Rarity,
     db: new jsonDb.JsonDB("userdata", true, true, "/"),
     globalData: new jsonDb.JsonDB("datastuff", true, true, "/"),
     phoneCommands: new Collection(),
@@ -29,6 +50,13 @@ module.exports = {
         69,
         420
     ],
+
+    snakeToCamel: (str) => str.replace(
+        /([-_][a-z])/g,
+        (group) => group.toUpperCase()
+                        .replace('-', '')
+                        .replace('_', '')
+    ),
 
     formatThings: {
         "config": function(args) {
@@ -83,6 +111,54 @@ module.exports = {
             generated += c;
         }
         return generated;
+    },
+
+    getGold(user) {
+        return this.db.getData(`/${user}/`).gold || 0
+    },
+
+    addGold(user, amount) {
+        if (!amount) return;
+        this.db.push(`/${user}/gold`, this.getGold(user) + amount)
+        if (amount > 0) {
+            this.addAchievement(user, {
+                id: "stonks:gold",
+                name: "Gold Stonks",
+                rarity: Rarity.red,
+                description: `<@${user}> Got their first ${this.format(amount)} :coin: <:oO:749319330503852084>`
+            })
+        }
+    },
+
+    /**
+     * Capitalizes the first letter of `str` and returns it
+     * @param {string} str 
+     * @returns {string} Capitalized `str`
+     */
+    capitalize(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    },
+
+    /**
+     * Adds spaces between capitalization and capitalizes the first letter of `str`
+     * ##### note: spaces at the start of the string might be lost
+     * @param {string} str 
+     */
+    thing(str) {
+        var regex = /([A-Z])/g
+        return this.capitalize(str.replace(regex, " $1"));
+    },
+
+
+
+    getDefense(user) {
+        return this.clamp(this.db.getData(`/${user}/`).defense || 0, 0, Infinity);
+    },
+
+    addDefense(user, amount) {
+        var a = amount || 0;
+        this.db.push(`/${user}/defense`, this.getDefense(user) + a)
+        console.log(`added ${a} (${amount}) defense to ${user}`)
     },
 
     addMedal(user, medal) {
@@ -203,6 +279,7 @@ module.exports = {
             msgEmbed.footer = {text: _err.footer}
         }
         channel.send({embed: msgEmbed});
+        
     },
 
     getMaxHealth(user) {
@@ -252,11 +329,12 @@ module.exports = {
             "cake": {
                 type: "Consumable",
                 description: "Normal cake",
-                addedMultiplier: 0.7,
-                extraInfo: "Increases multiplier multiplier",
-                inStock: 0,
+                multiplierMultiplier: 0.7,
+                extraInfo: "Increases exponent",
+                inStock: 999999999999999,
                 rarity: Rarity.red,
-                unlisted: true,
+                currency: "gold",
+                price: 5000,
                 icon: "🍰",
                 name: "Cake",
                 onUse(user) {
@@ -264,6 +342,80 @@ module.exports = {
                     stuff.addMultiplierMultiplier(user, 0.7);
                     stuff.removeItem(user, "cake")
                     return true;
+                }
+            },
+            "full-cake": {
+                type: "Consumable",
+                multiplierMultiplier: 10,
+                extraInfo: "Significantly increases exponent",
+                inStock: 99999999999999999,
+                price: 7500,
+                currency: "gold",
+                rarity: Rarity.pink,
+                icon: "🎂",
+                name: "Full Cake",
+                onUse(user) {
+                    var stuff = require('./stuff')
+                    stuff.addMultiplierMultiplier(user, 10);
+                    stuff.removeItem(user, "full-cake")
+                    return true;
+                }
+            },
+            "shield": {
+                type: "Equipment",
+                extraInfo: "Increases defense by 100 when equipped",
+                inStock: 9999999999,
+                rarity: Rarity.pink,
+                price: 10000,
+                equipable: true,
+                icon: "🛡️",
+                name: "Shield",   
+                onUse() {},
+                onEquip(user) {
+                    var stuff = require('./stuff');
+                    stuff.addDefense(user, 100)
+                },
+                onUnequip(user) {
+                    var stuff = require('./stuff');
+                    stuff.addDefense(user, -100) 
+                }
+            },
+            "ice-cube": {
+                type: "Equipment",
+                inStock: 9999999999999,
+                rarity: Rarity.purple,
+                equipable: true,
+                currency: "gold",
+                name: "Ice Cube",
+                icon: "🧊",
+                price: 1750000000,
+                onEquip(user) {
+                    var stuff = require('./stuff')
+                    stuff.addMultiplierMultiplier(user, 50000000)
+                },
+                onUnequip(user) {
+                    var stuff = require('./stuff')
+                    stuff.addMultiplierMultiplier(user, -50000000)
+                }
+            },
+            "diamond": {
+                type: "Equipment",
+                extraInfo: "Increases multiplier by 10M when equipped",
+                inStock: 9999999999999,
+                rarity: Rarity.purple,
+                equipable: true,
+                currency: "gold",
+                price: 100000,
+                icon: "💎",
+                name: "Diamond",   
+                onUse() {},
+                onEquip(user) {
+                    var stuff = require('./stuff');
+                    stuff.addMultiplier(user, 10000000)
+                },
+                onUnequip(user) {
+                    var stuff = require('./stuff');
+                    stuff.addMultiplier(user, -10000000) 
                 }
             },
             "coin": {
@@ -274,6 +426,7 @@ module.exports = {
                 },
                 inStock: 0,
                 rarity: Rarity.red,
+                price: 1,
                 unlisted: true,
                 icon: "<:ip:763937198764326963>",
                 name: "Coin",
@@ -288,9 +441,10 @@ module.exports = {
             "life-drink": {
                 type: "Consumable",
                 extraInfo: "Significantly increases max health\nOnly usable when max health is 1.6k or higher",
-                inStock: 0,
+                inStock: 99999999,
                 rarity: Rarity.purple,
-                unlisted: true,
+                currency: "gold",
+                price: 10000,
                 icon: "🥤",
                 name: "Life Drink",
                 onUse(user, _message, _args, slot) {
@@ -329,7 +483,9 @@ module.exports = {
                                     "coin",
                                     "milk",
                                     "baguette",
-                                    "life-drink"
+                                    "life-drink",
+                                    "diamond",
+                                    "shield"
                                 ],
                                 fighting: [
                                     user
@@ -556,7 +712,7 @@ module.exports = {
                             damageReduction: 2,
                             damage: 900,
                             maxHealth: 100000,
-                            itemDrops: ["eggs", "coin", "cake", "cake", "eggs", "egg", "coin", "cake", "life-drink", "life-drink"],
+                            itemDrops: ["eggs", "coin", "cake", "cake", "eggs", "egg", "coin", "cake", "life-drink", "life-drink", "full-cake", "shield", "diamond"],
                             fighting: [
                                 user
                             ]
@@ -847,6 +1003,51 @@ module.exports = {
         
     },
 
+    addAchievement(user, {id, name, description, rarity}) {
+        var a = this.getAchievements(user);
+        if (a.map(el => el.id).includes(id)) return;
+        a.push({id: id, name: name, description: description, gotWhen: Date.now(), rarity: rarity});
+        this.db.push(`/${user}/achievements`, a)
+        this.client.channels.cache.get(this.getConfig("achievements")).send({embed: {
+            title: `${this.client.users.cache.get(user).username} Got the S${this.getConfig("season")} Achievement '${name}'!`,
+            description: `**Achievement description**: ${description}`,
+            color: rarity || Rarity.blue
+        }})
+    },
+
+    getAchievements(user) {
+        var a = this.db.getData(`/${user}/`).achievements || [];
+        return a;
+    },
+
+    getEquipment(user) {
+        var equipment = this.db.getData(`/${user}/`).equipment || [];
+        return equipment;
+    },
+
+    addEquipment(user, slot) {
+        var item = this.getInventory(user)[slot];
+        if (!this.shopItems[item.id].onEquip) throw new CommandError("<:v_:755546914715336765>", `How are you supposed to equip ${item.icon} ${item.name}?`)
+        var equipment = this.db.getData(`/${user}/`).equipment || [];
+        if (equipment.length + 1 > this.getEquipmentSlots(user)) throw new CommandError("oh no", `You can't equip more than ${this.getEquipmentSlots(user)} items!`)
+        equipment.push(item);
+        this.shopItems[item.id].onEquip(user, equipment.length);
+        this.db.push(`/${user}/equipment`, equipment)
+        this.db.delete(`/${user}/inventory[${slot}]`)
+    },
+
+    removeEquipment(user, slot) {
+        var item = this.getEquipment(user)[slot]
+        this.db.delete(`/${user}/equipment[${slot}]`);
+        this.shopItems[item.id].onUnequip(user, slot)
+        this.addItem(user, item);
+    },
+
+    getEquipmentSlots(user) {
+        var user = this.db.getData(`/${user}/`)
+        return user.equipmentSlots || 6;
+    },
+
     async download(url) {
         return request.get(url)
     },
@@ -875,22 +1076,57 @@ module.exports = {
         });
     },
 
-    format(number, options = {k: "k", m: "M", b: "B", t: "T", q: "q", Q: "Q"}) {
+    format(value) {
+        if (!value && value != 0) return "<invalid number>"
+        return numeral(value).format("0.0a")
+    },
+    // don't ask why i'm keeping the old functions
+    __format(value) {
+        if (!value && value != 0) return "<invalid number>"
+        var newValue = value;
+        if (value >= 1000) {
+            var suffixes = ["", "k", "M", "B", "T", "q", "Q", "s", "S", "O", "N"];
+            var suffixNum = Math.floor( (""+value).length/3 );
+            var shortValue = '';
+            for (var precision = 2; precision >= 1; precision--) {
+                shortValue = parseFloat( (suffixNum != 0 ? (value / Math.pow(1000,suffixNum) ) : value).toPrecision(precision));
+                var dotLessShortValue = (shortValue + '').replace(/[^a-zA-Z 0-9]+/g,'');
+                if (dotLessShortValue.length <= 2) { break; }
+            }
+            if (shortValue % 1 != 0)  shortValue = shortValue.toFixed(1);
+            newValue = shortValue+suffixes[suffixNum];
+        }
+
+        return newValue;
+    },
+    _format(number, options = {k: "k", m: "M", b: "B", t: "T", q: "q", Q: "Q", s: "s", S: "S", O: "O", N: "N"}) {
         var r;
-        if (number > 999 && number < 999999) {
+        var v = Math.abs(number);
+        // 1000000000000000000
+        if (v > 999 && v < 999999) {
             r = (number / 1000).toFixed(1) + options.k || "k";
-        } else if (number > 999999 && number < 999999999) {
+        } else if (v > 999999 && v < 999999999) {
             r = (number / 1000000).toFixed(1) + options.m || "M";
-        } else if (number > 999999999 && number < 999999999999) {
+        } else if (v > 999999999 && v < 999999999999) {
             r = (number / 1000000000).toFixed(1) + options.b || "B";
-        } else if (number > 999999999999 && number < 999999999999999){
+        } else if (v > 999999999999 && v < 999999999999999){
             r = (number / 1000000000000).toFixed(1) + options.t || "T";
-        } else if (number > 999999999999999 && number < 999999999999999999) {
+        } else if (v > 999999999999999 && v < 999999999999999999) {
             r = (number / 1000000000000000).toFixed(1) + options.q || "q";
-        } else if (number > 999999999999999999) {
+        } else if (v > 999999999999999999 && v < 999999999999999999999) {
             r = (number / (999999999999999999 + 1)).toFixed(1) + options.Q || "Q";
-        } else {
+        } else if (v > 999999999999999999999 && v < 999999999999999999999999) {
+            r = (number / (999999999999999999999 + 1)).toFixed(1) + options.s || "s";
+        } else if (v > 999999999999999999999999 && v < 999999999999999999999999999) {
+            r = (number / (999999999999999999999999 + 1)).toFixed(1) + options.S || "S";
+        } else if (v > 999999999999999999999999999 && v < 999999999999999999999999999999) {
+            r = (number / (999999999999999999999999999 + 1)).toFixed(1) + options.O || "O";
+        } else if (v > 999999999999999999999999999999) {
+            r = (number / (999999999999999999999999999999999 + 1)).toFixed(1) + options.N || "N";
+        } else { 
             if (typeof number != 'number') {
+                return "<invalid number>"
+            } else if (!number && number != 0) {
                 return "<invalid number>"
             }
             r = number.toFixed(1);

@@ -16,15 +16,15 @@ module.exports = {
             fields: [
                 {
                     name: "money",
-                    value: `<:ip:763937198764326963> ${stuff.format(points)}️`,
+                    value: `<:ip:763937198764326963> ${stuff.format(points)}️\n:coin: ${stuff.format(stuff.getGold(user.id))}`,
+                },
+                {
+                    name: "total donated",
+                    value: `<:ip:763937198764326963> ${stuff.format(stuff.db.getData(`/${user.id}/`).donated || 0)}`,
                 },
                 {
                     name: "total multiplier",
                     value: `${stuff.format(totalMultiplier)}`,
-                },
-                {
-                    name: "total donated",
-                    value: `<:ip:763937198764326963> ${stuff.format(stuff.db.getData(`/${user.id}/`).donated || 0)}`
                 },
 
                 {
@@ -33,7 +33,7 @@ module.exports = {
                     inline: true,
                 },
                 {
-                    name: "multiplier's multiplier",
+                    name: "exponent",
                     value: `${stuff.format(stuff.getMultiplierMultiplier(user.id))}`,
                     inline: true,
                 },
@@ -42,13 +42,26 @@ module.exports = {
                     value: `${stuff.format(stuff.userHealth[user.id])}/${stuff.format(stuff.getMaxHealth(user.id))}`,
                     inline: true,
                 },
+                {
+                    name: "defense",
+                    value: `🛡️ ${stuff.format(stuff.getDefense(user.id))}`,
+                    inline: true,
+                },
             ]
         }
 
         if ((stuff.db.getData(`/${user.id}/`).medals || []).length > 0) {
             embed.fields.push(                {
                 name: "medals",
-                value: `${(stuff.db.getData(`/${user.id}/`).medals || []).map(el => el.icon).join(" ")}`
+                value: `${(stuff.db.getData(`/${user.id}/`).medals || []).map(el => el.icon).join(" ")}`,
+                inline: true,
+            })
+        }
+        if (stuff.getEquipment(user.id).length > 0) {
+            embed.fields.push({
+                name: `equipment (${stuff.getEquipment(user.id).length}/${stuff.getEquipmentSlots(user.id)})`,
+                value: `${stuff.getEquipment(user.id).map(el => el.icon).join(" ")}`,
+                inline: true,
             })
         }
 

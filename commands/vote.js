@@ -5,7 +5,7 @@ module.exports = {
         var client = message.client;
         
         if (client.currentVoting) {
-            client.currentVoting.vote(message.author);
+            client.currentVoting.vote(message.author, args[0] != "n");
         } else {
             throw "there's nothing to vote";
         }

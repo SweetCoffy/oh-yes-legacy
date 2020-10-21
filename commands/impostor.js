@@ -1,33 +1,50 @@
+const stuff = require('../stuff')
+
 class Vote {
     msg;
     user;
     votes = 0;
+    totalVotes = 0;
+    positiveVotes = 0;
+    negativeVotes = 0;
     ended = false;
     timer;
     voters = [];
 
-    vote(asUser) 
+    vote(asUser, positive = true) 
     {   
         var guild = this.msg.guild;
-        if (this.voters.includes(asUser.id)) {
+        /*if (this.voters.includes(asUser.id)) {
             throw "you can't vote twice!";
-        }
+        }*/
 
-        if (asUser.id == this.user.id) {
-            throw "you can't vote yourself off!";
-        }
+        
+
+        
+
 
         if (this.ended) {
             throw "this vote already ended!";
         }
         
-        this.votes++;
+        if (positive) {
+            this.votes++;
+            this.totalVotes++;
+            this.positiveVotes++;
+            this.negativeVotes--;
+        } else {
+            this.votes--;
+            this.totalVotes++;
+            this.negativeVotes++;
+            this.positiveVotes--;
+        }
+         
         
         
         this.voters.push(asUser.id);
         this.msg.channel.send({embed: {
             title: 'vOtE aLerT!',
-            description: `${asUser} voted, **${this.votes}/${this.msg.client.requiredVotes}**`
+            description: `${asUser} voted, **${this.votes}/${this.msg.client.requiredVotes}**\n\`${"🟥".repeat(stuff.clamp(this.negativeVotes, 0, Infinity))}${"🟩".repeat(stuff.clamp(this.positiveVotes, 0, Infinity))}\``
         }})
         var embed = {
                     
@@ -50,7 +67,7 @@ class Vote {
                     embed.title = `${client.impostors.length} remaining`;
                 }
 
-                embed.description = `${this.user} was an impostor`;
+                embed.description = `**${this.user}** was **an impostor**`;
 
 
 
@@ -77,7 +94,7 @@ class Vote {
 
                 
 
-                embed.description = `${this.user} was *not* an impostor`;
+                embed.description = `**${this.user}** was **not an impostor**`;
 
 
                 
@@ -107,6 +124,7 @@ class Vote {
         }, this.msg.client.voteTimeout * 1000)
 
         this.vote(msg.author);
+        //this.vote(msg.client.user, false)
     }
 }
 
@@ -130,6 +148,8 @@ module.exports = {
 
 
         client.currentVoting = new Vote(message, user);
+
+        
 
         
 

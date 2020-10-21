@@ -1,3 +1,4 @@
+const CommandError = require('../CommandError');
 const stuff = require('../stuff')
 
 module.exports = {
@@ -14,14 +15,14 @@ module.exports = {
             var entries = Object.entries(stuff.shopItems).sort(function(a, b) {
                 return b[1].price - a[1].price;
             }).filter(el => {
-                return !el[1].unlisted
+                return !el[1].unlisted && el[1].price
             })
             var itemNames = []
             var page = (parseInt(extraArgs[0]) || 1) - 1;
             var startFrom = 0 + (10 * page);
 
             entries.forEach(entry => {
-                itemNames.push(`${entry[1].icon} \`${entry[0]}\` **${entry[1].name}** ─ <:ip:763937198764326963> __${stuff.format(entry[1].price)}__ ${(discount < 1) ? `${(1 - discount) * 100}% OFF` : ``}${(entry[1].type) ? ` ─ ${entry[1].type}` : ``}${(entry[1].extraInfo) ? `\n${entry[1].extraInfo}` : ``}`);
+                itemNames.push(`${entry[1].icon} \`${entry[0]}\` **${entry[1].name}** ─ ${((entry[1].currency || "ip") == "ip") ? "<:ip:763937198764326963>" : ":coin:"} __${stuff.format(entry[1].price)}__ ${(discount < 1) ? `${(1 - discount) * 100}% OFF` : ``}${(entry[1].type) ? ` ─ ${entry[1].type}` : ``}${(entry[1].extraInfo) ? `\n${entry[1].extraInfo}` : ``}`);
             })
 
             var embed = {
@@ -43,20 +44,24 @@ module.exports = {
                 if (it.unlisted) throw `You can't buy that item lol`
                 var embed = {
                     title: `${it.icon} ${it.name}`,
-                    description: `You bought ${it.icon} ${it.name} for ${stuff.format(it.price * discount)} Internet Points\™️`
+                    description: `You bought ${it.icon} ${it.name} for ${stuff.format(it.price * discount)} ️${(curr == "ip") ? "<:ip:763937198764326963>" : ":coin:"}`
                 }
                 
                 
+                var curr = it.currency || "ip"
+                var price = it.price;
+                var cantAfford = (curr == "ip") ? stuff.getPoints(message.author.id) < stuff.shopItems[item].price * discount : stuff.getGold(message.author.id) < stuff.shopItems[item].price * discount
+            
                 stuff.repeat(i => {
                     if (stuff.shopItems[item].inStock > 0) {
-    
-                        if (stuff.getPoints(message.author.id) < stuff.shopItems[item].price * discount) {
-                            throw `you need ${((stuff.shopItems[item].price * discount) - stuff.getPoints(message.author.id)).toFixed(1)} more <:ip:763937198764326963> to buy this item!`
+                        if (cantAfford) {
+                            throw `you need ${((stuff.shopItems[item].price * discount) - stuff.getPoints(message.author.id)).toFixed(1)} more ${(curr == "ip") ? "<:ip:763937198764326963>" : ":coin:"} to buy this item!`
                         } else {      
                             
                             
                             stuff.addItem(message.author.id, {name: it.name, onUse: it.onUse, icon: it.icon, id: item, extraData: it.extraData, rarity: it.rarity})
-                            stuff.addPoints(message.author.id, -it.price * discount)
+                            if(curr == "ip") stuff.addPoints(message.author.id, -it.price * discount)
+                            if(curr == "gold") stuff.addGold(message.author.id, -it.price * discount)
         
                             
                             if (it.rarity) {
@@ -69,8 +74,9 @@ module.exports = {
                     } else {
                         throw "that item isn't in stock anymore lolololo"
                     }
-                }, repeatAmount).then(repeat => {                    
-                    embed.description = `You bought ${repeat} ${it.icon} ${it.name} for ${stuff.format(it.price * discount * repeat)} <:ip:763937198764326963>`;
+                }, repeatAmount).then(([repeat, err]) => {                    
+                    embed.description = `You bought ${repeat} ${it.icon} ${it.name} for ${stuff.format(it.price * discount * repeat)} ${(curr == "ip") ? "<:ip:763937198764326963>" : ":coin:"}`;
+                    if (err) stuff.sendError(message.channel, err);
                     message.channel.send({embed: embed})
                 })
 

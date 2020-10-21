@@ -5,8 +5,8 @@ const stuff = require('./stuff');
 const client = new Discord.Client();
 stuff.client = client;
 client.commands = new Discord.Collection();
-client.requiredVotes = 2;
-client.voteTimeout = 35;
+client.requiredVotes = 10;
+client.voteTimeout = 100;
 console.log(stuff.createData);
 
 const pageNumbers = new Discord.Collection();
@@ -52,6 +52,10 @@ client.on('guildMemberRemove', member => {
 
 client.on('messageReactionAdd', (reaction, user) => {
     try {
+        if (stuff.getConfig("idk").includes(reaction.emoji.id)) {
+            reaction.message.react(reaction.emoji.id);
+        }
+        
         var author = reaction.message.author.id;
         var message = reaction.message;
         if (user.id == author) return;
@@ -125,12 +129,15 @@ client.on('messageReactionAdd', (reaction, user) => {
 
 client.on('message', message => {
 
+    try {
     var user = message.mentions.users.first();
     if (user) {
         if (user.id == client.user.id) {
-            message.channel.send({embed: {
-                description: `${message.author} pong, i have **${client.commands.size}** commands, use \`;help\` for a list of commands`
-            }})
+            message.react('729900329440772137');
+            message.channel.send({content: message.author.toString(), embed: {
+                title: "get ponged",
+                description: `i have **${client.commands.size}** commands, use \`;help\` for a list of commands`
+            }}).then(m => m.delete({timeout: 10000}))
         }
     }
     
@@ -153,6 +160,18 @@ client.on('message', message => {
         })
     }
 
+    try {
+        if (message.content.includes("v_")) {
+            var emojis = stuff.getConfig("idk");
+            message.react(emojis[Math.floor(Math.random() * emojis.length)])
+        } else if (Math.random() < stuff.getConfig("vChance")) {
+            var emojis = stuff.getConfig("idk");
+            message.react(emojis[Math.floor(Math.random() * emojis.length)])
+        }
+    } catch (_e) {
+
+    }
+
     var hasData = false;
     var u = message.author.id;
     
@@ -172,7 +191,9 @@ client.on('message', message => {
             permissions: {},
             multiplier: 1,
             points: 0,
+            defense: 0,
             maxHealth: 100,
+            gold: 0,
             inventory: [],
             pets: [],
         });
@@ -182,9 +203,30 @@ client.on('message', message => {
         stuff.db.push(`/${message.author.id}/pets`, []);
     }
 
+    if (!stuff.db.exists(`/${message.author.id}/defense`)) {
+        stuff.db.push(`/${message.author.id}/defense`, 0);
+    }
+
+    if (!stuff.db.exists(`/${message.author.id}/gold`)) {
+        stuff.db.push(`/${message.author.id}/gold`, 0);
+    }
+
+    if (stuff.getPoints(message.author.id) > 1000000000000000000) {
+        stuff.addAchievement(message.author.id, {
+            id: "stonks:omega",
+            name: "Omega Stonks",
+            description: `Get more than ${stuff.format(1000000000000000000)} Internet Points`
+        })
+    }
+
     if (stuff.getMaxHealth(u) > 1000000) {
         stuff.db.push(`/${u}/maxHealth`, 1000000);
         stuff.userHealth[u] = 1000000;
+    }
+
+    } catch (e) {
+        console.log(e)
+        sendError(message.channel, e)
     }
 
 
@@ -330,14 +372,14 @@ client.on('message', message => {
                 
                 command.execute(message, newArgs, extraArgs, extraArgsObject);
             } else{
-                throw "that command is disabled";
+                throw `The command \`${command.name}\` is disabled, run \`;set commands.${command.name} true\` to re-enable it`;
             }
                 
             
             
         } else {
             
-            throw "missing permissions"
+            throw new CommandError(`Missing Permissions`, `The command \`${command.name}\` requires the \`${commad.requiredPermission}\` permission`)
         }
 
         
@@ -345,6 +387,7 @@ client.on('message', message => {
         
     } catch (error) {
         sendError(message.channel, error);
+        message.react("755546914715336765")
         console.log(error);
     }
 });

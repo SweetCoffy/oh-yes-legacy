@@ -48,6 +48,8 @@ module.exports = {
 
 
 
+                if (!e.fields) e.fields = [];
+                
                 if (commands.get(args[0]).usage || commands.get(args[0]).requiredPermission) {
                     e.fields = [];
                 }
@@ -64,7 +66,7 @@ module.exports = {
                     e.fields.push({name: "usage", value: commands.get(args[0]).usage})
                 }
 
-                e.fields.push({name: "cooldown", value: commands.get(args[0]).cooldown | 1 + `second(s)`})
+                e.fields.push({name: "cooldown", value: commands.get(args[0]).cooldown | 1 + ` second(s)`})
 
                 if (commands.get(args[0]).requiredPermission) {
                     e.fields.push({name: "requires permission", value: commands.get(args[0]).requiredPermission})
@@ -77,7 +79,7 @@ module.exports = {
                 }
 
 
-                
+                if (e.fields.length < 1) delete e.fields;
 
                 message.channel.send({embed: e});
 

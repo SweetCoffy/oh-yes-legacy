@@ -21,10 +21,11 @@ module.exports = {
                 footer: {
                     text: `use ;pets <index> to see info about that specific pet, you have ${petNames.length} pets h`
                 }
+                
             };
             message.channel.send({embed: embed});
         } else {
-            var pet = stuff.db.getData(`/${message.author.id}/pets[${i}]`);
+            var pet = stuff.db.getData(`/${message.author.id}/pets`)[i];
             if (!pet) throw new CommandError("Pet not found", `You don't have a pet at index \`${i}\`!!1!!!1`)
             if (!stuff.db.exists(`/${message.author.id}/pets[${i}]/happiness`)) {
                 stuff.db.push(`/${message.author.id}/pets[${i}]/happiness`, 0.5);
@@ -43,7 +44,7 @@ module.exports = {
     
                         
                         
-                        stuff.db.push(`/${message.author.id}/pets[${i}]/happiness`, _happiness + (5 * Math.random()));
+                        stuff.db.push(`/${message.author.id}/pets[${i}]/happiness`, _happiness + (0.7 * Math.random()));
     
                         
     
@@ -93,7 +94,8 @@ module.exports = {
                     stuff.currentBoss.fighting.push(message.author.id);
                     
                 }
-                var dmg = (stuff.currentBoss.damage || 200) * stuff.clamp(Math.random() * 1.2, 0.5, 1.2);
+                var defense = stuff.getDefense(message.author.id);
+                var dmg = stuff.clamp(((stuff.currentBoss.damage || 200) * stuff.clamp(Math.random() * 1.2, 0.5, 1.2)) - defense, 1, Infinity);
                 if (Math.random() < 0.6) {
                     
                     

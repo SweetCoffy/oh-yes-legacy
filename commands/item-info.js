@@ -52,7 +52,18 @@ module.exports = {
         }
 
         if (itemData.price) {
-            embed.fields.push({name: "price", value: stuff.format(itemData.price), inline: true})
+            if (!itemData.unlisted) embed.fields.push({name: "buy price", value: stuff.format(itemData.price), inline: true})
+            embed.fields.push({name: "sell price", value: stuff.format(itemData.price / 2 || 0), inline: true})
+        }
+
+        
+
+        if (itemData.fields) {
+            embed.fields.push(...itemData.fields)
+        }
+
+        if (itemData.multiplierMultiplier) {
+            embed.fields.push({name: "exponent", value: `+**${stuff.format(itemData.multiplierMultiplier)}** exponent`, inline: true})
         }
 
         message.channel.send({embed: embed});
