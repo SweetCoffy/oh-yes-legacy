@@ -13,10 +13,10 @@ var execute = async (message, args) => {
     if (args.length < 1) name = "";
     try {
         await message.channel.send(`Fetching members...`);
-        console.log(`cached member count: ${message.guild.members.cache.size}`);
+        
         var start = Date.now();
         var members = await message.guild.members.fetch();
-        console.log(`fetched member count: ${members.size}`);
+        
         var finish = Date.now();
         await message.channel.send(`Finished fetching members, took ${((finish - start) / 100).toFixed(1)}s`);
         /**

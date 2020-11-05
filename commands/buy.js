@@ -5,17 +5,37 @@ module.exports = {
     name: "buy",
     description: "buys something from the shop",
     usage: "buy <item>",
+    useArgsObject: true,
+    arguments: [
+        {
+            name: "item",
+            type: "string",
+            optional: true,
+            default: ""
+        },
+        {
+            name: "amount",
+            type: "formattedNumber",
+            optional: true,
+            default: "1",
+        }
+    ],
     cooldown: 2,
 
     execute(message, args, _extraArgs, _extraArgsObject, discount = 1) {
-        var item = args[0];
+        var item = args.item;
+        var amount = args.amount;
         var useOldShop = _extraArgsObject.oldShop || stuff.getUserConfig(message.author.id).useOldShop;
-
+        var hideUnaffordable = _extraArgsObject.hideUnaffordable
         if (!item) {
             var entries = Object.entries(stuff.shopItems).sort(function(a, b) {
                 return b[1].price - a[1].price;
             }).filter(el => {
                 return !el[1].unlisted && el[1].price
+            }).filter(el => {
+                var canAfford = (el.currency == "gold") ? stuff.getGold(message.author.id) >= el.price : stuff.getPoints(message.author.id) >= el.price
+                if (hideUnaffordable) return canAfford;
+                return true;
             })
             var itemNames = []
             var page = (parseInt(_extraArgsObject.page) || 1) - 1;
@@ -44,7 +64,7 @@ module.exports = {
         } else {
             if (stuff.shopItems[item] != undefined) {
 
-                var repeatAmount = stuff.clamp(parseInt(args[1]) || 1, 1, stuff.getConfig("massBuyLimit"));
+                var repeatAmount = stuff.clamp(amount, 1, stuff.getConfig("massBuyLimit"));
                 var it = stuff.shopItems[item];
                 if (it.unlisted) throw `You can't buy that item lol`
                 var embed = {

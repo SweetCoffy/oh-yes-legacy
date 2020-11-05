@@ -127,7 +127,7 @@ module.exports = {
         return new Promise((resolve, reject) => {
             axios.default.get(`http://api.urbandictionary.com/v0/define?term=${encodeURIComponent(word)}`).then(value => {
                 var res = value.data.list[i]   
-                //console.log(res); 
+                // 
                 if (res == undefined) {
                     reject(new CommandError("Definition not found", `Could not find a definitition for \`${word}\``));
                 } else {
@@ -325,7 +325,7 @@ module.exports = {
     addDefense(user, amount) {
         var a = amount || 0;
         this.db.push(`/${user}/defense`, this.getDefense(user) + a)
-        console.log(`added ${a} (${amount}) defense to ${user}`)
+        
     },
     canCraft(item, user) {
         var items = this.getInventory(user);
@@ -336,12 +336,12 @@ module.exports = {
             if (!inv[el.id]) inv[el.id] = {amount: 0, ...el}
             inv[el.id].amount++;
         });
-        console.log(JSON.stringify(inv, null, 4));
+        
         var hasItems = true;
         for (const el of it.ingredients) {
             var h = inv[el.id] || {amount: 0};
-            console.log(h.amount);
-            console.log(el.amount);
+            
+            
             if (h.amount < el.amount) hasItems = false;
         }
         return hasItems;
@@ -434,7 +434,7 @@ module.exports = {
                 }
                 return resolve([iterations, undefined]);
             } catch (err) {
-                console.log(err);
+                
                 return resolve([iterations, err]);
             }
         })
@@ -444,7 +444,7 @@ module.exports = {
 
     sendError (channel, err) {
         var _err = err;
-        console.log(typeof err)
+        
         if (typeof err == 'string') {
             _err = CommandError.fromString(err);
         } 
@@ -1499,7 +1499,7 @@ module.exports = {
         var oldAmount = this.db.getData(` /${user}/multiplier`);
         this.db.push(` /${user}/multiplier`, this.db.getData(` /${user}/multiplier`) + amount)
         var newAmount = this.db.getData(` /${user}/multiplier`);
-        console.log(`added ${(newAmount - oldAmount).toFixed(1)} multiplier to ${user}`)
+        
     },
     addMultiplierMultiplier(user, amount) {
         this.db.push(` /${user}/multiplierMultiplier`, this.getMultiplierMultiplier(user) + amount)
@@ -1569,8 +1569,8 @@ module.exports = {
 
         
 
-        console.log(`added ${amount || 0} to ${user}`)
-        console.log(amount)
+        
+        
         this.db.push(`/${user}/points`, (this.db.getData(`/${user}/points`) || 0) + (amount || 0))
         
 
@@ -1668,7 +1668,7 @@ module.exports = {
         
     },
     mine(user, slot) {
-        console.log(slot);
+        
         var s = require('./stuff');
         var shopItems = s.shopItems;
         var inv = s.db.getData(`/${user}/inventory`);
@@ -1685,16 +1685,16 @@ module.exports = {
                         id: el.id,
                         amount: amount,
                     })
-                    console.log(el + ", " + amount)
+                    
                     for (var i = 0; i < amount; i++) {
                         s.addItem(user, el.id)
                     }
                 }
             })
-            console.log(items);
-            console.log(d);
+            
+            
             var newPick = {...s.readItemData(user, slot)};
-            console.log(newPick)
+            
             if (newPick.durability <= 0) {
                 s.db.delete(`/${user}/inventory[${slot}]`);
             }
@@ -1704,7 +1704,7 @@ module.exports = {
                 oldPickaxe: d,
             }
             
-            console.log(h);
+            
             return h
         } else {
             throw new CommandError("<:v_:755546914715336765>", `How are you supposed to mine with \`${inv[slot].id}\`?`);

@@ -7,17 +7,35 @@ stuff.client = client;
 client.commands = new Discord.Collection();
 client.requiredVotes = 10;
 client.voteTimeout = 100;
-console.log(stuff.createData);
+const chalk = require('chalk')
 
 const pageNumbers = new Discord.Collection();
 
 const config = require('../config.json');
 const fs = require('fs');
 const CommandError = require('./CommandError');
+function messageThing(message) {
+    var cname = message.channel.name;
+    var uname = message.author.username;
+    var c = message.content;
+    var fancyContent = c.replace(/`([^`]+)`/gs, chalk.bgHex("121212")("$1"))
+    .replace(/\*(.+)\*/gs, chalk.italic("$1"))
+    .replace(/\*\*(.+)\*\*/gs, chalk.bold("$1"))
+    .replace(/~~(.+)~~/, chalk.strikethrough("$1"))
+    
+    var embed = message.embeds[0];
+    if (embed) {
+        fancyContent += `\n${chalk.bgHex(embed.hexColor || "121212")("---------------------------------------")}\n${chalk.whiteBright(embed.title || "")}\n${(embed.description || "").replace(/\*\*([^*]+)\*\*/g, chalk.bold("$1"))}\n${chalk.gray(embed.fields.map(el => `\t${chalk.whiteBright(el.name)}\n\t${chalk.gray(el.value)}`).join("\n\n"))}\n${chalk.gray((embed.footer || {}).text || "")}\n${chalk.bgHex(embed.hexColor || "121212")("---------------------------------------")}`
+    }
+    console.log(`${chalk.gray(cname + "/")}${uname}${chalk.gray(":")} ${fancyContent}`)
+}
 const { resolve, join } = require('path');
 const cooldowns = new Discord.Collection();
 const conversions = {
-    string: str => str,
+    string: (str) => {
+        ;
+        return str
+    },
     number: parseFloat,
     member: (str, message) => {
         var regex = /<@!?(\d+)>/
@@ -36,6 +54,16 @@ const conversions = {
         var slot = inv.map(el => el.id).indexOf(str);
         return slot;
     },
+    formattedNumber: (str) => {
+        ;
+        var prefixes = ["", "k", "M", "B", "T", "q", "Q", "s", "S", "O", "N"]
+        var match = str.match(/([\d.-]+) *(\w?)/);
+        if (match == null) return undefined;
+        var number = parseFloat(match[1] || "0")
+        var prefix = match[2] || "";
+        var multiplier = Math.pow(10, stuff.clamp(prefixes.indexOf(prefix) * 3, 0, Infinity))
+        return number * multiplier;
+    },
     bool: str => str == 'true',
     /**
      * @param {string} str
@@ -47,12 +75,15 @@ const conversions = {
         return str;
     }
 }   
-var argConversion = (type, str, message) => {
-    try {
-        return conversions[type](str, message)
-    } catch (_err) {
-        return undefined
-    }
+var argConversion = (arg, str, message) => {
+    
+    
+    var val = conversions[arg.type](str, message)
+    var _default = conversions[arg.type](arg.default || "", message)
+    var h = (val == undefined || isNaN(val)) ? _default : val
+    if (arg.type == 'string') h = str || "";
+    ;
+    return h;
 }
 //var rolePerms = JSON.parse(fs.readFileSync("roleperms.json", 'utf8').toString())
 client.impostors = 
@@ -110,10 +141,17 @@ client.on('messageDelete', async message => {
     try {
         sendAuditLog(message)
     } catch (err) {
-        console.log(err);
+        ;
     }
 });
-
+client.on('messageUpdate', (_message, message) => {
+    try {
+        if ((_message.content == message.content) || _message.embeds == message.embeds) return;
+        messageThing(message)
+    } catch (err) {
+        console.log(err);
+    }
+})
 
 
 
@@ -143,7 +181,7 @@ client.on('messageReactionAdd', (reaction, user) => {
             stuff.addPoints(author, 9 * Math.random() * stuff.getMultiplier(author, false));
         }        
     } catch (err) {
-        console.log(err);
+        ;
     }  
 })
 
@@ -154,7 +192,7 @@ client.on('emojiUpdate', async (oldEmoji, newEmoji) => {
             await client.channels.cache.get(stuff.getConfig("reportsChannel")).send(`Some evil person whitelisted <:v_:755546914715336765>`)
         }
     } catch (e) {
-        console.log(e);
+        ;
     }
 })
 client.on('emojiDelete', async emoji => {
@@ -163,14 +201,14 @@ client.on('emojiDelete', async emoji => {
         await channel.send(`<@&768569677001523220> Emoji Yeet Alert: ${emoji.name} was yeeted!`)
         // <@&768569677001523220>
     } catch (e) {
-        console.log(e)
+        
     }
 })
 
 client.on('message', async message => {
 
     try {
-        if(message.content.includes("egg") || message.content.includes("🥚")) {
+        if((message.content.includes("egg") || message.content.includes("🥚")) && message.author.id != client.user.id) {
             message.react('🥚');
         }
         if (message.content.includes("<:v_:755546914715336765>")) {
@@ -255,6 +293,7 @@ client.on('message', async message => {
         });
     }
 
+    messageThing(message)
     if (!stuff.db.exists(`/${message.author.id}/pets`)) {
         stuff.db.push(`/${message.author.id}/pets`, []);
     }
@@ -281,7 +320,7 @@ client.on('message', async message => {
     }
 
     } catch (e) {
-        console.log(e)
+        
         sendError(message.channel, e)
     }
 
@@ -291,9 +330,9 @@ client.on('message', async message => {
     
     
     
-    if(message.author.id == client.user.id) {
-        console.log(`${client.user.tag}: ${message.content}`);
-    }
+    
+    
+    
 
     
     // broken cooldown
@@ -345,8 +384,8 @@ client.on('message', async message => {
     
 
     // debug stuff
-    console.log(args);
-    console.log(commandName);
+    
+    
 
     
     
@@ -369,7 +408,7 @@ client.on('message', async message => {
     // try-catch so the bot doesn't die
     try {
         
-        
+       
         
         
         
@@ -424,7 +463,7 @@ client.on('message', async message => {
 
                 var newArgs = joinedArgs.split(" ").filter(function(el) {
                     return el != "" && el != null && el != undefined;
-                });
+                }) || [];
 
 
                 var a = [];
@@ -432,23 +471,24 @@ client.on('message', async message => {
                 
 
                 if (command.arguments) {
+                    
                     var requiredArgs = command.arguments.filter(el => !el.optional);
                     if (newArgs.length < requiredArgs.length) {
                         throw new CommandError("Not enough arguments", `Required argument \`${requiredArgs[newArgs.length].name || `arg${newArgs.length}`}\` is missing`, `You need at least ${requiredArgs.length} arguments to run this command`);
                     }
-                    newArgs.forEach((el, i) => {
-                        if (command.arguments[i]) {
-                            var arg = command.arguments[i]
-                            var _val = argConversion(arg.type, el, message);
-                            var _default = argConversion(arg.type, el, message);
-                            var val = (_val == undefined) ? _default : _val;
-                            if (val == undefined || val == NaN) throw new CommandError("Invalid Type", `Argument \`${arg.name}\` must be of type \`${arg.type}\``)
-                            if (command.useArgsObject) argsObject[arg.name] = val
-                            if (command.useArgsObject) argsObject["_" + arg.name] = el || arg.default
-                            a[i] = val;
-                        } else {
-                            a[i] = el;
-                        }
+                    command.arguments.forEach((arg, i) => {
+                        var el = newArgs[i];
+                        if (i >= command.arguments.length - 1) el = newArgs.slice(i).join(" ");
+                        
+                        var val = argConversion(arg, el, message);
+                        
+                        
+                        
+                        
+                        if (val == undefined || (typeof val == 'number' && isNaN(val))) throw new CommandError("Invalid Type", `Argument \`${arg.name || "arg" + i}\` must be of type \`${arg.type}\``)
+                        if (command.useArgsObject) argsObject[arg.name] = val
+                        if (command.useArgsObject) argsObject["_" + arg.name] = el || arg.default
+                        a[i] = val;
                     })
                 } else {
                     a = newArgs
@@ -482,7 +522,7 @@ client.on('message', async message => {
     } catch (error) {
         sendError(message.channel, error);
         message.react("755546914715336765")
-        console.log(error);
+        
     }
 });
 
@@ -495,7 +535,7 @@ client.on('message', async message => {
 
 function sendError (channel, err) {
     var _err = err;
-    console.log(typeof err)
+    
     if (typeof err == 'string') {
         _err = CommandError.fromString(err);
     } 

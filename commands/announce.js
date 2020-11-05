@@ -3,11 +3,17 @@ const stuff = require('../stuff');
 module.exports = {
     name: "announce",
     description: "super important announcement!!1!!!11",
-    usage: "announce <thing:string>",
+    useArgsObject: true,
+    arguments: [
+        {
+            name: "text",
+            type: "string"
+        }
+    ],
     requiredPermission: "commands.announce",
 
-    execute(message, args, extraArgs) {
-        var str = args.join(" ");
+    execute(message, args, _extraArgs, extraArgs) {
+        var str = args.text;
         if (!str) throw "you can't announce void!";
         var embed = {
             title: "announcement",
@@ -17,13 +23,9 @@ module.exports = {
 
 
 
-        if (extraArgs[0] == 'footer') {
-            embed.footer = {text: extraArgs[1]};
-        }
+        embed.footer = {text: extraArgs.footer};
 
-        if (extraArgs[0] == 'title') {
-            embed.title = extraArgs[1];
-        }
+        embed.title = extraArgs.title || "Announcement"
 
         var channel = message.client.channels.cache.get(stuff.getConfig("announcements"));
         channel.send({embed: embed}).then(msg => {

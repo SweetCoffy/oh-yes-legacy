@@ -3,14 +3,18 @@ const stuff = require("../stuff");
 module.exports = {
     name: "say",
     requiredPermission: "commands.say",
-    usage: "say <text:string>",
+    useArgsObject: true,
+    arguments: [
+        {
+            name: "text",
+            type: "string",
+            optional: true,
+            default: "",
+        }
+    ],
 
     execute (message, args, _extraArgs, extraArgs) {
         
-        // questionable error message
-        if (args.length < 1 && Object.keys(extraArgs).length < 1) {
-            throw "not enough arguments";
-        }
 
         var embed = {
             title: stuff.stringThing(extraArgs.title || "", message),
@@ -32,7 +36,7 @@ module.exports = {
 
 
         // join the stuff
-        var cont = stuff.stringThing(args.join(" ").replace(/(<|)[@!&]\S*(>|)/gm, `<@${message.author.id}>`), message);
+        var cont = stuff.stringThing(args._text.replace(/(<|)[@!&]\S*(>|)/gm, `<@${message.author.id}>`), message);
 
         
         
@@ -50,6 +54,6 @@ module.exports = {
         // actually sending the message
         message.channel.send(cont).then(() => {
             message.delete();
-        })
+        }).catch(err => stuff.sendError(message.channel, err))
     }
 }

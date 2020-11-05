@@ -63,25 +63,35 @@ module.exports = {
                 }
 
                 if (commands.get(args[0]).usage && !cmd.arguments) {
-                    e.fields.push({name: "usage", value: commands.get(args[0]).usage})
+                    e.fields.push({name: "Usage", value: commands.get(args[0]).usage})
                 }
                 if (cmd.arguments && !cmd.usage) {
-                    e.fields.push({name: "usage", value: args[0] + " " + cmd.arguments.map((el, i) => {
+                    e.fields.push({name: "Usage", value: args[0] + " " + cmd.arguments.map((el, i) => {
                         return `<${el.name || `arg${i}`}${el.optional ? "?" : ""} : ${el.validValues ? el.validValues.join("|") : el.type}>`   
-                    }).join(" ")});
+                    }).join(" "), inline: true});
+                }
+                if (cmd.arguments) {
+                    e.fields.push({
+                        name: "Detailed usage",
+                        value: cmd.arguments.map((el, i) => {
+                            var str = `${el.name || "arg" + i}${el.optional ? "?" : ""} : ${el.type}${el.default ? ` = ${el.default}` : ''}`
+                            return str;
+                        }).join("\n"),
+                        inline: true
+                    })
                 }
 
                 if (cmd.requiredRolePermissions != undefined) {
                     e.fields.push({
-                        name: "requires role permission",
+                        name: "Requires role permission",
                         value: stuff.thing(stuff.snakeToCamel(cmd.requiredRolePermissions.toLowerCase()))
                     })
                 }
 
-                e.fields.push({name: "cooldown", value: (cmd.cooldown | 1 ) + " second(s)"})
+                e.fields.push({name: "Cooldown", value: (cmd.cooldown | 1 ) + " second(s)"})
 
                 if (commands.get(args[0]).requiredPermission) {
-                    e.fields.push({name: "requires permission", value: commands.get(args[0]).requiredPermission})
+                    e.fields.push({name: "Requires permission", value: commands.get(args[0]).requiredPermission})
                 }
 
                 
@@ -97,7 +107,7 @@ module.exports = {
 
 
             } else {
-                throw "could not find command: `" + args[0] + "`";
+                throw "Could not find command `" + args[0] + "`";
             }
 
 
@@ -126,9 +136,9 @@ module.exports = {
                     if (commandEnabled && !commandRemoved) {
                         en = "";
                     } else if (!commandRemoved){
-                        en = "(disabled)";
+                        en = "🔴";
                     } else {
-                        en = "(removed)";
+                        en = "⚫";
                     }
                     
                     if (!commandRemoved || showRemovedCommands) {

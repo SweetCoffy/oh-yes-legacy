@@ -8,7 +8,7 @@ module.exports = {
     async execute(message) {
         var guild = message.guild;
         var archived = guild.channels.cache.filter(value => {
-            console.log(value.parentID)
+            
             return value.parentID == stuff.getConfig("archiveCategory")
         })
 

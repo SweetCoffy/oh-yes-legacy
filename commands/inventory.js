@@ -75,7 +75,7 @@ module.exports = {
                     inv.unshift(_inv[0])
                 }
             }
-            console.log(inv);
+            
             
 
             

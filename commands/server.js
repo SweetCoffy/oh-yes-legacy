@@ -13,7 +13,7 @@ module.exports = {
                 var data;
                 res.on('data', chunk => _data += chunk)
                 res.on('end', () => {
-                    console.log(_data)
+                    
                     data = JSON.parse(_data);
 
     

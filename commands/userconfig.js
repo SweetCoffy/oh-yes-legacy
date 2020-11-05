@@ -21,7 +21,7 @@ module.exports = {
         }
     ],
     execute(message, args) {
-        console.log(args);
+        
         if (args.method == "get") {
             var config = stuff.getUserConfig(message.author.id);
             var value = config[args.setting]

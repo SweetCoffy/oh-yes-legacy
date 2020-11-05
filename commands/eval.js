@@ -146,9 +146,9 @@ const context = {
         for (const segment of segments) {
             var oldVal = val;
             val = oldVal[segment];
-            console.log(segment);
+            
         }
-        console.log(val);
+        
         return val;
     }
 }
@@ -177,9 +177,9 @@ var cloneContext = {
         for (const segment of segments) {
             var oldVal = val;
             val = oldVal[segment];
-            console.log(segment);
+            
         }
-        console.log(val);
+        
         return val;
     }
 

@@ -10,8 +10,8 @@ module.exports = {
         if (args.length < 1) throw new CommandError("Void", "You can't search void")
         var serverEmojis = message.guild.emojis.cache;
         var matching = serverEmojis.filter(v => {
-            console.log(v.id)
-            console.log(v.name)
+            
+            
             return v.id.includes(query) || v.name.includes(query);
         })
 

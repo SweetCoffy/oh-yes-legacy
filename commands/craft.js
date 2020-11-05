@@ -4,9 +4,15 @@ const stuff = require("../stuff");
 module.exports = {
     name: "craft",
     description: "oh god this bot is turning into a mining simulator ripoff",
-    usage: "craft <item>",
+    useArgsObject: true,
+    arguments: [
+        {
+            name: "item",
+            type: "string"
+        }
+    ],
     execute(message, args) {
-        var craftable = stuff.craftables[args[0]];
+        var craftable = stuff.craftables[args.item];
         if (!craftable) {
             var embed = {
                 title: "craftable item list",
@@ -17,7 +23,7 @@ module.exports = {
             }
             message.channel.send({embed: embed});
         } else {
-            var canCraft = stuff.canCraft(args[0], message.author.id);
+            var canCraft = stuff.canCraft(args.item, message.author.id);
             if (canCraft) {
                 var it = stuff.shopItems[craftable.id];
                 craftable.ingredients.forEach(el => {

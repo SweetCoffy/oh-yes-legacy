@@ -8,7 +8,7 @@ module.exports = {
         var slot = getInventory(message.author.id).map(el => shopItems[el.id].type).lastIndexOf("Pickaxe");
         if (slot < 0) throw "You don't have a pickaxe!"
         const h = mine(message.author.id, slot);
-        console.log(h);
+        
         var embed = {
             title : "You mined stuff",
             fields: [

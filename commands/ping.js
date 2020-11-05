@@ -13,8 +13,7 @@ module.exports = {
                 description: ping + "ms"
             }
             
-            m.channel.send({embed: embed});
-            m.delete();
+            m.edit({embed: embed, content: ""});
         })
         
         

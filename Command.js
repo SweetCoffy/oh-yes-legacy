@@ -16,7 +16,7 @@ module.exports = class Command {
      * Description shown on the command's help embed
      */
     description;
-    arguments = [];
+    arguments;
     /**
      * Required permission for the oh yes permission system, should be `commands.<command name>`
      */
@@ -60,16 +60,14 @@ module.exports = class Command {
     }
     /**
      * 
-     * @param {string| {name: "h", type: "string", optional: false, default: "h", validValues: ["h"]}} name 
+     * @param {string, default: String, validValues : String[]}} name 
      * @param {string} type 
      * @param {bool} optional 
      * @param {string} defaultValue 
      * @param {string[]} validValues 
      */
     addArgument(name = undefined, type = "string", optional = false, defaultValue = "", validValues = undefined) {
-        if (typeof name == "object") {
-            this.arguments.push(name)
-        } else {
+        if (!this.arguments) this.arguments = [];
             this.arguments.push({
                 type: type,
                 name: name,
@@ -77,7 +75,12 @@ module.exports = class Command {
                 default: defaultValue,
                 validValues: validValues
             })
-        }
+        
+        return this;
+    }
+    addArgumentObject(obj) {
+        if (!this.arguments) this.arguments = [];
+        this.arguments.push(obj);
         return this;
     }
     argsObject() {
