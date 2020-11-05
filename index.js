@@ -16,12 +16,54 @@ const fs = require('fs');
 const CommandError = require('./CommandError');
 const { resolve, join } = require('path');
 const cooldowns = new Discord.Collection();
-var rolePerms = JSON.parse(fs.readFileSync("roleperms.json", 'utf8').toString())
+const conversions = {
+    string: str => str,
+    number: parseFloat,
+    member: (str, message) => {
+        var regex = /<@!?(\d+)>/
+        var match = str.match(regex);
+        return message.guild.member(match[1]);
+    },
+    user: (str, message) => {
+        if (!str) return message.author;
+        if (str.toString() == "me") return message.author;
+        var regex = /<@!?(\d+)>/
+        var match = str.match(regex);
+        return client.users.cache.get(match[1]);
+    },
+    inventoryItem: (str, message) => {
+        var inv = stuff.getInventory(message.author.id)
+        var slot = inv.map(el => el.id).indexOf(str);
+        return slot;
+    },
+    bool: str => str == 'true',
+    /**
+     * @param {string} str
+     */
+    any: (str, message) => {
+        var number = parseFloat(str)
+        if (!isNaN(number)) return number;
+        if (str == "true" || str == 'false') return conversions.bool(str)
+        return str;
+    }
+}   
+var argConversion = (type, str, message) => {
+    try {
+        return conversions[type](str, message)
+    } catch (_err) {
+        return undefined
+    }
+}
+//var rolePerms = JSON.parse(fs.readFileSync("roleperms.json", 'utf8').toString())
 client.impostors = 
 [
     //"630489464724258828" just for testing
 ]
-
+const h = {
+    get auditLogs() {
+        return client.channels.cache.get(stuff.getConfig("auditLogs"))
+    }
+}
 
 
 
@@ -43,24 +85,52 @@ client.once('ready', () => {
 	console.log('oh yes');
 });
 
+function sendAuditLog(message) {
+    var embed = {fields: []}
+    embed.title = "Message deleted";
+    embed.description = message.content;
+    embed.author = {
+        name: message.author.username,
+        icon: message.author.avatarURL()
+    }
+
+    if (embed.fields.length < 1) delete embed.fields;
+
+    h.auditLogs.send({embed: embed})
+
+
+    
+}
+
 client.on('guildMemberRemove', member => {
     try {stuff.addMedal(member.id, stuff.medals.kicc)} catch (err) {console.log(err)}
 })
+
+client.on('messageDelete', async message => {
+    try {
+        sendAuditLog(message)
+    } catch (err) {
+        console.log(err);
+    }
+});
 
 
 
 
 client.on('messageReactionAdd', (reaction, user) => {
     try {
-        if (stuff.getConfig("idk").includes(reaction.emoji.id)) {
-            reaction.message.react(reaction.emoji.id);
-        }
+        
+
+        if (stuff.getConfig("randomReactions")) reaction.message.react(reaction.emoji.id);
+
+    
         
         var author = reaction.message.author.id;
         var message = reaction.message;
         if (user.id == author) return;
         if (reaction.emoji.id == stuff.getConfig("v_")) {
             stuff.addPoints(author, 10 * Math.random() * stuff.getMultiplier(author, false)); 
+            stuff.addVCounter(user.id, 1);
         } else if (reaction.emoji.id == stuff.getConfig("ohyes")) {
             stuff.addPoints(author, -0.5 * Math.random());        
         } else if (reaction.emoji.id == stuff.getConfig("ohno")) {
@@ -71,66 +141,42 @@ client.on('messageReactionAdd', (reaction, user) => {
             stuff.addPoints(author, 5 * Math.random() * stuff.getMultiplier(author, false));
         } else if (reaction.emoji.id == stuff.getConfig("madv_")) {
             stuff.addPoints(author, 9 * Math.random() * stuff.getMultiplier(author, false));
-        }
-
-        if (user.bot) return;
-        if (reaction.emoji.name != "◀️" && reaction.emoji.name != "▶️") return;
-
-        if (!pageNumbers.has(user.id)) {
-            pageNumbers.set(user.id, 0);
-        }
-
-        
-        
-        if (author == client.user.id) {
-            if (message.embeds[0]) {
-                if (message.embeds[0].title == "command list") {
-                    if (reaction.emoji.name == "▶️") {
-                        pageNumbers.set(user.id, pageNumbers.get(user.id) + 1)
-                    } else if (reaction.emoji.name == "◀️") {
-                        pageNumbers.set(user.id, pageNumbers.get(user.id) - 1)
-                    } 
-                    
-                    var commandNames = [];
-                    client.commands.forEach(el => {
-                        var commandRemoved = el.removed;
-                        var commandEnabled = stuff.getConfig("commands." + el.name.toLowerCase());
-                        var en;
-        
-                        if (commandEnabled && !commandRemoved) {
-                            en = "\🟩";
-                        } else if (!commandRemoved){
-                            en = "\🟥";
-                        } else {
-                            en = "\⬛";
-                        }
-                        if (!el.removed) commandNames.push(`\`${en} ` + (el.name || "invalid command") + `\`: ` + (el.description || "<eggs>"))
-                    })
-                    var maxPages = Math.ceil(stuff.clamp(commandNames.length / 20, 1, Infinity));
-                    
-
-                    var page = stuff.clamp(pageNumbers.get(user.id) || 0, 0, maxPages);
-                    var startFrom = 0 + (20 * page)
-                    var embed = reaction.message.embeds[0];
-                    
-                    embed.description = commandNames.slice(startFrom, startFrom + 20).join("\n");
-                    embed.footer = {text:`use ;help <command name> to see info about that command, page ${page + 1}/${maxPages}`}
-                    reaction.message.edit({embed: embed});
-                }
-            }
-        }
-    
-        
+        }        
     } catch (err) {
         console.log(err);
     }  
 })
 
+client.on('emojiUpdate', async (oldEmoji, newEmoji) => {
+    try {        
+        if (newEmoji.roles.cache.size > 0 && newEmoji.id == "755546914715336765") {
+            await newEmoji.edit({roles: []})
+            await client.channels.cache.get(stuff.getConfig("reportsChannel")).send(`Some evil person whitelisted <:v_:755546914715336765>`)
+        }
+    } catch (e) {
+        console.log(e);
+    }
+})
+client.on('emojiDelete', async emoji => {
+    try {
+        var channel = client.channels.cache.get(stuff.getConfig("reportsChannel"));
+        await channel.send(`<@&768569677001523220> Emoji Yeet Alert: ${emoji.name} was yeeted!`)
+        // <@&768569677001523220>
+    } catch (e) {
+        console.log(e)
+    }
+})
 
-client.on('message', message => {
+client.on('message', async message => {
 
     try {
-    var user = message.mentions.users.first();
+        if(message.content.includes("egg") || message.content.includes("🥚")) {
+            message.react('🥚');
+        }
+        if (message.content.includes("<:v_:755546914715336765>")) {
+        stuff.addVCounter(message.author.id, 1);
+    }
+        var user = message.mentions.users.first();
     if (user) {
         if (user.id == client.user.id) {
             message.react('729900329440772137');
@@ -160,16 +206,26 @@ client.on('message', message => {
         })
     }
 
-    try {
-        if (message.content.includes("v_")) {
-            var emojis = stuff.getConfig("idk");
-            message.react(emojis[Math.floor(Math.random() * emojis.length)])
-        } else if (Math.random() < stuff.getConfig("vChance")) {
-            var emojis = stuff.getConfig("idk");
-            message.react(emojis[Math.floor(Math.random() * emojis.length)])
+    if (stuff.getConfig("randomReactions")) {
+        try {
+            if (message.content.includes("v_")) {
+                var emojis = stuff.getConfig("idk");
+                message.react(emojis[Math.floor(Math.random() * emojis.length)])
+            } else if (Math.random() < stuff.getConfig("vChance")) {
+                var emojis = stuff.getConfig("idk");
+                message.react(emojis[Math.floor(Math.random() * emojis.length)])
+            }
+            var regex = /<:\w+:(\d+)>|:(\w+):/g
+            var matches = message.content.matchAll(regex);
+            var promises = [];
+            for (const match of matches) {
+                var c = match.slice(1).filter(el => el);
+                promises.push(message.react(c[0]))
+            }
+            Promise.all(promises).catch(e => console.log(e))
+        } catch (_e) {
+    
         }
-    } catch (_e) {
-
     }
 
     var hasData = false;
@@ -265,7 +321,7 @@ client.on('message', message => {
 
     
     // somehow getting the command the user tried to execute
-    const commandName = message.content.substring(1).split(" ")[0];
+    const commandName = message.content.substring(1).split(" ")[0].toLowerCase();
     
     // getting the arguments
     args = message.content.substring(1).split(" "), config.prefix.length;
@@ -279,7 +335,10 @@ client.on('message', message => {
     
     
     // the command
-    const command = client.commands.get(commandName);
+    const command = client.commands.get(commandName) || client.commands.filter(v => {
+        if (!v.aliases) return
+        if (v.aliases.includes(commandName)) return 
+    })[0];
     
     
     
@@ -292,7 +351,7 @@ client.on('message', message => {
     
     
     
-    if (!client.commands.has(commandName)) {
+    if (!command) {
         
         // i should delete this instead of commenting it
         //message.channel.send("<:v_:750422544494100500>");
@@ -339,7 +398,7 @@ client.on('message', message => {
                 }
 
                 var joinedArgs = args.join(" ");
-                var regex = /--([^- ]*)='([^']*)'|--([^- ]*)/gm
+                var regex = /--([^-\s]+)='([^']+)'|--([^-\s]+) "([^']+)"|--([^-\s]+) ([^-'\s]+)|--([^-\s]+) '([^']+)'|--([^-\s]+)/gm
 
                 var extraArgsObject = {};
 
@@ -366,11 +425,46 @@ client.on('message', message => {
                 var newArgs = joinedArgs.split(" ").filter(function(el) {
                     return el != "" && el != null && el != undefined;
                 });
+
+
+                var a = [];
+                var argsObject = {};
+                
+
+                if (command.arguments) {
+                    var requiredArgs = command.arguments.filter(el => !el.optional);
+                    if (newArgs.length < requiredArgs.length) {
+                        throw new CommandError("Not enough arguments", `Required argument \`${requiredArgs[newArgs.length].name || `arg${newArgs.length}`}\` is missing`, `You need at least ${requiredArgs.length} arguments to run this command`);
+                    }
+                    newArgs.forEach((el, i) => {
+                        if (command.arguments[i]) {
+                            var arg = command.arguments[i]
+                            var _val = argConversion(arg.type, el, message);
+                            var _default = argConversion(arg.type, el, message);
+                            var val = (_val == undefined) ? _default : _val;
+                            if (val == undefined || val == NaN) throw new CommandError("Invalid Type", `Argument \`${arg.name}\` must be of type \`${arg.type}\``)
+                            if (command.useArgsObject) argsObject[arg.name] = val
+                            if (command.useArgsObject) argsObject["_" + arg.name] = el || arg.default
+                            a[i] = val;
+                        } else {
+                            a[i] = el;
+                        }
+                    })
+                } else {
+                    a = newArgs
+                }
+
+                if(command.useArgsObject) a = argsObject;
+                
+                
+                command.execute(message, a, extraArgs, extraArgsObject);
+               
+                
+                
                 
                 
 
                 
-                command.execute(message, newArgs, extraArgs, extraArgsObject);
             } else{
                 throw `The command \`${command.name}\` is disabled, run \`;set commands.${command.name} true\` to re-enable it`;
             }
@@ -379,7 +473,7 @@ client.on('message', message => {
             
         } else {
             
-            throw new CommandError(`Missing Permissions`, `The command \`${command.name}\` requires the \`${commad.requiredPermission}\` permission`)
+            throw new CommandError(`Missing Permissions`, `The command \`${command.name}\` requires the \`${command.requiredPermission}\` permission`)
         }
 
         

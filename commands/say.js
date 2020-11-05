@@ -5,24 +5,45 @@ module.exports = {
     requiredPermission: "commands.say",
     usage: "say <text:string>",
 
-    execute (message, args, extraArgs) {
+    execute (message, args, _extraArgs, extraArgs) {
         
         // questionable error message
-        if (args.length < 1 && extraArgs.length < 1) {
+        if (args.length < 1 && Object.keys(extraArgs).length < 1) {
             throw "not enough arguments";
         }
 
+        var embed = {
+            title: stuff.stringThing(extraArgs.title || "", message),
+            description: stuff.stringThing(extraArgs.description || "", message),
+            thumbnail: {
+                url: extraArgs.thumbnailUrl,
+                width: parseInt(extraArgs.thumbnailWidth),
+                height: parseInt(extraArgs.thumbnailHeight)
+            },
+            footer: {
+                text: extraArgs.footer,
+            },
+            image: {
+                url: extraArgs.imageUrl,
+                width: parseInt(extraArgs.imageWidth),
+                height: parseInt(extraArgs.imageHeight)
+            }
+        }
 
 
         // join the stuff
-        var cont = stuff.stringThing(args.join(" ")).replace(/(<|)[@!&]\S*(>|)/gm, `<@${message.author.id}>`);
+        var cont = stuff.stringThing(args.join(" ").replace(/(<|)[@!&]\S*(>|)/gm, `<@${message.author.id}>`), message);
 
         
         
-        if (extraArgs[0] == "embed") {
+        if (extraArgs.embed) {
             var oldCont = cont;
 
-            cont = {embed: JSON.parse(extraArgs[1]), content: oldCont};
+            try {
+                cont = {embed: JSON.parse(extraArgs.json), content: oldCont};
+            } catch (_e) {
+                cont = {embed: embed, content: oldCont}
+            }
         }
         
 

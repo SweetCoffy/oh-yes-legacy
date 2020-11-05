@@ -129,19 +129,11 @@ const context = {
         420, 69,
         69420, 42069
     ],
-    get Display() {
-        try {
-            return this["display"] || this["output"].display
-        } catch (_err) {
-            return undefined;
-        }
+    get display() {
+        return d;
     },
-    get Console() {
-        try {
-            return this["console"] || this["output"].console
-        } catch (_err) {
-            return undefined;
-        }
+    get console() {
+        return c
     },
     format: stuff.format,
     i(md) {
@@ -164,19 +156,11 @@ const context = {
 var cloneContext = {
     h: "h",
     eggs: "yes",
-    get Display() {
-        try {
-            return this["display"] || this["output"].display
-        } catch (_err) {
-            return undefined;
-        }
+    get display() {
+        return d;
     },
-    get Console() {
-        try {
-            return this["console"] || this["output"].console
-        } catch (_err) {
-            return undefined;
-        }
+    get console() {
+        return c
     },
     funnyNumbers: [
         420, 69,
@@ -254,32 +238,31 @@ module.exports = {
             ]
         }
 
-        var hasConsole = (cloneContext.console || (cloneContext.output || {}).console)
-        var hasDisplay = (cloneContext.display || (cloneContext.output || {}).display)
 
-        if (hasConsole) {
+
+
             if (cloneContext.Console.out.length > 0) {
                 embed.fields.unshift({
                     name: "console",
-                    value: `\`\`\`\n${cloneContext.Console.out.join("\n").slice(0, 1980)}\n\`\`\``,
+                    value: `\`\`\`\n${cloneContext.console.out.join("\n").slice(0, 1980)}\n\`\`\``,
                 })
             }
-        }
 
-        if (hasDisplay) {
+
+
             if (cloneContext.Display.wasModified) {
                 embed.fields.unshift({
                     name: "display",
-                    value: `\`\`\`AsciiArt\n${cloneContext.Display.toString()}\n\`\`\``
+                    value: `\`\`\`AsciiArt\n${cloneContext.display.toString()}\n\`\`\``
                 })
             }
-        }
+
 
         
         
         message.channel.send({embed: embed})
-        if (hasConsole) cloneContext.Console.clear()
-        if (hasDisplay) cloneContext.Display.clear();
+        cloneContext.console.clear()
+        cloneContext.display.clear();
         cloneContext = context
     }
 }

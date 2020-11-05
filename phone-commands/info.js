@@ -12,7 +12,10 @@ module.exports = {
                     name: (phoneData.os || "unknown os") + " version",
                     value: `${phoneData.verName || "h"} (${(phoneData.ver || "unknown version")})`
                 },
-                
+                {
+                    name: "Battery",
+                    value: `${Math.floor(phoneData.battery.charge)}%`
+                }
             ]
         }
 

@@ -1,40 +1,28 @@
 const CommandError = require("../CommandError");
+const RestrictedCommand = require('../RestrictedCommand')
 const stuff = require("../stuff");
-
-module.exports = {
-    name: "unwarn",
-    description: "unwarns somebody lolololololo",
-    usage: "unwarn <warn code>",
-    requiredPermission: "commands.unwarn",
-    execute (message, args) {
-        var code = args[0];
-        var reason = args.slice(1).join(" ");
-        if (!code) throw CommandError.undefinedError;
-        var warns = stuff.globalData.getData(`/warns/`);
-        var warn = warns[code];
-        if (!warn) throw new CommandError("Warn not found", `Could not find warn code \`${code}\``);
-        stuff.globalData.delete(`/warns/${code}`);
-        var index;
-        var filtered = stuff.db.getData(`/${warn.user}/warns`).filter((v, i) => {
-            if (v.code == code) {
-                index = i;
-            } 
-            return v.code == code;
-        })[0]
-        stuff.db.delete(`/${warn.user}/warns[${index}]`);
-        var embed = {
-            title: "warn removed succesfully",
-            description: `removed warn \`${code}\` from <@${warn.user}>`,
-            fields: [
-                {
-                    name: "warn reason",
-                    value: warn.reason
-                },
-                (args.length > 1) ? {name: "unwarn reason", value: reason} : undefined
-            ]
+var execute = function(message, args) {
+    var user = message.mentions.users.first() || message.author;
+    var warns = stuff.db.getData(`/${user.id}/`).warns || [];
+    var warnList = [];
+    var page = stuff.clamp((parseInt(args[1]) || 1) - 1, 0, stuff.clamp(Math.ceil(warnList.length / 5), 1, Infinity) - 1);
+    var startFrom = 5 * page;
+    if (warns.length < 1) throw new CommandError("No warns found", `The user ${user} doesn't have any warns`)
+    warns.forEach(el => {
+        var now = Date.now();
+        warnList.push(`\`${el.code}\` \`\`\`${el.reason}\`\`\``)
+    })
+    var embed = {
+        title: `${user.username}'s warn list`,
+        description: warnList.slice(startFrom, startFrom + 5).join("\n"),
+        footer: {
+            text: `page ${page + 1}/${stuff.clamp(Math.ceil(warnList.length / 5), 1, Infinity)}`
         }
-
-        message.channel.send({embed: embed})
-
     }
+    message.channel.send({embed: embed})
 }
+var cmd = new RestrictedCommand("unwarn", execute, ["KICK_MEMBERS", "WARN_MEMBERS"], "unwarns someone lol")
+cmd.usage = "unwarn <warn code>";
+
+
+module.exports = cmd;

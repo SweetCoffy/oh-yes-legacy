@@ -8,28 +8,42 @@ const stuff = require('../stuff')
 
 module.exports = {
     name: "set-permission",
-    usage: "set-permission <userid:string> <permission:string> <value:bool>",
-    description: "sets a permission",
-    requiredPermission: "commands.setPermission",
+    //usage: "set-permission <userid:string> <permission:string> <value:bool>",
+    description: "sets a permission (oh yes permission system)",
+    requiredPermission: "commands.set-permission",
+    useArgsObject: true,
+    arguments: [
+        {
+            name: "user",
+            type: "user",
+        },
+        {
+            name: "permission",
+            type: "string",
+        },
+        {
+            name: "value",
+            type: "bool",
+            optional: true,
+            default: "true"
+        }
+    ],
 
     execute(message, args) {
         
-        // another questionable error message
-        if (args.length < 3) {
-            throw "Not enough args";
-        }
 
-        // idk
-        if (args[2] != "true" && args[2] != "false") {
-            throw "`value` must be of type bool";
-        }
+
+
         
         
         // setting the permission
-        stuff.setPermission(args[0], args[1], stuff.string2bool(args[2]));
+        stuff.setPermission(args.user.id, args.permission, args.value);
 
         // sending a message
-        message.channel.send("set permission `" + args[1] + "` of `" + args[0] + "` to `" + args[2] + "`");
+        message.channel.send({embed: {
+            color: 0x4287f5,
+            description: `Set permission ${args.permission} of user ${args.user.username} to **${args.value}**`
+        }});
 
 
     }

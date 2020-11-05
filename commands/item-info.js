@@ -5,6 +5,7 @@ module.exports = {
     name: "item-info",
     description: "shows info about an item lololool",
     usage: "item-info <itemName>",
+    aliases: ["item", "iteminfo"],
     execute(message, args) {
         var itemData = stuff.shopItems[args[0]];
         if (!itemData) throw new CommandError("Item not found", `could not find item: \`${args[0]}\``);
@@ -55,11 +56,28 @@ module.exports = {
             if (!itemData.unlisted) embed.fields.push({name: "buy price", value: stuff.format(itemData.price), inline: true})
             embed.fields.push({name: "sell price", value: stuff.format(itemData.price / 2 || 0), inline: true})
         }
+        var craftable = stuff.craftables[args[0]];
+        if (craftable) {
+            embed.fields.push({
+                name: "crafting recipe",
+                value: craftable.ingredients.map(el => {
+                    var it = stuff.shopItems[el.id];
+                    return `${el.amount}x ${it.icon} **${it.name}**`
+                }).join("\n")
+            });
+        }
 
         
 
         if (itemData.fields) {
             embed.fields.push(...itemData.fields)
+        }
+
+        if (itemData.extraData) {
+            embed.fields.push({
+                name: "default data",
+                value: Object.entries(itemData.extraData).map(el => `${stuff.thing(el[0])}: ${typeof el[1] == 'number' ? stuff.format(el[1]) : el[1].toString()}`).join("\n")
+            })
         }
 
         if (itemData.multiplierMultiplier) {

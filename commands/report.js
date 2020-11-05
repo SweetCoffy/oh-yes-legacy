@@ -16,7 +16,7 @@ module.exports = {
 
 
         if (!user) {
-            throw "`user` must be of type mention"
+            throw "`user` must be a mention"
         }
 
         if (user.id == message.author.id) {

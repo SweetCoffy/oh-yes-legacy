@@ -17,7 +17,7 @@ module.exports = {
 
         
         if (isNaN(count)) {
-            throw "`count` must be of type integer";
+            throw "`count` must be a integer";
         }
 
         // loop

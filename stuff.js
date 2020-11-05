@@ -1,10 +1,45 @@
-const { Collection } = require('discord.js');
+const { Collection, Client } = require('discord.js');
 const fs = require('fs');
 const { resolve } = require('path');
 const request = require('request');
 const jsonDb = require('node-json-db');
 const CommandError = require('./CommandError');
 var numeral = require('numeral');
+
+const formatThings = {
+    "config": function(args) {
+        return require('./stuff').getConfig(args[0]);
+    },
+    "repeat": function(args) {
+        return args[0].repeat(parseInt(args[1]));
+    },
+    "emoji": function(args, message) {
+        var result = message.client.emojis.cache.filter((v, k) => {
+            return v.name == args[0] || v.id == args[0];
+        }).first()
+        return `${result}`
+    },
+    "getData": function(args) {
+        return JSON.stringify(require('./stuff').globalData.getData(args[0]), null, 4);
+    },
+    "bold": function(args) {
+        return "**" + args[0] + "**"
+    },
+    "q": function() {
+        return "'"
+    },
+    "pingnt": function([str]) {
+        return `@${str}`
+    },
+    "charcode": function([code]) {
+        return String.fromCharCode(parseInt(code));
+    },
+    "mult": ([a, b]) => parseFloat(a) * parseFloat(b),
+    "add": ([a, b]) => parseFloat(a) + parseFloat(b),
+    "div": ([a, b]) => parseFloat(a) / parseFloat(b),
+    "subs": ([a, b]) => parseFloat(a) - parseFloat(b),
+}
+const axios = require('axios')
 const Rarity = {
     gray: 0x5d6c85,
     white: 0xedf0f5,
@@ -41,15 +76,28 @@ numeral.locale('test')
 
 module.exports = {
     somehugenumber: 99999999,
-    client: "",
+    /**
+     * @type Client
+     */
+    client: undefined,
     rarity: Rarity,
     db: new jsonDb.JsonDB("userdata", true, true, "/"),
     globalData: new jsonDb.JsonDB("datastuff", true, true, "/"),
     phoneCommands: new Collection(),
+
     funnyNumbers: [
         69,
         420
     ],
+    /**
+     * Calculates the rank value for the user
+     * @param {string | object} user The user object / user id to caculate it's rank value
+     */
+    getRankValue: user => {
+        if (typeof user != 'object') user = this.db.getData(`/${user}/`)
+        
+        return Math.floor(user.points + ((user.gold || 0) * 100) + (user.multiplierMultiplier || 1))
+    },
 
     snakeToCamel: (str) => str.replace(
         /([-_][a-z])/g,
@@ -57,18 +105,67 @@ module.exports = {
                         .replace('-', '')
                         .replace('_', '')
     ),
-
-    formatThings: {
-        "config": function(args) {
-            return require('./stuff').getConfig(args[0]);
-        },
-        "repeat": function(args) {
-            return args[0].repeat(parseInt(args[1]));
-        },
-        "getData": function(args) {
-            return JSON.stringify(require('./stuff').globalData.getData(args[0]), null, 4);
-        }
+    getVCounter(user) {
+        return this.db.getData(`/${user}/`).vCounter || 0;
     },
+    addVCounter(user, amount) {
+        this.db.push(`/${user}/vCounter`, this.getVCounter(user) + amount);
+    },
+    isHtml: str => /<\/?[a-z][\s\S]*>/i.test(str),
+    isJson: str => {
+        var r = false;
+        try {
+            JSON.parse(str);
+            r = true;
+        } catch(_e) {
+            r = false;
+        }
+        return r;
+    },
+
+    define(word, i = 0) {
+        return new Promise((resolve, reject) => {
+            axios.default.get(`http://api.urbandictionary.com/v0/define?term=${encodeURIComponent(word)}`).then(value => {
+                var res = value.data.list[i]   
+                //console.log(res); 
+                if (res == undefined) {
+                    reject(new CommandError("Definition not found", `Could not find a definitition for \`${word}\``));
+                } else {
+                    resolve(res);
+                }
+            }).catch(err => reject(err));
+        })
+    },
+
+    /**
+     * 
+     * @param {string} str 
+     */
+    uFormat(str) {
+        var regex = /\[([^\[\]]+)\]/g
+        var matches = str.matchAll(regex)
+        var result = str;
+        for (const match of matches) {
+            result = result.replace(match[0], `[${match[1]}](https://www.urbandictionary.com/define.php?term=${encodeURIComponent(match[1])})`)
+        }
+        return result;
+    },
+    getUserConfig(user) {
+        var config = this.db.getData(`/${user}/`).config || {};
+        return config;
+    },
+    setUserConfig(user, obj) {
+        this.db.push(`/${user}/config`, this.mergeObjects(obj, this.getUserConfig(user)))
+    },
+    mergeObjects(a, b) {
+        var _b = Object.create(b);
+        Object.keys(a).forEach(el => {
+            _b[el] = a[el];
+        })
+        return _b;
+    },
+
+    formatThings: formatThings,
 
     recentPhoneVer: {
         number: 1.6,
@@ -99,6 +196,46 @@ module.exports = {
         "eggs",
         "h"
     ],
+
+    writeItemData(user, slot, data) {
+        if (typeof data != 'object') return;
+        var d = this.readItemData(user, slot);
+        Object.keys(data).forEach(k => {
+            d[k] = data[k]
+        });
+        this.db.push(`/${user}/inventory[${slot}]/extraData`, d);
+    },
+    readItemData(user, slot) {
+        var item = Object.create(this.getInventory(user)[slot]);
+        if (!item) return {};
+        return item.extraData || {};
+    },
+
+    mineables: [
+        {
+            id: "rock",
+            chance: 1,
+            minAmount: 3,
+            maxAmount: 50,
+            miningPower: 1,
+        },
+        {
+            id: "copper",
+            chance: 0.9,
+            minAmount: 1,
+            maxAmount: 10,
+            miningPower: 1,
+        },
+        {
+            id: "titanium",
+            chance: 0.6,
+            minAmount: 1,
+            maxAmount: 7,
+            miningPower: 2,
+        }
+    ],
+
+
 
     randomString(length = 5, characterSet = "abcdefghijklmnopqrswxyz", capitalizeChance = 0.5) {
         var characters = characterSet;
@@ -150,6 +287,36 @@ module.exports = {
     },
 
 
+    craftables: {
+        "router-alloy": {
+            id: "router-alloy",
+            ingredients: [
+                {
+                    id: "rock",
+                    amount: 50
+                },
+                {
+                    id: "copper",
+                    amount: 10
+                }
+            ]
+        },
+        "copper-pickaxe": {
+            id: "copper-pickaxe",
+            ingredients: [
+                {id: "copper", amount: 40},
+                {id: "rock", amount: 10}
+            ]
+        },
+        "titanium-pickaxe": {
+            id: "titanium-pickaxe",
+            ingredients: [
+                {id: "titanium", amount: 30},
+                {id: "copper", amount: 10},
+                {id: "rock", amount: 15}
+            ]
+        },
+    },
 
     getDefense(user) {
         return this.clamp(this.db.getData(`/${user}/`).defense || 0, 0, Infinity);
@@ -160,29 +327,49 @@ module.exports = {
         this.db.push(`/${user}/defense`, this.getDefense(user) + a)
         console.log(`added ${a} (${amount}) defense to ${user}`)
     },
+    canCraft(item, user) {
+        var items = this.getInventory(user);
+        var craftables = this.craftables;
+        var inv = {}
+        var it = craftables[item];
+        items.forEach(el => {
+            if (!inv[el.id]) inv[el.id] = {amount: 0, ...el}
+            inv[el.id].amount++;
+        });
+        console.log(JSON.stringify(inv, null, 4));
+        var hasItems = true;
+        for (const el of it.ingredients) {
+            var h = inv[el.id] || {amount: 0};
+            console.log(h.amount);
+            console.log(el.amount);
+            if (h.amount < el.amount) hasItems = false;
+        }
+        return hasItems;
+    },
 
     addMedal(user, medal) {
         var db = this.db;
-        if (db.getData(`/${user}/`).medals.map(el => el.id).includes(medal.id)) return
+        if ((db.getData(`/${user}/`).medals || []).map(el => el.id).includes(medal.id)) return
         if (!db.exists(`/${user}/medals`)) db.push(`/${user}/medals`, [])
         db.push(`/${user}/medals[]`, medal)
     },
 
-    stringThing(str) {
+    stringThing(str, message) {
         var formatThings = this.formatThings;
-        var regex = /(\S*)\(([^\(^\)]*)\)/g;
+        var regex = /\[(\w+) *: *(.*)\]/gms;
         var matches = str.matchAll(regex);
+        var s = this;
 
         
         for (const match of matches) {
             if (formatThings[match[1]] == undefined) continue;
             var replaceStr = "";
             try {
-                replaceStr = formatThings[match[1]](match[2].split(",").map(v => v.trimStart()));
+                replaceStr = formatThings[match[1]](match[2].split(",").map(v => s.stringThing(v.trimStart(), message)), message);
             } catch (err) {
                 replaceStr = err.toString();
             }
-            str = str.replace(/(\S*)\(([^\(^\)]*)\)/, replaceStr);
+            str = str.replace(/\[(\w+) *: *(.*)\]/, replaceStr);
         }
         return str;
     },
@@ -344,6 +531,7 @@ module.exports = {
                     return true;
                 }
             },
+            
             "full-cake": {
                 type: "Consumable",
                 multiplierMultiplier: 10,
@@ -368,6 +556,7 @@ module.exports = {
                 rarity: Rarity.pink,
                 price: 10000,
                 equipable: true,
+                unstackable: true,
                 icon: "🛡️",
                 name: "Shield",   
                 onUse() {},
@@ -385,6 +574,7 @@ module.exports = {
                 inStock: 9999999999999,
                 rarity: Rarity.purple,
                 equipable: true,
+                unstackable: true,
                 currency: "gold",
                 name: "Ice Cube",
                 icon: "🧊",
@@ -406,6 +596,7 @@ module.exports = {
                 equipable: true,
                 currency: "gold",
                 price: 100000,
+                unstackable: true,
                 icon: "💎",
                 name: "Diamond",   
                 onUse() {},
@@ -428,7 +619,8 @@ module.exports = {
                 rarity: Rarity.red,
                 price: 1,
                 unlisted: true,
-                icon: "<:ip:763937198764326963>",
+                unstackable: true,
+                icon: "<:ip:770418561193607169>",
                 name: "Coin",
                 onUse(user, _message, _args, slot) {
                     var stuff = require('./stuff')
@@ -456,6 +648,66 @@ module.exports = {
                     return true;
                 }
             }, 
+            "pickaxe": {
+                name: "Pickaxe",
+                type: "Pickaxe",
+                icon: "<:pickaxe:770078387385008138>",
+                extraData: {
+                    durability: 200
+                },
+                inStock: 9999999,
+                price: 5000,
+                rarity: Rarity.green,
+                onUse: function() {}
+            },
+            "copper-pickaxe": {
+                name: "Copper Pickaxe",
+                type: "Pickaxe",
+                icon: "<:copperPickaxe:770457563355414558>",
+                extraData: {
+                    durability: 400,
+                    miningPower: 2,
+                },
+                inStock: 9999999,
+                unlisted: true,
+                price: 10000,
+                rarity: Rarity.blue,
+                onUse: function() {}
+            },
+            "battery": {
+                name: "Battery",
+                description: "ha ha yes another useless item",
+                price: 1000,
+                inStock: 999999,
+                rarity: Rarity.green,
+                extraData: {
+                    charge: 100
+                },
+                icon: "🔋",
+                onUse(user, _message, _args, slot) {
+                    const stuff = require('./stuff')
+                    var _slot = stuff.getInventory(user).map(el => el.id).indexOf('phone')
+                    if (_slot < 0) return;
+                    var data = stuff.readItemData(user, slot)
+                    stuff.writeItemData(user, _slot, { battery: data })
+                    stuff.removeItem(user, "battery")
+                }
+            },
+            "titanium-pickaxe": {
+                name: "Titanium Pickaxe",
+                description: "ha ha yes logic 100",
+                type: "Pickaxe",
+                icon: "<:titaniumPickaxe:770732124793733151>",
+                extraData: {
+                    durability: 800,
+                    miningPower: 4,
+                },
+                inStock: 9999999,
+                unlisted: true,
+                price: 10000,
+                rarity: Rarity.red,
+                onUse: function() {}
+            },
             "car": {
                 name: "Venezuela car",
                 icon: "🚗",
@@ -515,6 +767,31 @@ module.exports = {
                     stuff.removeItem(user, "eggs");
                     return true;
                 }
+            },
+            "rock": {
+                name: "Rock",
+                icon: "<:roc:770035638250504222>",
+                price: 5,
+                unlisted: true,
+                rarity: Rarity.gray,
+                description: 'Just a normal rock',
+                onUse: function() {}
+            },
+            "copper": {
+                name: "Copper",
+                icon: "<:copper:770035910334349334>",
+                price: 50,
+                unlisted: true,
+                rarity: Rarity.white,
+                onUse: function() {}
+            },
+            "titanium": {
+                name: "Titanium",
+                icon: "<:titanium:770035840084475945>",
+                price: 500,
+                unlisted: true,
+                rarity: Rarity.blue,
+                onUse: function() {}
             },
             "egg": {
                 name: `Egg`,
@@ -583,6 +860,7 @@ module.exports = {
                 name: "Router Alloy",
                 icon: "<:r_:741096370089361508>",
                 price: 3000,
+                unlisted: true,
                 inStock: 99999999,
                 rarity: Rarity.red,
                 description: "It can summon a router!",
@@ -658,6 +936,7 @@ module.exports = {
                 name: "Credit Card",
                 icon: "💳",
                 price: 5000,
+                unstackable: true,
                 inStock: 999999999,
                 extraInfo: "It can hold moni",
                 extraData: {
@@ -668,7 +947,7 @@ module.exports = {
                     const stuff = require('./stuff')
                     var data = stuff.getInventory(user)[slot];
                     if (args[0] == "moni") {
-                        message.channel.send(`Your credit card has ${stuff.format(data.extraData.storedPoints)} <:ip:763937198764326963>`);
+                        message.channel.send(`Your credit card has ${stuff.format(data.extraData.storedPoints)} <:ip:770418561193607169>`);
                     } else if (args[0] == "pay") {
                         var amount = parseFloat(args[2])
                         if (args[2] == "all") amount = data.extraData.storedPoints
@@ -678,7 +957,7 @@ module.exports = {
                         if (!u) throw "you can't pay to void!"
                         stuff.addPoints(u.id, amount);
                         stuff.setItemProperty(user, slot, "storedPoints", stuff.getItemProperty(user, slot, "storedPoints") - amount)
-                        message.channel.send(`You paid ${stuff.format(amount)} <:ip:763937198764326963> to ${u.username}`);
+                        message.channel.send(`You paid ${stuff.format(amount)} <:ip:770418561193607169> to ${u.username}`);
                     } else if (args[0] == "store") {
                         var amount = parseFloat(args[1])
                         if (args[1] == "all") amount = stuff.getPoints(user);
@@ -686,7 +965,7 @@ module.exports = {
                         if (amount > stuff.getPoints(user)) throw "not enough moni"
                         stuff.addPoints(user, -amount)
                         stuff.setItemProperty(user, slot, "storedPoints", stuff.getItemProperty(user, slot, "storedPoints") + amount)
-                        message.channel.send(`You stored ${stuff.format(amount)} <:ip:763937198764326963> in your credit card`)
+                        message.channel.send(`You stored ${stuff.format(amount)} <:ip:770418561193607169> in your credit card`)
                     }
                 }
             },
@@ -836,6 +1115,7 @@ module.exports = {
                 name: "Phone",
                 icon: ":mobile_phone:",
                 price: 5000,
+                unstackable: true,
                 inStock: 9999999999,
                 rarity: Rarity.blue,
                 type: "Other",
@@ -856,12 +1136,22 @@ module.exports = {
                     
                     var u = message.guild.members.cache.get(user).user;
 
+                    if (!phoneData.battery) throw "You need a battery!!!1!1!!1!!"
+                    if (phoneData.battery.charge <= 0) {
+                        stuff.writeItemData(user, slot, { battery: undefined })
+                        throw "Your battery is dead!!!1111!!"
+                    }
+
 
                     
                     var cmdName = args[0];
                     var _args = args.slice(1);
 
                     var cmd = stuff.phoneCommands.get(cmdName);
+                    var b = stuff.readItemData(user, slot).battery
+                    b.charge -= Math.random() * 2;
+
+                    stuff.writeItemData(user, slot, { battery: b })
 
                     if (cmd.computerOnly) throw `You can only perform that command in a computer`
 
@@ -889,6 +1179,7 @@ module.exports = {
                 price: 50,
                 inStock: 9999999999,
                 rarity: Rarity.white,
+                unstackable: true,
                 type: "Other",
                 onUse() {},
                 addedPackage: "sus",
@@ -900,6 +1191,7 @@ module.exports = {
                 inStock: 9999999999,
                 rarity: Rarity.red,
                 type: "Other",
+                unstackable: true,
                 description: "Remember to add that one package called `h`!",
                 extraInfo: "Better version of the phone",
                 extraData: {
@@ -961,28 +1253,32 @@ module.exports = {
     },
 
     setExistenceExpiration(user, slot, when, expired = false) {
-        this.db.push(` /${user}/inventory/${slot}/extraData/existence/expires`, when)
-        this.db.push(` /${user}/inventory/${slot}/extraData/existence/expired`, expired)
+        var s = require('./stuff')
+        s.db.push(` /${user}/inventory/${slot}/extraData/existence/expires`, when)
+        s.db.push(` /${user}/inventory/${slot}/extraData/existence/expired`, expired)
     },
 
     approveCommand(cmd) {
+        var s = require('./stuff')
         if (fs.existsSync(`pending/${cmd}.js`)) {
             fs.renameSync(`pending/${cmd}.js`, `phone-commands/${cmd}.js`);
-            this.loadPhoneCommands();
+            s.loadPhoneCommands();
         } else {
             throw `the command \`${cmd}\` doesn't exist`
         }
     },
 
     getItemProperty(user, slot, prop) {
-        return this.db.getData(`/${user}/inventory[${slot}]/extraData/${prop}`)
+        var s = require('./stuff')
+        return s.db.getData(`/${user}/inventory[${slot}]/extraData/${prop}`)
     },
     setItemProperty(user, slot, prop, value) {
-        this.db.push(`/${user}/inventory[${slot}]/extraData/${prop}`, value)
+        var s = require('./stuff')
+        s.db.push(`/${user}/inventory[${slot}]/extraData/${prop}`, value)
     },
     
     loadPhoneCommands() {
-        
+        var s = require('./stuff')
         const commandFiles = fs.readdirSync('./phone-commands');
         for (const file of commandFiles) {
             
@@ -991,61 +1287,67 @@ module.exports = {
             
             const command = require(`./phone-commands/${file}`);
 
-            if (!this.validPackages.includes(command.package) && command.package != undefined) {
-                this.validPackages.push(command.package);
+            if (!s.validPackages.includes(command.package) && command.package != undefined) {
+                s.validPackages.push(command.package);
             }
         
             
         
-            this.phoneCommands.set(command.name, command);
+            s.phoneCommands.set(command.name, command);
         }
         
         
     },
 
     addAchievement(user, {id, name, description, rarity}) {
-        var a = this.getAchievements(user);
+        var s = require('./stuff')
+        var a = s.getAchievements(user);
         if (a.map(el => el.id).includes(id)) return;
         a.push({id: id, name: name, description: description, gotWhen: Date.now(), rarity: rarity});
-        this.db.push(`/${user}/achievements`, a)
-        this.client.channels.cache.get(this.getConfig("achievements")).send({embed: {
-            title: `${this.client.users.cache.get(user).username} Got the S${this.getConfig("season")} Achievement '${name}'!`,
+        s.db.push(`/${user}/achievements`, a)
+        s.client.channels.cache.get(s.getConfig("achievements")).send({embed: {
+            title: `${s.client.users.cache.get(user).username} Got the S${s.getConfig("season")} Achievement '${name}'!`,
             description: `**Achievement description**: ${description}`,
             color: rarity || Rarity.blue
         }})
     },
 
     getAchievements(user) {
-        var a = this.db.getData(`/${user}/`).achievements || [];
+        var s = require('./stuff')
+        var a = s.db.getData(`/${user}/`).achievements || [];
         return a;
     },
 
     getEquipment(user) {
-        var equipment = this.db.getData(`/${user}/`).equipment || [];
+        var s = require('./stuff')
+        var equipment = s.db.getData(`/${user}/`).equipment || [];
         return equipment;
     },
 
     addEquipment(user, slot) {
-        var item = this.getInventory(user)[slot];
-        if (!this.shopItems[item.id].onEquip) throw new CommandError("<:v_:755546914715336765>", `How are you supposed to equip ${item.icon} ${item.name}?`)
-        var equipment = this.db.getData(`/${user}/`).equipment || [];
-        if (equipment.length + 1 > this.getEquipmentSlots(user)) throw new CommandError("oh no", `You can't equip more than ${this.getEquipmentSlots(user)} items!`)
+        var s = require('./stuff')
+        var item = s.getInventory(user)[slot];
+        if (!s.shopItems[item.id].onEquip) throw new CommandError("<:v_:755546914715336765>", `How are you supposed to equip ${item.icon} ${item.name}?`)
+        var equipment = s.db.getData(`/${user}/`).equipment || [];
+        if (equipment.length + 1 > s.getEquipmentSlots(user)) throw new CommandError("oh no", `You can't equip more than ${this.getEquipmentSlots(user)} items!`)
         equipment.push(item);
-        this.shopItems[item.id].onEquip(user, equipment.length);
-        this.db.push(`/${user}/equipment`, equipment)
-        this.db.delete(`/${user}/inventory[${slot}]`)
+        s.shopItems[item.id].onEquip(user, equipment.length);
+        s.db.push(`/${user}/equipment`, equipment)
+        s.db.delete(`/${user}/inventory[${slot}]`)
     },
 
     removeEquipment(user, slot) {
-        var item = this.getEquipment(user)[slot]
-        this.db.delete(`/${user}/equipment[${slot}]`);
-        this.shopItems[item.id].onUnequip(user, slot)
-        this.addItem(user, item);
+        var s = require('./stuff')
+        var item = s.getEquipment(user)[slot]
+        s.db.delete(`/${user}/equipment[${slot}]`);
+        s.shopItems[item.id].onUnequip(user, slot)
+        s.addItem(user, item);
     },
 
     getEquipmentSlots(user) {
-        var user = this.db.getData(`/${user}/`)
-        return user.equipmentSlots || 6;
+        var s = require('./stuff')
+        var user = s.db.getData(`/${user}/`)
+        return user.equipmentSlots || 12;
     },
 
     async download(url) {
@@ -1060,23 +1362,25 @@ module.exports = {
 
 
     getMultiplier(user, raw = true) {
-        if (raw) return this.db.getData(`/${user}/multiplier`) || 1;
-        if (!raw) return (this.db.getData(`/${user}/multiplier`) || 1) * (this.db.getData(`/${user}/`).multiplierMultiplier || 1);
+        var s = require('./stuff')
+        if (raw) return s.db.getData(`/${user}/multiplier`) || 1;
+        if (!raw) return (s.db.getData(`/${user}/multiplier`) || 1) * (s.db.getData(`/${user}/`).multiplierMultiplier || 1);
     },
 
     getMultiplierMultiplier(user) {
-        return this.db.getData(`/${user}/`).multiplierMultiplier || 1;
+        var s = require('./stuff')
+        return s.db.getData(`/${user}/`).multiplierMultiplier || 1;
     },
 
     getInventory(user) {
 
-
-        return this.db.getData(` /${user}/inventory`).filter(el => {
+        var s = require('./stuff')
+        return s.db.getData(` /${user}/inventory`).filter(el => {
             return el.name != undefined && el.icon != undefined;
         });
     },
 
-    format(value) {
+    ___format(value) {
         if (!value && value != 0) return "<invalid number>"
         return numeral(value).format("0.0a")
     },
@@ -1099,38 +1403,69 @@ module.exports = {
 
         return newValue;
     },
-    _format(number, options = {k: "k", m: "M", b: "B", t: "T", q: "q", Q: "Q", s: "s", S: "S", O: "O", N: "N"}) {
+    get userdataPath() {
+        return resolve('./userdata.json')
+    },
+    format(number, options = {k: "k", m: "M", b: "B", t: "T", q: "q", Q: "Q", s: "s", S: "S", O: "O", N: "N"}) {
         var r;
         var v = Math.abs(number);
+        var prefix = "";
         // 1000000000000000000
         if (v > 999 && v < 999999) {
-            r = (number / 1000).toFixed(1) + options.k || "k";
+            r = (number / 1000) + options.k || "k";
+            prefix = "k"
         } else if (v > 999999 && v < 999999999) {
-            r = (number / 1000000).toFixed(1) + options.m || "M";
+            r = (number / 1000000) + options.m || "M";
+            prefix = "M"
         } else if (v > 999999999 && v < 999999999999) {
-            r = (number / 1000000000).toFixed(1) + options.b || "B";
+            r = (number / 1000000000) + options.b || "B";
+            prefix = "B"
         } else if (v > 999999999999 && v < 999999999999999){
-            r = (number / 1000000000000).toFixed(1) + options.t || "T";
+            r = (number / 1000000000000) + options.t || "T";
+            prefix = "T"
         } else if (v > 999999999999999 && v < 999999999999999999) {
-            r = (number / 1000000000000000).toFixed(1) + options.q || "q";
+            r = (number / 1000000000000000) + options.q || "q";
+            prefix = "q"
         } else if (v > 999999999999999999 && v < 999999999999999999999) {
-            r = (number / (999999999999999999 + 1)).toFixed(1) + options.Q || "Q";
+            r = (number / (999999999999999999 + 1)) + options.Q || "Q";
+            prefix = 'Q'
         } else if (v > 999999999999999999999 && v < 999999999999999999999999) {
-            r = (number / (999999999999999999999 + 1)).toFixed(1) + options.s || "s";
+            r = (number / (999999999999999999999 + 1)) + options.s || "s";
+            prefix = "s"
         } else if (v > 999999999999999999999999 && v < 999999999999999999999999999) {
-            r = (number / (999999999999999999999999 + 1)).toFixed(1) + options.S || "S";
+            r = (number / (999999999999999999999999 + 1)) + options.S || "S";
+            prefix = 'S'
         } else if (v > 999999999999999999999999999 && v < 999999999999999999999999999999) {
-            r = (number / (999999999999999999999999999 + 1)).toFixed(1) + options.O || "O";
+            r = (number / (999999999999999999999999999 + 1)) + options.O || "O";
+            prefix = 'O'
         } else if (v > 999999999999999999999999999999) {
-            r = (number / (999999999999999999999999999999999 + 1)).toFixed(1) + options.N || "N";
+            r = (number / (999999999999999999999999999999999 + 1)) + options.N || "N";
+            prefix = 'N'
         } else { 
             if (typeof number != 'number') {
                 return "<invalid number>"
             } else if (!number && number != 0) {
                 return "<invalid number>"
             }
-            r = number.toFixed(1);
+            if (Math.floor(number) !== number) {
+                r = number.toFixed(1);
+            } else {
+                r = number;
+            }
         }
+
+        var _r = parseFloat(r);
+
+        if (Math.floor(_r) !== _r) {
+            r = _r.toFixed(1) + prefix
+        } else {
+            r = _r + prefix
+        }
+
+
+
+        
+
         return r;
     },
     
@@ -1331,8 +1666,49 @@ module.exports = {
             return false;
         }
         
-
-    }
-    
+    },
+    mine(user, slot) {
+        console.log(slot);
+        var s = require('./stuff');
+        var shopItems = s.shopItems;
+        var inv = s.db.getData(`/${user}/inventory`);
+        if (shopItems[inv[slot].id].type == "Pickaxe") {
+            var d = {...s.readItemData(user, slot)};
+            var miningPower = d.miningPower || 1;
+            s.writeItemData(user, slot, {durability: d.durability - (Math.random() * 10)});
+            var items = [];
+            
+            s.mineables.forEach(el => {
+                if (Math.random() < el.chance && miningPower >= el.miningPower) {
+                    var amount = Math.floor(s.clamp(Math.random() * el.maxAmount, el.minAmount, el.maxAmount) * (1 + (miningPower - el.miningPower)))
+                    items.push({
+                        id: el.id,
+                        amount: amount,
+                    })
+                    console.log(el + ", " + amount)
+                    for (var i = 0; i < amount; i++) {
+                        s.addItem(user, el.id)
+                    }
+                }
+            })
+            console.log(items);
+            console.log(d);
+            var newPick = {...s.readItemData(user, slot)};
+            console.log(newPick)
+            if (newPick.durability <= 0) {
+                s.db.delete(`/${user}/inventory[${slot}]`);
+            }
+            var h = {
+                items: items,
+                pickaxe: newPick,
+                oldPickaxe: d,
+            }
+            
+            console.log(h);
+            return h
+        } else {
+            throw new CommandError("<:v_:755546914715336765>", `How are you supposed to mine with \`${inv[slot].id}\`?`);
+        }
+    },
 
 }

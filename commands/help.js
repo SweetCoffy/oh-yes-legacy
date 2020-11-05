@@ -7,7 +7,7 @@ module.exports = {
     description: "shows command info",
     usage: "help [commandname:string]",
 
-    execute (message, args, extraArgs) {
+    execute (message, args, _extraArgs, extraArgs) {
         const commands = message.client.commands;
         
         
@@ -62,11 +62,23 @@ module.exports = {
                     e.color = 0x687a78;
                 }
 
-                if (commands.get(args[0]).usage) {
+                if (commands.get(args[0]).usage && !cmd.arguments) {
                     e.fields.push({name: "usage", value: commands.get(args[0]).usage})
                 }
+                if (cmd.arguments && !cmd.usage) {
+                    e.fields.push({name: "usage", value: args[0] + " " + cmd.arguments.map((el, i) => {
+                        return `<${el.name || `arg${i}`}${el.optional ? "?" : ""} : ${el.validValues ? el.validValues.join("|") : el.type}>`   
+                    }).join(" ")});
+                }
 
-                e.fields.push({name: "cooldown", value: commands.get(args[0]).cooldown | 1 + ` second(s)`})
+                if (cmd.requiredRolePermissions != undefined) {
+                    e.fields.push({
+                        name: "requires role permission",
+                        value: stuff.thing(stuff.snakeToCamel(cmd.requiredRolePermissions.toLowerCase()))
+                    })
+                }
+
+                e.fields.push({name: "cooldown", value: (cmd.cooldown | 1 ) + " second(s)"})
 
                 if (commands.get(args[0]).requiredPermission) {
                     e.fields.push({name: "requires permission", value: commands.get(args[0]).requiredPermission})
@@ -97,48 +109,36 @@ module.exports = {
 
 
 
-            var currSeparator = ", ";
-            var inBotChannel = message.channel.id == stuff.getConfig("botChannel");
-            var fancierMode = stuff.getConfig("fancierHelpMode");
-            var showRemovedCommands = false;
+            var currSeparator = "\n";
+            var showRemovedCommands = extraArgs.showRemoved;
 
-            if (extraArgs[0] == "fancierMode") {
-                fancierMode = true;
-            }
 
-            if (extraArgs[0] == "showRemoved") {
-                showRemovedCommands = true;
-            }
 
-            if (inBotChannel) {
-                currSeparator = "\n";
-            }
+          
+            
+            
             
             commands.forEach(element => {
-                if (!inBotChannel) commandNames.push("`" + (element.name || "invalid command") + "`");
-                if (inBotChannel) {
                     var commandRemoved = element.removed;
                     var commandEnabled = stuff.getConfig("commands." + element.name.toLowerCase());
                     var en;
     
                     if (commandEnabled && !commandRemoved) {
-                        en = "\🟩";
+                        en = "";
                     } else if (!commandRemoved){
-                        en = "\🟥";
+                        en = "(disabled)";
                     } else {
-                        en = "\⬛";
+                        en = "(removed)";
                     }
                     
                     if (!commandRemoved || showRemovedCommands) {
-                        commandNames.push(`\`${en} ` + (element.name || "invalid command") + `\`: ` + (element.description || "<eggs>"));
+                        commandNames.push(`${en} **` + (element.name || "invalid command") + `**: ` + (element.description || "<eggs>"));
                     }
-                }
+                
             });
 
-            var page = 0;
-            if (extraArgs[0] == "page") {
-                page = (extraArgs[1] || 1) - 1
-            }
+            var page = (extraArgs.page || 1) - 1;
+
             var startFrom = 0 + (20 * page);
 
             var embed = {
@@ -151,22 +151,9 @@ module.exports = {
 
 
 
-            message.channel.send({embed: embed}).then(m => {
-                m.react('◀️').then(r => r.message.react('▶️').then(r => r.message.react('🏓')))
-            })
+            message.channel.send({embed: embed})
 
         }
     }
 }
 
-/*
-       ----
-       |  |
-       |  |
-       |  |
-@Keanu |  |<----<
-       |  |
-       |  |
-       |  |
-       ----
-*/

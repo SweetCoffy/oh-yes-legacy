@@ -6,7 +6,7 @@
     "commands.report": true,
     "commands.suggest": true,
     "archiveCategory": "750194381516177529",
-    "botChannel": "762442342426738748",
+    "botChannel": "771191044192731197",
     "commands.ghostping": true,
     "fancierHelpMode": false,
     "v_": "755546914715336765",
@@ -34,19 +34,7 @@
     "unarchiveSuggestions": "762795455649284126",
     "autosave": null,
     "autosave-interval": 10000,
-    "season": 12,
-    "rolePerms.729094522264485979": [
-        {
-            "perm": "*",
-            "value": true
-        }
-    ],
-    "rolePerms.749397852295266327": [
-        {
-            "perm": "commands.archive",
-            "value": true
-        }
-    ],
+    "season": 13,
     "ip": "<:ip:763937198764326963>",
     "idk": [
         "755546914715336765",
@@ -55,7 +43,13 @@
         "758760245455224903",
         "750501468385050624"
     ],
-    "vChance": 0,
+    "vChance": "0",
     "prestigeMin": "10000000000",
-    "achievements": "762838447706079262"
+    "achievements": "751179205315919952",
+    "massBuyLimit": 150,
+    "cursedThing": "‫",
+    "auditLogs": "770065254880247858",
+    "commands.mass-rename": false,
+    "randomReactions": true,
+    "commands.kick": false
 }

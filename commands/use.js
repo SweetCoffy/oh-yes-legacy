@@ -4,20 +4,23 @@ module.exports = {
     name: "use",
     description: "use an item ~~what did you expect lol~~",
     usage: "use <itemIndex:int> [repeat:int=1]",
-    cooldown: 3,
+    cooldown: 2,
 
     execute(message, args, _extraArgs, extraArgs) {
+        if (args.length < 1) throw "e"; 
         var author = message.author.id;
+        var itName = args[0].toLowerCase();
         var sell = extraArgs.sell;
         var totalSoldIp = 0;
         var totalSoldGold = 0;
-        var repeatAmount = stuff.clamp(parseInt(args[1]) || 1, 1, 500);
+        var repeatAmount = stuff.clamp(parseInt(args[1]) || 1, 1, stuff.getConfig("massBuyLimit"));
         stuff.repeat(() => {
-            var it = stuff.getInventory(author)[parseInt(args[0])];
-            if (it == undefined) throw `you don't have an item at slot \`${parseInt(args[0])}\``
+            var slot = stuff.getInventory(author).map(el => el.id).indexOf(itName)
+            var it = stuff.getInventory(author)[slot];
+            if (it == undefined) throw `you don't have an item at slot \`${slot}\``
             if (!sell) {
                 var onUse = stuff.shopItems[it.id].onUse;
-                if (onUse(author, message, args.slice(1), parseInt(args[0])) && repeatAmount < 2) {
+                if (onUse(author, message, args.slice(1), slot) && repeatAmount < 2) {
                     message.channel.send(`You used the item ${it.icon} ${it.name}!`);
                 }
             } else {
@@ -30,7 +33,7 @@ module.exports = {
             }
         }, repeatAmount).then(([iter, err]) => {
             if (!sell) message.channel.send(`You used ${iter} items!`)
-            if (sell) message.channel.send(`You sold ${iter} items for __**${stuff.format(totalSoldIp)}**__ <:ip:763937198764326963> and __**${stuff.format(totalSoldGold)}**__ :coin:!`)
+            if (sell) message.channel.send(`You sold ${iter} items for __**${stuff.format(totalSoldIp)}**__ <:ip:770418561193607169> and __**${stuff.format(totalSoldGold)}**__ :coin:!`)
             if (err) stuff.sendError(message.channel, err)
         })
     }

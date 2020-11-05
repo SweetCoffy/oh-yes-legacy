@@ -9,13 +9,16 @@
   "author": "dont",
   "license": "ISC",
   "dependencies": {
-    "discord.js": "^12.3.1",
+    "axios": "^0.20.0",
+    "discord.js": "^12.4.1",
+    "filesize": "^6.1.0",
     "jimp": "^0.16.1",
     "node-fetch": "^2.6.1",
     "node-json-db": "^1.1.0",
     "numeral": "^2.0.6",
     "request": "^2.88.2",
     "safe-eval": "^0.4.1",
+    "validator": "^13.1.17",
     "vm2": "^3.9.2"
   }
 }

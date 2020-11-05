@@ -31,7 +31,7 @@ module.exports = {
                 stuff.db.push(`/${message.author.id}/pets[${i}]/happiness`, 0.5);
             }
             if (args[1] == "feed") {
-                var repeat = stuff.clamp(parseInt(args[2]) || 1, 1, 500);
+                var repeat = stuff.clamp(parseInt(args[2]) || 1, 1, stuff.getConfig("massBuyLimit"));
                 
                 var mult = pet.baseMultiplierAdd || 250;
                 var happiness = stuff.db.getData(`/${message.author.id}/pets[${i}]/happiness`);
