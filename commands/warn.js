@@ -1,12 +1,12 @@
+const Base64 = require("../Base64");
 const CommandError = require("../CommandError");
 const RestrictedCommand = require('../RestrictedCommand')
 const stuff = require("../stuff");
 var execute = function(message, args) {
-    var user = message.mentions.users.first();
-    if (!user) throw CommandError.undefinedError;
-    var reason = args.slice(1).join(" ");
-    if (args.length < 2) throw CommandError.undefinedError;
-    var code = user.id + "-" + stuff.randomString(7);
+    var user = args.user;
+    var reason = args.reason;
+    var code = `${Base64.encode((Date.now() - 1604865448408).toString())}`;
+    
     stuff.db.push(`/${user.id}/warns[]`, {
         date: Date.now(),
         reason: reason,
@@ -19,27 +19,40 @@ var execute = function(message, args) {
     })
     var channel = message.client.channels.cache.get(stuff.getConfig("reportsChannel"))
     channel.send({embed: {
-        title: `Warn alert!!!1!!1!!1`,
+        title: `Warn alert`,
+        color: 0xfc4e03,
         description: `${message.author} warned ${user}`,
         fields: [
             {
-                name: "reason",
+                name: "Reason",
                 value: reason,
             },
             {
-                name: "channel",
+                name: "Channel",
                 value: "" + message.channel
             },
             {
-                name: "warn code",
+                name: "Warn code",
                 value: `\`${code}\``
             }
         ],
         timestamp: Date.now()
     }})
 }
-var cmd = new RestrictedCommand("warn", execute, ["KICK_MEMBERS", "BAN_MEMBERS"], "warns someone lol");
-cmd.usage = "warn <user> <reason>";
+var cmd = new RestrictedCommand("warn", execute, "KICK_MEMBERS", "warns someone lol");
+cmd.useArgsObject = true;
+cmd.arguments = [
+    {
+        name: "user",
+        type: "user",
+        description: "The user to warn"
+    },
+    {
+        name: "reason",
+        type: "string",
+        description: "The reason of the warn"
+    }
+]
 module.exports = cmd;
 
 

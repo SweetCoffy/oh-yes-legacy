@@ -17,8 +17,9 @@ module.exports = {
                         stuff.db.push(`/${el[0]}/points`, 0)
                         stuff.db.push(`/${el[0]}/multiplier`, 1)
                         stuff.db.push(`/${el[0]}/maxHealth`, 100)
-                        stuff.db.push(`/${el[0]}/multiplierMultiplier`, stuff.getMultiplierMultiplier(el[0]) * 0.25)
-                        stuff.db.push(`/${el[0]}/gold`, stuff.getGold(el[0]) * 0.25)
+                        stuff.db.push(`/${el[0]}/multiplierMultiplier`, 1)
+                        stuff.db.push(`/${el[0]}/gold`, 0)
+                        stuff.db.push(`/${el[0]}/taxes`, [])
                         stuff.db.push(`/${el[0]}/inventory`, [])
                         stuff.db.push(`/${el[0]}/pets`, [])
                         stuff.db.push(`/${el[0]}/defense`, 0)
@@ -28,9 +29,15 @@ module.exports = {
                         stuff.userHealth = [];
                     })
                     stuff.set("season", stuff.getConfig("season") + 1)
-                    message.channel.send("Data reset and started a new season!");
-                    message.client.commands.get("announce").execute(message, [`Season ${stuff.getConfig("season")} of "get the phone and break the economy any% speedrun" started!!1!!!1!!`], ["title", "new season alert!!1!!!1"])
+                    stuff.venezuelaMode = false;
+                    message.channel.send("Data reset and started a new season lol");
+                    message.client.channels.cache.get('736697212213657680').send({embed: {
+                        title: `Season ${stuff.getConfig("season")} has started lol`,
+                        color: 0x7734eb,
+                        description: `All user data has been reset lol`
+                    }})
                 }).catch(err => {
+                    console.log(err);
                     message.channel.send("You took too long to react, cancelling data reset");
                 })
             })

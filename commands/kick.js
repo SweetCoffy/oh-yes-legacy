@@ -6,27 +6,27 @@ const { Message } = require('discord.js')
  * @param {*} args 
  */
 var execute = (message, args) => {
-    const member = message.mentions.members.first();
+    const member = args.member;
 
-    if (member) {
-        if (member.id == message.author.id) throw "You can't kick yourself"
-
-        var reason = args;
-
-        reason.shift();
-
-
-        
-        member.kick(reason.join(" ")).then(() => {
-            message.channel.send("succesfully kicked " + member.displayName + ", reason: " + (reason.join(" ") || "none") );
-        }).catch (error => {
-            throw error;
-        })
-
-    } else {
-        throw "you must mention a member";
-    }
+    if (member.id == message.author.id) throw "You can't kick yourself"
+    var reason = args.reason;
+    reason.shift();
+    
+    member.kick(reason.join(" ")).then(() => {
+        message.channel.send("succesfully kicked " + member.displayName + ", reason: " + (reason.join(" ") || "none") );
+    }).catch (error => {
+        throw error;
+    })
 }
-var cmd = new RestrictedCommand("kick", execute, "KICK_MEMBERS", "kicks someone lol");
-cmd.usage = "kick <member>";
-module.exports = cmd;
+module.exports = new RestrictedCommand("kick", execute, "KICK_MEMBERS", "kicks someone lol")
+.argsObject().addArgumentObject({
+    name: 'member',
+    type: 'member',
+    description: 'The member to kick'
+}).addArgumentObject({
+    name: 'reason',
+    type: 'string',
+    description: 'The reason for the kick',
+    optional: true,
+    default: ''
+})

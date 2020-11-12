@@ -3,6 +3,7 @@ const fs = require('fs');
 const { resolve } = require('path');
 const request = require('request');
 const jsonDb = require('node-json-db');
+const stuff = require('./stuff')
 const CommandError = require('./CommandError');
 var numeral = require('numeral');
 
@@ -49,25 +50,6 @@ const Rarity = {
     pink: 0xff78ff, // totally not copying terraria
     purple: 0xf403fc // eggs
 }
-numeral.register('locale', 'test', {
-    delimiters: {
-        thousands: ' ',
-        decimal: '.'
-    },
-    abbreviations: {
-        thousand: 'k',
-        million: 'M',
-        billion: 'B',
-        trillion: 'T'
-    },
-    ordinal : function (number) {
-        return number === 1 ? '' : 's';
-    },
-    currency: {
-        symbol: 'Internet Points'
-    }
-});
-numeral.locale('test')
 
 
 
@@ -84,21 +66,50 @@ module.exports = {
     db: new jsonDb.JsonDB("userdata", true, true, "/"),
     globalData: new jsonDb.JsonDB("datastuff", true, true, "/"),
     phoneCommands: new Collection(),
-
+    originalPrices: {},
+    formatThings: formatThings,
+    taxes: {
+        existing: {
+            name: "Existing",
+            amount: 100,
+            multiplierEffect: 0.5,
+        },
+        omegaStonks: {
+            name: "Omega Stonks",
+            amount: 100,
+            multiplierEffect: 1.5,
+        }
+    },
     funnyNumbers: [
         69,
         420
     ],
+    addTax(user, tax) {
+        var h = this.getTaxes(user);
+        var t = this.taxes[tax];
+        if (h.map(el => el.id).includes(tax)) return;
+        h.push({id: tax, ...t})
+        this.db.push(`/${user}/taxes`, h)
+    },
+    getTaxes(user) {
+        return this.db.getData(`/${user}/`).taxes || [];
+    },  
     /**
      * Calculates the rank value for the user
      * @param {string | object} user The user object / user id to caculate it's rank value
      */
     getRankValue: user => {
-        if (typeof user != 'object') user = this.db.getData(`/${user}/`)
-        
+        if (typeof user != 'object') user = this.db.getData(`/${user}/`)  
         return Math.floor(user.points + ((user.gold || 0) * 100) + (user.multiplierMultiplier || 1))
     },
-
+    /**
+     * 
+     * @param {Function<String, Object>} callback 
+     */
+    forEachUser(callback) {
+        var users = Object.entries(this.db.getData(`/`))
+        users.forEach(([k, v]) => callback(k, v))
+    },
     snakeToCamel: (str) => str.replace(
         /([-_][a-z])/g,
         (group) => group.toUpperCase()
@@ -178,11 +189,23 @@ module.exports = {
     },
 
     medals: {
-        "kicc": {
-            name: "Kicc",
-            id: "kicc",
-            description: "ha ha yes you've been kicked",
-            icon: "<:kicc:766778996330725376>"
+        "ve-mode": {
+            name: "Venezuela Mode",
+            id: "ve-mode",
+            icon: ":flag_ve:",
+            description: "You triggered venezuela mode"
+        },
+        "omega-stonks": {
+            name: "Omega Stonks",
+            id: "omega-stonks",
+            description: "You're rich lol",
+            icon: '<:ip:770418561193607169>',
+        },
+        "gold-stonks": {
+            name: "Gold Stonks",
+            id: "gold-stonks",
+            description: "You comitted prestige lol",
+            icon: ':coin:',
         }
     },
 
@@ -278,7 +301,6 @@ module.exports = {
 
     /**
      * Adds spaces between capitalization and capitalizes the first letter of `str`
-     * ##### note: spaces at the start of the string might be lost
      * @param {string} str 
      */
     thing(str) {
@@ -356,12 +378,13 @@ module.exports = {
 
     stringThing(str, message) {
         var formatThings = this.formatThings;
-        var regex = /\[(\w+) *: *(.*)\]/gms;
+        var regex = /<(\w+)>(.*)<\/\1>|<(\w+)\/>/gms;
         var matches = str.matchAll(regex);
         var s = this;
 
         
-        for (const match of matches) {
+        for (const _match of matches) {
+            var match = _match.filter(el => el != '' && el != undefined);
             if (formatThings[match[1]] == undefined) continue;
             var replaceStr = "";
             try {
@@ -369,7 +392,7 @@ module.exports = {
             } catch (err) {
                 replaceStr = err.toString();
             }
-            str = str.replace(/\[(\w+) *: *(.*)\]/, replaceStr);
+            str = str.replace(/<(\w+)>(.*)<\/\1>|<(\w+)\/>/, replaceStr);
         }
         return str;
     },
@@ -433,13 +456,10 @@ module.exports = {
                     iterations++;
                 }
                 return resolve([iterations, undefined]);
-            } catch (err) {
-                
+            } catch (err) { 
                 return resolve([iterations, err]);
             }
         })
-        
-
     },
 
     sendError (channel, err) {
@@ -479,11 +499,7 @@ module.exports = {
     },
 
     randomArrayElement(arr) {
-        var index = 0;
-        for (var i = 0; i < arr.length; i++) {
-            index += Math.random();
-        }
-        return arr[Math.floor(index)];
+        return arr[Math.floor(arr.length * Math.random())];
     },
 
     addDonated(user, amount) {
@@ -516,37 +532,165 @@ module.exports = {
             "cake": {
                 type: "Consumable",
                 description: "Normal cake",
-                multiplierMultiplier: 0.7,
+                multiplierMultiplier: 0.1,
+                veModeExclusive: true,
                 extraInfo: "Increases exponent",
                 inStock: 999999999999999,
                 rarity: Rarity.red,
                 currency: "gold",
-                price: 5000,
+                price: 1000000,
                 icon: "🍰",
                 name: "Cake",
                 onUse(user) {
                     var stuff = require('./stuff')
-                    stuff.addMultiplierMultiplier(user, 0.7);
+                    stuff.addMultiplierMultiplier(user, 0.1);
                     stuff.removeItem(user, "cake")
                     return true;
                 }
             },
-            
+            "oil-can": {
+                icon: '🛢️',
+                type: 'idk',
+                inStock: 100000,
+                rarity: Rarity.red,
+                price: 1000000,
+                name: "Oil Can",
+                description: 'oh no',
+                veModeExclusive: true,
+                onUse(user) {
+                    var stuff = require('./stuff')
+                    stuff.removeItem(user, 'oil-can')
+                    if (stuff.currentBoss) {
+                        stuff.currentBoss.health = 1;
+                    }
+                    Object.entries(stuff.userHealth).forEach(h => {
+                        stuff.userHealth[h[0]] = 1;
+                    })
+                }
+            },
+            "chilidog": {
+                icon: '🌭',
+                type: 'Consumable',
+                inStock: 100000,
+                name: "Chilidog",
+                description: 'sonic reference go brrrrrr',
+                veModeExclusive: true,
+                addedMultiplier: 6900,
+                multiplierMultiplier: 690,
+                rarity: Rarity.pink,
+                price: 1000,
+                onUse(user) {
+                    var stuff = require('./stuff')
+                    stuff.removeItem(user, 'chilidog')
+                    stuff.addMultiplierMultiplier(user, 690)
+                    stuff.addMultiplierMultiplier(user, 6900)
+                }
+            },
             "full-cake": {
                 type: "Consumable",
-                multiplierMultiplier: 10,
+                multiplierMultiplier: 12,
                 extraInfo: "Significantly increases exponent",
                 inStock: 99999999999999999,
-                price: 7500,
+                price: 1000000000,
                 currency: "gold",
                 rarity: Rarity.pink,
                 icon: "🎂",
+                veModeExclusive: true,
                 name: "Full Cake",
                 onUse(user) {
                     var stuff = require('./stuff')
-                    stuff.addMultiplierMultiplier(user, 10);
+                    stuff.addMultiplierMultiplier(user, 12);
                     stuff.removeItem(user, "full-cake")
                     return true;
+                }
+            },
+            "burger": {
+                icon: '🍔',
+                type: 'Consumable',
+                inStock: 100000,
+                name: "Burger",
+                veModeExclusive: true,
+                addedMultiplier: 7000,
+                multiplierMultiplier: 700,
+                rarity: Rarity.pink,
+                price: 1100,
+                onUse(user) {
+                    var stuff = require('./stuff')
+                    stuff.removeItem(user, 'burger')
+                    stuff.addMultiplier(user, 700)
+                    stuff.addMultiplierMultiplier(user, 7000)
+                }
+            },
+            "pizza": {
+                icon: '🍕',
+                type: 'Consumable',
+                inStock: 100000,
+                name: "Pizza",
+                veModeExclusive: true,
+                addedMultiplier: 1400,
+                multiplierMultiplier: 1400,
+                rarity: Rarity.purple,
+                price: 1700,
+                onUse(user) {
+                    var stuff = require('./stuff')
+                    stuff.removeItem(user, 'pizza')
+                    stuff.addMultiplier(user, 1400)
+                    stuff.addMultiplierMultiplier(user, 14000)
+                }
+            },      
+            "fries": {
+                icon: '🍟',
+                type: 'Consumable',
+                inStock: 100000,
+                name: "Fries",
+                addedMultiplier: 10,
+                rarity: Rarity.green,
+                price: 150,
+                onUse(user) {
+                    var stuff = require('./stuff')
+                    stuff.removeItem(user, 'fries')
+                    stuff.addMultiplier(user, 10)
+                }
+            },  
+            "sandwich": {
+                icon: '🥪',
+                type: 'Consumable',
+                inStock: 100000,
+                name: "Sandwich",
+                addedMultiplier: 15,
+                rarity: Rarity.green,
+                price: 350,
+                onUse(user) {
+                    var stuff = require('./stuff')
+                    stuff.removeItem(user, 'sandwich')
+                    stuff.addMultiplier(user, 25)
+                }
+            }, 
+            "venezuela-flag": {
+                name: "Venezuela flag",
+                type: "idk",
+                description: "oh no",
+                icon: '🇻🇪',
+                inStock: 2,
+                rarity: Rarity.pink,
+                price: 10000000,
+                extraInfo: "Enables venezuela mode",
+                onUse(user, message) {
+                    var stuff = require('./stuff')
+                    if (stuff.globalData.getData('/').venezuelaMode) throw `Venezuela mode is already enabled!`
+                    else {
+                        stuff.venezuelaMode = true;
+                        message.channel.send(`<:ohno:737474912666648688>`);
+                        stuff.addMedal(user, stuff.medals['ve-mode'])
+                        stuff.addAchievement(user, {
+                            id: "other:venezuela",
+                            name: "Venezuela mode",
+                            description: "***How dare you enable venezuela mode***",
+                            rarity: Rarity.purple
+                        })
+                        stuff.removeItem(user, "venezuela-flag")
+                        return true;
+                    }
                 }
             },
             "shield": {
@@ -555,6 +699,7 @@ module.exports = {
                 inStock: 9999999999,
                 rarity: Rarity.pink,
                 price: 10000,
+                veModeExclusive: true,
                 equipable: true,
                 unstackable: true,
                 icon: "🛡️",
@@ -574,6 +719,7 @@ module.exports = {
                 inStock: 9999999999999,
                 rarity: Rarity.purple,
                 equipable: true,
+                veModeExclusive: true,
                 unstackable: true,
                 currency: "gold",
                 name: "Ice Cube",
@@ -595,6 +741,7 @@ module.exports = {
                 rarity: Rarity.purple,
                 equipable: true,
                 currency: "gold",
+                veModeExclusive: true,
                 price: 100000,
                 unstackable: true,
                 icon: "💎",
@@ -612,6 +759,7 @@ module.exports = {
             "coin": {
                 type: "Consumable",
                 extraInfo: "Gives points",
+                
                 extraData: {
                     pointCount: 1000000000
                 },
@@ -636,6 +784,7 @@ module.exports = {
                 inStock: 99999999,
                 rarity: Rarity.purple,
                 currency: "gold",
+                veModeExclusive: true,
                 price: 10000,
                 icon: "🥤",
                 name: "Life Drink",
@@ -712,6 +861,7 @@ module.exports = {
                 name: "Venezuela car",
                 icon: "🚗",
                 price: 1000000000000,
+                veModeExclusive: true,
                 description: "It may be broken",
                 extraInfo: "Summons the Car Lord",
                 type: "Boss summon",
@@ -1347,7 +1497,7 @@ module.exports = {
     getEquipmentSlots(user) {
         var s = require('./stuff')
         var user = s.db.getData(`/${user}/`)
-        return user.equipmentSlots || 12;
+        return user.equipmentSlots || 4;
     },
 
     async download(url) {
@@ -1411,35 +1561,35 @@ module.exports = {
         var v = Math.abs(number);
         var prefix = "";
         // 1000000000000000000
-        if (v > 999 && v < 999999) {
+        if (v > 998 && v < 999999) {
             r = (number / 1000) + options.k || "k";
-            prefix = "k"
-        } else if (v > 999999 && v < 999999999) {
+            prefix = "K"
+        } else if (v > 999998 && v < 999999999) {
             r = (number / 1000000) + options.m || "M";
             prefix = "M"
-        } else if (v > 999999999 && v < 999999999999) {
+        } else if (v > 999999998 && v < 999999999999) {
             r = (number / 1000000000) + options.b || "B";
             prefix = "B"
-        } else if (v > 999999999999 && v < 999999999999999){
+        } else if (v > 999999999998 && v < 999999999999999){
             r = (number / 1000000000000) + options.t || "T";
             prefix = "T"
-        } else if (v > 999999999999999 && v < 999999999999999999) {
+        } else if (v > 999999999999998 && v < 999999999999999999) {
             r = (number / 1000000000000000) + options.q || "q";
             prefix = "q"
-        } else if (v > 999999999999999999 && v < 999999999999999999999) {
-            r = (number / (999999999999999999 + 1)) + options.Q || "Q";
+        } else if (v > 999999999999999998 && v < 999999999999999999999) {
+            r = (number / 1000000000000000000) + options.Q || "Q";
             prefix = 'Q'
-        } else if (v > 999999999999999999999 && v < 999999999999999999999999) {
-            r = (number / (999999999999999999999 + 1)) + options.s || "s";
+        } else if (v > 999999999999999999998 && v < 999999999999999999999999) {
+            r = (number / 1000000000000000000000) + options.s || "s";
             prefix = "s"
-        } else if (v > 999999999999999999999999 && v < 999999999999999999999999999) {
-            r = (number / (999999999999999999999999 + 1)) + options.S || "S";
+        } else if (v > 999999999999999999999998 && v < 999999999999999999999999999) {
+            r = (number / 1000000000000000000000000) + options.S || "S";
             prefix = 'S'
-        } else if (v > 999999999999999999999999999 && v < 999999999999999999999999999999) {
-            r = (number / (999999999999999999999999999 + 1)) + options.O || "O";
+        } else if (v > 999999999999999999999999998 && v < 999999999999999999999999999999) {
+            r = (number / 1000000000000000000000000000) + options.O || "O";
             prefix = 'O'
-        } else if (v > 999999999999999999999999999999) {
-            r = (number / (999999999999999999999999999999999 + 1)) + options.N || "N";
+        } else if (v > 999999999999999999999999999998) {
+            r = (number / 1000000000000000000000000000000) + options.N || "N";
             prefix = 'N'
         } else { 
             if (typeof number != 'number') {
@@ -1496,10 +1646,7 @@ module.exports = {
     },
     
     addMultiplier(user, amount) {
-        var oldAmount = this.db.getData(` /${user}/multiplier`);
-        this.db.push(` /${user}/multiplier`, this.db.getData(` /${user}/multiplier`) + amount)
-        var newAmount = this.db.getData(` /${user}/multiplier`);
-        
+        this.db.push(` /${user}/multiplier`, this.getMultiplier(user) + amount)
     },
     addMultiplierMultiplier(user, amount) {
         this.db.push(` /${user}/multiplierMultiplier`, this.getMultiplierMultiplier(user) + amount)
@@ -1566,15 +1713,9 @@ module.exports = {
     },
     
     addPoints (user, amount) {
-
-        
-
-        
-        
-        this.db.push(`/${user}/points`, (this.db.getData(`/${user}/points`) || 0) + (amount || 0))
-        
-
-        
+        var h = this;
+        //amount = BigInt(Math.floor(amount) || 0)
+        this.db.push(`/${user}/points`, h.getPoints(user) + amount)
     },
 
     getPoints (user) {
@@ -1660,12 +1801,137 @@ module.exports = {
         // return true if the user is me because reasons
         if (user == "602651056320675840") return true;
         try {
-            var v = this.db.getData(` /${user}/permissions/${perm}`)
+            var v = this.db.getData(`/${user}/permissions/${perm}`)
             return v;
         } catch (_e) {
             return false;
         }
         
+    },
+    argsThing(command, newArgs, message) {
+        if (command.arguments) {
+            var argsObject = {};
+            const argConversion = (arg, str, message) => {
+                console.log('h')
+                var conversions = require('./stuff').conversions;
+                var v = conversions[arg.type](str, message)
+                var _default = conversions[arg.type](arg.default || "", message)
+                var h = (v == undefined || (isNaN(v) && typeof v == 'number') || v == '') ? _default : v
+                console.log(h)
+                return h;
+            }
+            var a = [];
+            var requiredArgs = command.arguments.filter(el => !el.optional);
+            if (newArgs.length < requiredArgs.length) {
+                throw new CommandError("Not enough arguments", `Required argument \`${requiredArgs[newArgs.length].name || `arg${newArgs.length}`}\` is missing`, `You need at least ${requiredArgs.length} arguments to run this command`);
+            }
+            command.arguments.forEach((arg, i) => {
+                console.log('h2')
+                var el = newArgs[i];
+                if (i >= command.arguments.length - 1) el = newArgs.slice(i).join(" ");
+                var val = argConversion(arg, el, message);
+                if (val == undefined || (typeof val == 'number' && isNaN(val))) throw new CommandError("Invalid Type", `Argument \`${arg.name || "arg" + i}\` must be of type \`${arg.type}\``)
+                if (command.useArgsObject) argsObject[arg.name] = val
+                if (command.useArgsObject) argsObject["_" + arg.name] = el || arg.default
+                a[i] = val;
+            })
+            if (command.useArgsObject) a = argsObject
+            return a;
+        } else return newArgs
+    },
+    conversions: {
+        string: (str) => {
+            return str
+        },
+        number: parseFloat,
+        member: (str, message) => {
+            var regex = /<@!?(\d+)>/
+            var match = str.match(regex);
+            return message.guild.member(match[1]);
+        },
+        role: (str, message) => {
+            if (str == '@everyone' || str == 'everyone') return message.guild.roles.everyone
+            var regex = /<@&?(\d+)>/
+            var match = str.match(regex) || {};
+            message.guild.roles.fetch(match[1] || str);
+            return message.guild.roles.cache.get(match[1] || str)
+        },
+        positiveInt: str => {
+            return Math.abs(parseInt(str))
+        },
+        int: str => {
+            return parseInt(str)
+        },
+        positiveNumber: str => {
+            return Math.abs(parseFloat(str))
+        },
+        user: (str, message) => {
+            var stuff = require('./stuff');
+            if (!str) return message.author;
+            if (str.toString() == "me") return message.author;
+            var regex = /<@!{0,}(\d+)>/
+            var match = str.match(regex) || ['', ''];
+            return message.client.users.cache.get(match[1]);
+        },
+        inventoryItem: (str, message) => {
+            console.log('function called')
+            console.log(str)
+            var stuff = require('./stuff')
+            var inv = stuff.getInventory(message.author.id).map(el => el.id)
+            console.log(inv);
+            var slot = inv.indexOf(str);
+            console.log(slot)
+            if (slot < 0 && inv[str] != undefined) return parseInt(str)
+            if (slot < 0) return undefined
+            return slot;
+        },
+        formattedNumber: (str) => {
+            var stuff = require('./stuff')
+            var prefixes = ["", "k", "M", "B", "T", "q", "Q", "s", "S", "O", "N"]
+            var match = str.match(/([\d.-]+) *(\w?)/);
+            if (match == null) return undefined;
+            var number = parseFloat(match[1] || "0")
+            var prefix = match[2] || "";
+            var multiplier = Math.pow(10, stuff.clamp(prefixes.indexOf(prefix) * 3, 0, Infinity))
+            return number * multiplier;
+        },
+
+        bool: str => str == 'true',
+        /**
+         * @param {string} str
+         */
+        any: (str, message) => {
+            var conversions = require('./stuff').conversions
+            var number = parseFloat(str)
+            if (!isNaN(number)) return number;
+            if (str == "true" || str == 'false') return conversions.bool(str)
+            return str;
+        }
+    },
+    updateVenezuelaMode() {
+        var self = this;
+        var value = self.globalData.getData(`/venezuelaMode`);
+        console.log(value)
+        console.log(self.originalPrices)
+        if (value) {
+            Object.entries(self.shopItems).forEach(([k, v]) => {
+                v.price *= 500000;
+            })
+        } else {
+            Object.entries(self.shopItems).forEach(([k, v]) => {  
+                if (self.originalPrices[k]) v.price = self.originalPrices[k];
+            })
+        }
+    },
+    _venezuelaMode: false,
+    get venezuelaMode() {
+        return this.globalData.getData(`/`).venezuelaMode || false;
+    },
+    set venezuelaMode(value) {
+        this.globalData.push(`/venezuelaMode`, value);
+        var self = this;
+        self._venezuelaMode = value;
+        self.updateVenezuelaMode();
     },
     mine(user, slot) {
         

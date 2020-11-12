@@ -9,11 +9,21 @@ const colors = [
 module.exports = {
     name: "inventory",
     description: "shows the items you currently have",
+    useArgsObject: true,
+    arguments: [
+        {
+            name: "page",
+            type: "number",
+            description: "The page of the inventory to show",
+            optional: true,
+            default: "1",
+        }
+    ],
     execute(message, args, _extraArgs, extraArgs) {
         var authorId = message.author.id;
         var useCompact = !extraArgs.disableStacking;
         var _inv = stuff.getInventory(authorId);
-        var page = (parseInt(args[0]) || 1) - 1;
+        var page = (args.page) - 1;
         var startFrom = 0 + (20 * page);
 
         
@@ -94,6 +104,7 @@ module.exports = {
             }
             if (Math.random() < 0.1) {
                 embed.title = "Ivetory"
+                embed.fields = [{ name: "cool", value: "you just found an easter egg" }]
             }
             if (extraArgs.oldStacking) {
                 embed.color = colors[1]
@@ -101,7 +112,7 @@ module.exports = {
             }
             if (!useCompact) {
                 embed.color = colors[2]
-                embed.title = "Inventory (pre-stacking)"
+                embed.title = "Inventory (no stacking)"
             }
             message.channel.send({embed: embed});
         }

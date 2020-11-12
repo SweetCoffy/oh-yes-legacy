@@ -3,7 +3,7 @@ const stuff = require("../stuff")
 module.exports = {
     name: "work",
     description: "do work and earn moni!!11!1",
-    cooldown: 15,
+    cooldown: 7.5,
     execute (message) {
         var things = [
             {
@@ -15,9 +15,17 @@ module.exports = {
                 amount: 700,
             },
             {
+                message: "You sold your eggs to some questionable company",
+                amount: 10000,
+            },
+            {
                 message: "You gave eggs to the Sky Egg Lord and got Internet Points\™ in exchange",
                 amount: 1000,
-            }
+            },
+            {
+                message: "You moved to venezuela",
+                amount: -10000,
+            },
         ]
 
         

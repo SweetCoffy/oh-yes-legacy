@@ -53,7 +53,7 @@ class CommandError {
      */
     static undefinedError = new CommandError("undefined", "undefined", "[intentional bot design]"); 
     static fromString(str) {
-        return new CommandError("Command Error", str);
+        return new CommandError("get error'd lol", str);
     }
     
 }

@@ -1,6 +1,5 @@
 const CommandError = require('../CommandError');
 const stuff = require('../stuff')
-
 module.exports = {
     name: "buy",
     description: "buys something from the shop",
@@ -11,17 +10,19 @@ module.exports = {
             name: "item",
             type: "string",
             optional: true,
-            default: ""
+            default: "",
+            description: "The item to buy",
         },
         {
             name: "amount",
             type: "formattedNumber",
             optional: true,
             default: "1",
+            description: "How many of `item` to buy"
         }
     ],
+    aliases: ['shop'],
     cooldown: 2,
-
     execute(message, args, _extraArgs, _extraArgsObject, discount = 1) {
         var item = args.item;
         var amount = args.amount;
@@ -33,13 +34,13 @@ module.exports = {
             }).filter(el => {
                 return !el[1].unlisted && el[1].price
             }).filter(el => {
-                var canAfford = (el.currency == "gold") ? stuff.getGold(message.author.id) >= el.price : stuff.getPoints(message.author.id) >= el.price
-                if (hideUnaffordable) return canAfford;
+                if (el[1].veModeExclusive && !stuff.venezuelaMode) return false;
                 return true;
             })
+            var userconfig = stuff.getUserConfig(message.author.id)
             var itemNames = []
             var page = (parseInt(_extraArgsObject.page) || 1) - 1;
-            var itemsPerPage = useOldShop ? 30 : 10
+            var itemsPerPage = useOldShop ? (stuff.clamp(userconfig.itemsPerPage, 1, 10) || 10) * 3: (stuff.clamp(userconfig.itemsPerPage, 1, 10) || 10)
             var startFrom = 0 + (itemsPerPage * page);
 
             entries.forEach(entry => {
@@ -51,62 +52,43 @@ module.exports = {
                 title: "Shop",
                 color: 0x34a1eb,
                 description: itemNames.slice(startFrom, startFrom + itemsPerPage).join(useOldShop ? "\n" : "\n\n"),
-
                 footer: {
-                    text: `page ${page + 1}/${stuff.clamp(Math.ceil(entries.length / itemsPerPage), 1, Infinity)}, add --page <page number> at the end to see a different page`
-                }
-                
+                    text: `Page ${page + 1}/${stuff.clamp(Math.ceil(entries.length / itemsPerPage), 1, Infinity)}, ${stuff.venezuelaMode ? "oh no venezuela mode is enabled" : "add --page <page number> at the end to see a different page"}`
+                }    
             }
             if (useOldShop) embed.title = "Shop (old version)"
             if (useOldShop) embed.color = 0x34eb86
-
             message.channel.send({embed: embed});
         } else {
             if (stuff.shopItems[item] != undefined) {
-
                 var repeatAmount = stuff.clamp(amount, 1, stuff.getConfig("massBuyLimit"));
                 var it = stuff.shopItems[item];
                 if (it.unlisted) throw `You can't buy that item lol`
+                if (it.veModeExclusive && !stuff.venezuelaMode) throw `You can only buy this item in venezuela mode`
                 var embed = {
                     title: `${it.icon} ${it.name}`,
                     description: `You bought ${it.icon} ${it.name} for ${stuff.format(it.price * discount)} ️${(curr == "ip") ? "<:ip:770418561193607169>" : ":coin:"}`
                 }
-                
-                
                 var curr = it.currency || "ip"
                 var price = it.price;
+                if (it.rarity) {
+                    embed.color = it.rarity;
+                }
                 stuff.repeat(i => {
                     var cantAfford = stuff.getPoints(message.author.id) < stuff.shopItems[item].price * discount;
                     if (curr != "ip") cantAfford = stuff.getGold(message.author.id) < stuff.shopItems[item].price * discount
-                    if (stuff.shopItems[item].inStock > 0) {
-                        if (cantAfford) {
-                            throw `you need ${((stuff.shopItems[item].price * discount) - stuff.getPoints(message.author.id)).toFixed(1)} more ${(curr == "ip") ? "<:ip:770418561193607169>" : ":coin:"} to buy this item!`
-                        } else {      
-                            
-                            
-                            stuff.addItem(message.author.id, {name: it.name, onUse: it.onUse, icon: it.icon, id: item, extraData: {...it.extraData}, rarity: it.rarity})
-                            if(curr == "ip") stuff.addPoints(message.author.id, -it.price * discount)
-                            if(curr == "gold") stuff.addGold(message.author.id, -it.price * discount)
-        
-                            
-                            if (it.rarity) {
-                                embed.color = it.rarity;
-                            }
-                            stuff.shopItems[item].inStock -= 1;
-                        }
-                        
-                        
-                    } else {
-                        throw "that item isn't in stock anymore lolololo"
-                    }
+                    if (cantAfford) {
+                        throw `you need ${((stuff.shopItems[item].price * discount) - stuff.getPoints(message.author.id)).toFixed(1)} more ${(curr == "ip") ? "<:ip:770418561193607169>" : ":coin:"} to buy this item!`
+                    } else {      
+                        stuff.addItem(message.author.id, {name: it.name, onUse: it.onUse, icon: it.icon, id: item, extraData: {...it.extraData}, rarity: it.rarity})
+                        if(curr == "ip") stuff.addPoints(message.author.id, -it.price * discount)
+                        if(curr == "gold") stuff.addGold(message.author.id, -it.price * discount)
+                    }  
                 }, repeatAmount).then(([repeat, err]) => {                    
                     embed.description = `You bought ${repeat} ${it.icon} ${it.name} for ${stuff.format(it.price * discount * repeat)} ${(curr == "ip") ? "<:ip:770418561193607169>" : ":coin:"}`;
                     if (err) stuff.sendError(message.channel, err);
                     message.channel.send({embed: embed})
                 })
-
-                
-
             } else {
                 throw `the item \`${item}\` doesn't exist`
             }

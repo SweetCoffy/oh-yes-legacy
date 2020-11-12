@@ -3,6 +3,7 @@ const stuff = require('../stuff')
 module.exports = {
     name: 'baltop',
     description: "shows a top 10 users who have the most moni",
+    aliases: ['leaderboard'],
     execute (message) {
         var client = message.client;
         var guild = message.guild;
@@ -23,6 +24,7 @@ module.exports = {
 
         var embed = {
             title: "top 10 users",
+            color: 0x03adfc,
             description: entryNames.slice(0, 10).join("\n")
         }
         message.channel.send({embed: embed});

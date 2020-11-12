@@ -1,5 +1,3 @@
-// main bot script
-
 const Discord = require('discord.js');
 const stuff = require('./stuff');
 const client = new Discord.Client();
@@ -8,9 +6,9 @@ client.commands = new Discord.Collection();
 client.requiredVotes = 10;
 client.voteTimeout = 100;
 const chalk = require('chalk')
-
-const pageNumbers = new Discord.Collection();
-
+if (!stuff.globalData.exists(`/banned`)) {
+    stuff.globalData.push(`/banned`, [])
+}
 const config = require('../config.json');
 const fs = require('fs');
 const CommandError = require('./CommandError');
@@ -30,92 +28,49 @@ function messageThing(message) {
     console.log(`${chalk.gray(cname + "/")}${uname}${chalk.gray(":")} ${fancyContent}`)
 }
 const { resolve, join } = require('path');
+const api = require('./api');
 const cooldowns = new Discord.Collection();
-const conversions = {
-    string: (str) => {
-        ;
-        return str
-    },
-    number: parseFloat,
-    member: (str, message) => {
-        var regex = /<@!?(\d+)>/
-        var match = str.match(regex);
-        return message.guild.member(match[1]);
-    },
-    user: (str, message) => {
-        if (!str) return message.author;
-        if (str.toString() == "me") return message.author;
-        var regex = /<@!?(\d+)>/
-        var match = str.match(regex);
-        return client.users.cache.get(match[1]);
-    },
-    inventoryItem: (str, message) => {
-        var inv = stuff.getInventory(message.author.id)
-        var slot = inv.map(el => el.id).indexOf(str);
-        return slot;
-    },
-    formattedNumber: (str) => {
-        ;
-        var prefixes = ["", "k", "M", "B", "T", "q", "Q", "s", "S", "O", "N"]
-        var match = str.match(/([\d.-]+) *(\w?)/);
-        if (match == null) return undefined;
-        var number = parseFloat(match[1] || "0")
-        var prefix = match[2] || "";
-        var multiplier = Math.pow(10, stuff.clamp(prefixes.indexOf(prefix) * 3, 0, Infinity))
-        return number * multiplier;
-    },
-    bool: str => str == 'true',
-    /**
-     * @param {string} str
-     */
-    any: (str, message) => {
-        var number = parseFloat(str)
-        if (!isNaN(number)) return number;
-        if (str == "true" || str == 'false') return conversions.bool(str)
-        return str;
-    }
-}   
-var argConversion = (arg, str, message) => {
-    
-    
-    var val = conversions[arg.type](str, message)
-    var _default = conversions[arg.type](arg.default || "", message)
-    var h = (val == undefined || isNaN(val)) ? _default : val
-    if (arg.type == 'string') h = str || "";
-    ;
-    return h;
-}
-//var rolePerms = JSON.parse(fs.readFileSync("roleperms.json", 'utf8').toString())
-client.impostors = 
-[
-    //"630489464724258828" just for testing
-]
 const h = {
     get auditLogs() {
         return client.channels.cache.get(stuff.getConfig("auditLogs"))
     }
 }
-
-
-
-
-
-// command loading thing
-const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
-for (const file of commandFiles) {
-	const command = require(`./commands/${file}`);
-
-
-	client.commands.set(command.name, command);
+function loadCommands() {
+    var totalLines = 0;
+    console.log('Loading commands...')
+    var i = 0;
+    const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+    for (const file of commandFiles) {
+        delete require.cache[resolve(`./commands/${file}.js`)]
+        const command = require(`./commands/${file}`);
+        var hh = fs.readFileSync('commands/' + file, 'utf8')
+        totalLines += hh.split(/\r\n|\r|\n/).length;
+        client.commands.set(command.name, command);
+        console.log(`Loaded '${file}' as '${command.name}', ${i + 1}/${commandFiles.length}`);
+        i++;
+    }
+    console.log(`Finished loading commands, ${totalLines} lines of code loaded`)
+    stuff.loadPhoneCommands();
 }
-
-stuff.loadPhoneCommands();
-
-
+loadCommands();
+stuff.loadCommands = loadCommands;
 client.once('ready', () => {
-	console.log('oh yes');
+    console.log('oh yes');
+    api.init(client);
+    Object.entries(stuff.shopItems).forEach(([k, v]) => {
+        stuff.originalPrices[k] = v.price || 0;
+    })
+    client.taxInterval = setInterval(() => {
+        try {
+            stuff.forEachUser((id, data) => {
+                data.taxes.forEach(el => {
+                    stuff.addPoints(id, -el.amount * (data.multiplier * el.multiplierEffect) / 60)
+                })
+            })
+        } catch (e) {}
+    }, 1000 * 60)
+    stuff.updateVenezuelaMode();
 });
-
 function sendAuditLog(message) {
     var embed = {fields: []}
     embed.title = "Message deleted";
@@ -124,26 +79,15 @@ function sendAuditLog(message) {
         name: message.author.username,
         icon: message.author.avatarURL()
     }
-
     if (embed.fields.length < 1) delete embed.fields;
-
     h.auditLogs.send({embed: embed})
-
-
-    
 }
-
-client.on('guildMemberRemove', member => {
-    try {stuff.addMedal(member.id, stuff.medals.kicc)} catch (err) {console.log(err)}
-})
-
 client.on('messageDelete', async message => {
     try {
         sendAuditLog(message)
-    } catch (err) {
-        ;
-    }
-});
+        client.lastDeleted = message;
+    } catch (err) {}
+})
 client.on('messageUpdate', (_message, message) => {
     try {
         if ((_message.content == message.content) || _message.embeds == message.embeds) return;
@@ -152,20 +96,13 @@ client.on('messageUpdate', (_message, message) => {
         console.log(err);
     }
 })
-
-
-
 client.on('messageReactionAdd', (reaction, user) => {
     try {
-        
-
-        if (stuff.getConfig("randomReactions")) reaction.message.react(reaction.emoji.id);
-
-    
-        
-        var author = reaction.message.author.id;
-        var message = reaction.message;
-        if (user.id == author) return;
+        if (stuff.db.getData(`/banned`).includes(user.id)) return;
+        if (stuff.getConfig("randomReactions") && message.author.id != '676696728065277992') reaction.message.react(reaction.emoji.id);
+        var author = reaction.message.author.id
+        var message = reaction.message
+        if (user.id == author) return
         if (reaction.emoji.id == stuff.getConfig("v_")) {
             stuff.addPoints(author, 10 * Math.random() * stuff.getMultiplier(author, false)); 
             stuff.addVCounter(user.id, 1);
@@ -180,9 +117,7 @@ client.on('messageReactionAdd', (reaction, user) => {
         } else if (reaction.emoji.id == stuff.getConfig("madv_")) {
             stuff.addPoints(author, 9 * Math.random() * stuff.getMultiplier(author, false));
         }        
-    } catch (err) {
-        ;
-    }  
+    } catch (err) {}  
 })
 
 client.on('emojiUpdate', async (oldEmoji, newEmoji) => {
@@ -191,41 +126,50 @@ client.on('emojiUpdate', async (oldEmoji, newEmoji) => {
             await newEmoji.edit({roles: []})
             await client.channels.cache.get(stuff.getConfig("reportsChannel")).send(`Some evil person whitelisted <:v_:755546914715336765>`)
         }
-    } catch (e) {
-        ;
-    }
+    } catch (e) {}
 })
 client.on('emojiDelete', async emoji => {
     try {
         var channel = client.channels.cache.get(stuff.getConfig("reportsChannel"));
         await channel.send(`<@&768569677001523220> Emoji Yeet Alert: ${emoji.name} was yeeted!`)
-        // <@&768569677001523220>
-    } catch (e) {
-        
-    }
+    } catch (e) {}
 })
 
 client.on('message', async message => {
-
     try {
-        if((message.content.includes("egg") || message.content.includes("🥚")) && message.author.id != client.user.id) {
+        var hasData = false;
+        var u = message.author.id;
+        if (stuff.userHealth[message.author.id] == undefined) {
+            stuff.userHealth[message.author.id] = stuff.getMaxHealth(message.author.id);
+        }
+        try {
+            stuff.db.getData(`/${message.author.id}/permissions`);
+            hasData = true;
+        } catch (er) {
+            hasData = false;
+        }
+        if (!hasData) {
+            stuff.db.push(`/${message.author.id}`, {
+                permissions: {},
+                multiplier: 1,
+                points: 0,
+                defense: 0,
+                maxHealth: 100,
+                gold: 0,
+                taxes: [],
+                inventory: [],
+                pets: [],
+            });
+        }
+        stuff.addTax(message.author.id, 'existing');
+        if (message.channel.type == 'dm') return;
+        if (stuff.globalData.getData(`/banned`).includes(message.author.id)) return;
+        if((message.content.includes("egg") || message.content.includes("🥚")) && message.author.id != client.user.id && message.author.id != '676696728065277992') {
             message.react('🥚');
         }
         if (message.content.includes("<:v_:755546914715336765>")) {
         stuff.addVCounter(message.author.id, 1);
     }
-        var user = message.mentions.users.first();
-    if (user) {
-        if (user.id == client.user.id) {
-            message.react('729900329440772137');
-            message.channel.send({content: message.author.toString(), embed: {
-                title: "get ponged",
-                description: `i have **${client.commands.size}** commands, use \`;help\` for a list of commands`
-            }}).then(m => m.delete({timeout: 10000}))
-        }
-    }
-    
-    
     if (message.channel.id == stuff.getConfig("botChannel") && stuff.currentBoss) {
         client.user.setPresence({
             status: "online",
@@ -243,8 +187,7 @@ client.on('message', async message => {
             }
         })
     }
-
-    if (stuff.getConfig("randomReactions")) {
+    if (stuff.getConfig("randomReactions") && message.author.id != '676696728065277992') {
         try {
             if (message.content.includes("v_")) {
                 var emojis = stuff.getConfig("idk");
@@ -261,281 +204,122 @@ client.on('message', async message => {
                 promises.push(message.react(c[0]))
             }
             Promise.all(promises).catch(e => console.log(e))
-        } catch (_e) {
-    
-        }
+        } catch (_e) {}
     }
-
-    var hasData = false;
-    var u = message.author.id;
-    
-    if (stuff.userHealth[message.author.id] == undefined) {
-        stuff.userHealth[message.author.id] = stuff.getMaxHealth(message.author.id);
-    }
-
-    try {
-        stuff.db.getData(`/${message.author.id}/permissions`);
-        hasData = true;
-    } catch (er) {
-        hasData = false;
-    }
-
-    if (!hasData) {
-        stuff.db.push(`/${message.author.id}`, {
-            permissions: {},
-            multiplier: 1,
-            points: 0,
-            defense: 0,
-            maxHealth: 100,
-            gold: 0,
-            inventory: [],
-            pets: [],
-        });
-    }
-
     messageThing(message)
     if (!stuff.db.exists(`/${message.author.id}/pets`)) {
         stuff.db.push(`/${message.author.id}/pets`, []);
     }
-
     if (!stuff.db.exists(`/${message.author.id}/defense`)) {
         stuff.db.push(`/${message.author.id}/defense`, 0);
     }
-
     if (!stuff.db.exists(`/${message.author.id}/gold`)) {
         stuff.db.push(`/${message.author.id}/gold`, 0);
     }
-
     if (stuff.getPoints(message.author.id) > 1000000000000000000) {
         stuff.addAchievement(message.author.id, {
             id: "stonks:omega",
             name: "Omega Stonks",
             description: `Get more than ${stuff.format(1000000000000000000)} Internet Points`
         })
+        stuff.addTax(message.author.id, 'omegaStonks')
+        stuff.addMedal(message.author.id, stuff.medals['omega-stonks']);
     }
-
     if (stuff.getMaxHealth(u) > 1000000) {
         stuff.db.push(`/${u}/maxHealth`, 1000000);
         stuff.userHealth[u] = 1000000;
     }
-
-    } catch (e) {
-        
-        sendError(message.channel, e)
-    }
-
-
-    
-    
-    
-    
-    
-    
-    
-    
-
-    
-    // broken cooldown
-    /*
-    if (!message.author.bot) {
-        if (!xpCooldowns.has(message.author.id)) {
-            xpCooldowns.set(message.author.id, now)
-        }
-
-        const expirationTime = xpCooldowns.get(message.author.id) + config.xpCooldown;
-
-
-    }
-
-    */
-    
-    if (message.author.bot && message.author.id != config.ohnoId)
-        return;
-
+} catch (e) {sendError(message.channel, e)}
+   if (message.author.bot && message.author.id != config.ohnoId)
+   return;
+   var user = message.mentions.users.first();
+   if (user) {
+       if (user.id == client.user.id) {
+           message.react('729900329440772137');
+           message.channel.send({content: message.author.toString(), embed: {
+               title: "get ponged",
+               description: `i have **${client.commands.size}** commands, use \`;help\` for a list of commands`
+           }}).then(m => m.delete({timeout: 10000}))
+       }
+   }
     try {stuff.addPoints(message.author.id, 0.5 * Math.random() * stuff.clamp(message.content.length, 0.5 * Math.random(), 2000 * Math.random()), 1, 500 * stuff.getMultiplier(message.author.id, false));}
     catch (err) {console.log(err)}
-
-    if (!message.content.startsWith(config.prefix))
-        return;
-
-    
-    // somehow getting the command the user tried to execute
-    const commandName = message.content.substring(1).split(" ")[0].toLowerCase();
-    
-    // getting the arguments
-    args = message.content.substring(1).split(" "), config.prefix.length;
-
-    // idk
-    args.shift();
-    
-
-    
-    
-    
-    
-    // the command
-    const command = client.commands.get(commandName) || client.commands.filter(v => {
-        if (!v.aliases) return
-        if (v.aliases.includes(commandName)) return 
-    })[0];
-    
-    
-    
-    
-
-    // debug stuff
-    
-    
-
-    
-    
-    
-    if (!command) {
-        
-        // i should delete this instead of commenting it
-        //message.channel.send("<:v_:750422544494100500>");
-        
-        // return because reasons
-        return;
-    }
-
-    
-            
-    
-    
-    
-   
-    // try-catch so the bot doesn't die
     try {
-        
-       
-        
-        
-        
-        // checking if the user can execute the command
+        if (message.author.id != '676696728065277992') {
+            var r = /^(h+)(?!.)/g
+            if (r.test(message.content)) {
+                var h = message.content.replace(r, "$1$1");
+                if (h.length > 2000) {
+                    h = { content: h.slice(0, 2000), embed: { description: h.slice(2000, 4048), footer: { text: "you thought you could beat me this time you e" } }}
+                }
+                message.channel.send(h)
+            }
+        }
+    } catch (err) {console.log(err)}
+    var prefix = (message.channel.id == stuff.getConfig("noPrefixChannel")) ? "" : config.prefix;
+    if (!message.content.startsWith(prefix)) return;
+    var now = Date.now();
+    var args = message.content.slice(prefix.length).split(" ");
+    const commandName = args.shift();;
+    const command = client.commands.get(commandName) ?? client.commands.filter(v => {
+        if (!v.aliases) return
+        if (v.aliases.includes(commandName)) return true
+    }).first();
+    if (!command) return;
+    try {
         if (stuff.getPermission(message.author.id, command.requiredPermission) || command.requiredPermission == undefined || stuff.getPermission(message.author.id, "*")) {
             if (stuff.getConfig("commands." + command.name)) {
                 if (command.removed) throw "this command has been removed, but not entirely (maybe it will come back if <@602651056320675840> wants to)";
-                
-                
                 if (!cooldowns.has(command.name)) {
                     cooldowns.set(command.name, new Discord.Collection())
                 }
                 var now = Date.now();
                 const timestamps = cooldowns.get(command.name)
                 const cooldownAmount = (command.cooldown || 1) * 1000;
-
                 if (timestamps.has(message.author.id)) {
                     const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
-                    if (now < expirationTime) {
-                        const timeLeft = (expirationTime - now) / 1000;
-                            throw new CommandError("Cooldown", `Please wait ${timeLeft.toFixed(1)} to use this command again!`)
-                    }
+                    if (now < expirationTime) return;    
                 } else {
                     timestamps.set(message.author.id, now);
                     setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
                 }
-
                 var joinedArgs = args.join(" ");
                 var regex = /--([^-\s]+)='([^']+)'|--([^-\s]+) "([^']+)"|--([^-\s]+) ([^-'\s]+)|--([^-\s]+) '([^']+)'|--([^-\s]+)/gm
-
                 var extraArgsObject = {};
-
                 var _matches = joinedArgs.matchAll(regex);
-
                 for (const match of _matches) {
                     var filteredMatch = match.filter(el => el != "" && el != " " && el != undefined)
                     extraArgsObject[filteredMatch[1]] = filteredMatch[2] || true;
-                }
-
-                
-                
+                } 
                 var matches = (regex.exec(joinedArgs) || []).filter(function(el) {
                     return el != "" && el != null && el != undefined;
-                });
-
-                
-                
+                });     
                 var extraArgs = (matches || []).slice(1, 3) || [];
-
                 joinedArgs = joinedArgs.replace(regex, "");
-
-
                 var newArgs = joinedArgs.split(" ").filter(function(el) {
                     return el != "" && el != null && el != undefined;
                 }) || [];
-
-
                 var a = [];
-                var argsObject = {};
-                
-
                 if (command.arguments) {
-                    
-                    var requiredArgs = command.arguments.filter(el => !el.optional);
-                    if (newArgs.length < requiredArgs.length) {
-                        throw new CommandError("Not enough arguments", `Required argument \`${requiredArgs[newArgs.length].name || `arg${newArgs.length}`}\` is missing`, `You need at least ${requiredArgs.length} arguments to run this command`);
-                    }
-                    command.arguments.forEach((arg, i) => {
-                        var el = newArgs[i];
-                        if (i >= command.arguments.length - 1) el = newArgs.slice(i).join(" ");
-                        
-                        var val = argConversion(arg, el, message);
-                        
-                        
-                        
-                        
-                        if (val == undefined || (typeof val == 'number' && isNaN(val))) throw new CommandError("Invalid Type", `Argument \`${arg.name || "arg" + i}\` must be of type \`${arg.type}\``)
-                        if (command.useArgsObject) argsObject[arg.name] = val
-                        if (command.useArgsObject) argsObject["_" + arg.name] = el || arg.default
-                        a[i] = val;
-                    })
+                    a = stuff.argsThing(command, newArgs, message)
                 } else {
                     a = newArgs
                 }
-
-                if(command.useArgsObject) a = argsObject;
-                
-                
                 command.execute(message, a, extraArgs, extraArgsObject);
-               
-                
-                
-                
-                
-
-                
             } else{
                 throw `The command \`${command.name}\` is disabled, run \`;set commands.${command.name} true\` to re-enable it`;
             }
-                
-            
-            
-        } else {
-            
-            throw new CommandError(`Missing Permissions`, `The command \`${command.name}\` requires the \`${command.requiredPermission}\` permission`)
-        }
-
-        
-
-        
+        } else throw new CommandError(`Missing Permissions`, `The command \`${command.name}\` requires the \`${command.requiredPermission}\` permission`)
+        var actualNow = Date.now();
+        console.log(`Took ${actualNow - now}ms to process a command`);
     } catch (error) {
         sendError(message.channel, error);
         message.react("755546914715336765")
         
     }
 });
-
-/**
- * sends an error embed
- * @param {Discord.Channel} channel where to send the error
- * @param {String} err the actual error, can be an error object
- */
-
-
 function sendError (channel, err) {
     var _err = err;
-    
     if (typeof err == 'string') {
         _err = CommandError.fromString(err);
     } 
@@ -543,12 +327,11 @@ function sendError (channel, err) {
         color: 0xff0000,
         title: _err.name || "oof",
         description: _err.message || _err.toString(),
-
     }
     if (_err.stack) {
         msgEmbed.fields = [
             {
-                name: "stack trace:",
+                name: "Stack Trace",
                 value: _err.stack
             }
         ]
@@ -558,28 +341,5 @@ function sendError (channel, err) {
     }
     channel.send({embed: msgEmbed});
 }
-
-/**
- * unused function
- * @param {Discord.Channel} channel 
- * @param {String} title 
- * @param {String} desc 
- */
-
-function sendEmbed (channel, title, desc) {
-    var msgEmbed = {
-        color: 0x00ff00,
-        title: title,
-        description: desc
-
-    }
-    channel.send({embed: msgEmbed});
-}
-
-
-
-
-
-// login
 client.login(config.token);
 

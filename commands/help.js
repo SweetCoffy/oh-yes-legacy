@@ -1,5 +1,6 @@
 
 // help command
+const CommandError = require('../CommandError');
 const stuff = require('../stuff');
 
 module.exports = {
@@ -16,9 +17,16 @@ module.exports = {
 
             if (commands.has(args[0]) ) {
 
-                var commandEnabled = stuff.getConfig("commands." + args[0].toLowerCase());
+                var cmd = commands.get(args[0]);
+                if (args[1]) {
+                    if (!cmd.subcommands) throw `The command \`${cmd.name}\` doesn't have any subcommands`
+                    var subcmd = cmd.subcommands.get(args[1].toLowerCase())
+                    if (!subcmd) throw `Invalid subcommand`
+                    cmd = subcmd;
+                }
+                var commandEnabled = stuff.getConfig("commands." + cmd.name.toLowerCase());
                 var en;
-                var commandRemoved = commands.get(args[0]).removed;
+                var commandRemoved = cmd.removed;
 
                 if (commandEnabled && !commandRemoved) {
                     en = "🟩";
@@ -28,30 +36,40 @@ module.exports = {
                 
                 var e = {
                     color: 0x00ff00,
-                    title: args[0],
+                    title: cmd.name,
                     footer: {
 
                     }
                 }
 
-                var cmd = commands.get(args[0]);
-                
-                if (commands.get(args[0]).removed) {
-                    e.title = args[0] + " (removed)"
+                var subcmds = cmd.subcommands;
+
+
+                if (cmd.removed) {
+                    e.title = cmd.name + " (removed)"
                 }
                 if (!stuff.getConfig(`commands.${cmd.name}`) && !cmd.removed) {
-                    e.title = args[0] + " (disabled)"
+                    e.title = cmd.name + " (disabled)"
                     
                 }
-
- 
-
-
-
-                if (!e.fields) e.fields = [];
                 
-                if (commands.get(args[0]).usage || commands.get(args[0]).requiredPermission) {
+                
+
+                
+                
+                if (!e.fields) e.fields = [];
+                if (cmd.usage || cmd.requiredPermission) {
                     e.fields = [];
+                }
+                if (subcmds) {
+                    e.fields.push({
+                        name: "Subcommands",
+                        value: subcmds.map(el => `\`${el.name}\``).join(", "),
+                        inline: true,
+                    });
+                }
+                if (cmd.aliases) {
+                    e.fields.push({ name: 'Aliases', inline: true, value: cmd.aliases.map(el => `\`${el}\``).join(', ')})
                 }
 
                 if (!cmd.removed && stuff.getConfig(`commands.${cmd.name}`)) {
@@ -61,12 +79,11 @@ module.exports = {
                 } else {
                     e.color = 0x687a78;
                 }
-
-                if (commands.get(args[0]).usage && !cmd.arguments) {
-                    e.fields.push({name: "Usage", value: commands.get(args[0]).usage})
+                if (cmd.usage && !cmd.arguments) {
+                    e.fields.push({name: "Usage", value: cmd.usage})
                 }
                 if (cmd.arguments && !cmd.usage) {
-                    e.fields.push({name: "Usage", value: args[0] + " " + cmd.arguments.map((el, i) => {
+                    e.fields.push({name: "Usage", value: (cmd.parent ? `${cmd.parent.name} ` : '') + cmd.name + " " + cmd.arguments.map((el, i) => {
                         return `<${el.name || `arg${i}`}${el.optional ? "?" : ""} : ${el.validValues ? el.validValues.join("|") : el.type}>`   
                     }).join(" "), inline: true});
                 }
@@ -74,12 +91,19 @@ module.exports = {
                     e.fields.push({
                         name: "Detailed usage",
                         value: cmd.arguments.map((el, i) => {
-                            var str = `${el.name || "arg" + i}${el.optional ? "?" : ""} : ${el.type}${el.default ? ` = ${el.default}` : ''}`
+                            var str = `**${el.name || "arg" + i}**${el.optional ? "?" : ""} : ${el.type}${el.default ? ` = ${el.default}` : ''}\n${el.description || '*<placeholder>*'}`
                             return str;
-                        }).join("\n"),
+                        }).join("\n\n"),
                         inline: true
                     })
                 }
+                if (extraArgs.debug) {
+                    e.fields.push({
+                        name: "execute() function:",
+                        value: `\`\`\`js\n${cmd.execute}\n\`\`\``
+                    })
+                }
+                
 
                 if (cmd.requiredRolePermissions != undefined) {
                     e.fields.push({
@@ -90,14 +114,14 @@ module.exports = {
 
                 e.fields.push({name: "Cooldown", value: (cmd.cooldown | 1 ) + " second(s)"})
 
-                if (commands.get(args[0]).requiredPermission) {
-                    e.fields.push({name: "Requires permission", value: commands.get(args[0]).requiredPermission})
+                if (cmd.requiredPermission) {
+                    e.fields.push({name: "Requires permission", value: cmd.requiredPermission})
                 }
 
                 
 
-                if (commands.get(args[0]).description) {
-                    e.description = commands.get(args[0]).description;
+                if (cmd.description) {
+                    e.description = cmd.description;
                 }
 
 
@@ -155,7 +179,7 @@ module.exports = {
                 title: "command list",
                 description: commandNames.slice(startFrom, startFrom + 20).join(currSeparator),
                 footer: {
-                    text: `use ;help <command name> for info about that command, page ${page + 1}/${Math.ceil(commandNames.length / 20)}`,
+                    text: `use ;help <command name> for info about a command, page ${page + 1}/${Math.ceil(commandNames.length / 20)}`,
                 }
             }
 

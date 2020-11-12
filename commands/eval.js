@@ -57,6 +57,7 @@ class EvalDisplay {
     }
     clear = function() {
         this.setSize(this.entries.length, (this.entries[0] || []).length || this.entries.length)
+        this.wasModified = false;
     }
     drawRect(x, y, width, height, char = '◼') {
         for (var _x = 0; _x < width; _x++) {
@@ -71,7 +72,7 @@ class EvalDisplay {
         }
         for (var i = 0; i < this.drawQueue.length; i++) {
             var el = this.drawQueue.pop();
-            this.entries[el.x][el.y] = el.char.slice(0, 1);
+            this.entries[el.x][el.y] = (el.char || '◼').slice(0, 1);
         }
         this.wasModified = true;
     }
@@ -91,6 +92,22 @@ class EvalDisplay {
         return result;
     }
 }
+function getObjectProperties(obj) {
+    var keys = Object.keys(obj);
+    var result = [];
+    var self = this;
+    for (const key of keys) {
+        if (typeof obj[key] == 'object') {
+            var vals = getObjectProperties(obj[key])
+            for (const k of vals) {
+                result.push([`${key}/${k[0]}/`, obj[key][k]])
+            }
+        } else {
+            result.push([`${key}/`, obj[key]])
+        }
+    }
+    return result;
+}
 class Yes {
     constructor() {}
     getObjectProperties(obj) {
@@ -99,9 +116,9 @@ class Yes {
         var self = this;
         for (const key of keys) {
             if (typeof obj[key] == 'object') {
-                var vals = self.getObjectProperties(obj[key])
+                var vals = getObjectProperties(obj[key])
                 for (const k of vals) {
-                    result.push([`${key}/${k[0]}/`, obj[key][k]])
+                    result.push([`${key}/${k[0]}/`, obj[key][k[0]]])
                 }
             } else {
                 result.push([`${key}/`, obj[key]])
@@ -166,11 +183,13 @@ var cloneContext = {
         420, 69,
         69420, 42069
     ],
+    
     format: stuff.format,
     i(md) {
         /**
          * @type {string[]}
          */
+
         var segments = md.split("/");
         var val = m;
         
@@ -226,13 +245,13 @@ module.exports = {
             color: 0x4287f5,
             fields: [
                 {
-                    name: "input",
+                    name: "Input",
                     value: `\`\`\`js\n${code}\n\`\`\``,
                     inline: true,
                 },
                 {
-                    name: "output",
-                    value: `\`\`\`js\n${result}\n\`\`\``,
+                    name: "Output",
+                    value: `\`\`\`${typeof result == 'object' ? `json\n${JSON.stringify(result, null, 4)}` : `js\n${result}`}\n\`\`\``,
                     inline: true,
                 },
             ]
@@ -241,18 +260,18 @@ module.exports = {
 
 
 
-            if (cloneContext.Console.out.length > 0) {
+            if (cloneContext.console.out.length > 0) {
                 embed.fields.unshift({
-                    name: "console",
+                    name: "Console",
                     value: `\`\`\`\n${cloneContext.console.out.join("\n").slice(0, 1980)}\n\`\`\``,
                 })
             }
 
 
 
-            if (cloneContext.Display.wasModified) {
+            if (cloneContext.display.wasModified) {
                 embed.fields.unshift({
-                    name: "display",
+                    name: "Display",
                     value: `\`\`\`AsciiArt\n${cloneContext.display.toString()}\n\`\`\``
                 })
             }

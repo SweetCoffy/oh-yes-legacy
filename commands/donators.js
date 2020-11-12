@@ -14,12 +14,13 @@ module.exports = {
         var entryNames = [];
         var i = 0;
         sortedEntries.forEach(el => {
-            entryNames.push(`**${i + 1}.** <@${el[0]}>, Donated ${stuff.format(el[1].donated || 0)} Internet Points\™`)
+            entryNames.push(`#**${i + 1}** <@${el[0]}> ─ Donated ${stuff.format(el[1].donated || 0)} <:ip:770418561193607169>`)
             i++
         });
 
         var embed = {
             title: "top 10 donators",
+            color: 0x03adfc,
             description: entryNames.slice(0, 10).join("\n")
         }
         message.channel.send({embed: embed});

@@ -35,7 +35,8 @@ module.exports = {
             
             Total: \`${stuff.format(total)}\`
             Are you sure to do prestige? (react with ✅ to confirm)
-            `
+            `,
+            footer: { text: `you also got another equipment slot lol` }
         }
 
         message.channel.send({embed: embed}).then(msg => {
@@ -48,7 +49,7 @@ module.exports = {
                 stuff.db.push(`/${message.author.id}/pets`, [])
                 stuff.db.push(`/${message.author.id}/defense`, 0)
                 stuff.db.push(`/${message.author.id}/equipment`, [])
-                stuff.db.push(`/${message.author.id}/equipmentSlots`, 6)
+                stuff.db.push(`/${message.author.id}/equipmentSlots`, stuff.getEquipmentSlots(message.author.id) + 1)
                 stuff.addGold(message.author.id, total)
                 stuff.addAchievement(message.author.id, {
                     id: "other:prestige",
@@ -56,6 +57,7 @@ module.exports = {
                     description: `${message.author} Comitted prestige for the first time lol`,
                     rarity: stuff.rarity.red,
                 })
+                stuff.addMedal(message.author.id, stuff.medals['gold-stonks']);
                 message.channel.send(`${message.author} Just did prestige lol`);
             }).catch(() => message.channel.send(`${message.author} You didn't react in time, cancelling prestige`))
         });

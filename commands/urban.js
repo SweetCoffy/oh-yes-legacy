@@ -46,7 +46,7 @@ module.exports = {
             } else {
                 embed.fields.unshift({
                     name: "example",
-                    value: e,
+                    value: e || "<nothing>",
                 })
                 if (!e) embed.fields.shift();
             }

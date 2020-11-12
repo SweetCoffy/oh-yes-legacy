@@ -48,10 +48,19 @@ module.exports = {
 
         if (!expired) {
 
-            if (args[0] == "shop+") {
-                var buyCmd = message.client.commands.get("buy");
-                var _args = args.slice(1);
-                buyCmd.execute(message, _args, [], {}, 0.4)
+            if (args[0] == "no") {
+                if (stuff.venezuelaMode) {
+                    stuff.venezuelaMode = false;
+                    stuff.updateVenezuelaMode();
+                    message.reply(`Venezuela mode has been disabled for 60 seconds`);
+                    setTimeout(() => {
+                        stuff.venezuelaMode = true;
+                        stuff.updateVenezuelaMode();
+                        message.reply(`Venezuela mode has been re-enabled`);
+                    }, 60 * 1000)
+                } else {
+                    throw "Venezuela mode isn't enabled yet, therefore you can't disable it"
+                }
             }
 
         } else {

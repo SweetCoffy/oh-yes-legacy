@@ -24,7 +24,7 @@ module.exports = {
                 await c.delete();
                 yeetedList.push(`Yeeted ${c.name} (${c.id})`)
             })
-            var msg = await message.channel.send(`Yeeted ${archived.size} channels! React with ✅ to see the yeeted channels`);
+            var msg = await message.channel.send(`Yeeted ${archived.size} channels, React with ✅ to see the yeeted channels`);
             await msg.react('✅');
             msg.awaitReactions((r, u) => {
                 return r.emoji.name == "✅" && u.id == message.author.id;

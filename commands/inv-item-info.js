@@ -7,9 +7,11 @@ module.exports = {
     arguments: [
         {
             name: "item",
-            type: "inventoryItem"
+            type: "inventoryItem",
+            description: "The item to show it's data"
         }
     ],
+    aliases: ['invitem', 'inventory-item', 'inventoryitem'],
     execute(message, args) {
         var i = stuff.getInventory(message.author.id)[args.item]
         if (!i) throw `You don't have an item at slot \`${args.item}\``

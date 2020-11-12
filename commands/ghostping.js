@@ -3,9 +3,10 @@ module.exports = {
     arguments: [
         {
             name: "user",
-            type: "mention"
+            type: "user"
         }
     ],
+    useArgsObject: true,
 
     execute (message, args) {
         message.channel.send(`${args.user} get pinged lol`).then (m => {
