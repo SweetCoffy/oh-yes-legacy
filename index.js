@@ -1,13 +1,15 @@
 const Discord = require('discord.js');
 const stuff = require('./stuff');
 const client = new Discord.Client();
+var collecting = false;
+var result = "";
 stuff.client = client;
 client.commands = new Discord.Collection();
 client.requiredVotes = 10;
 client.voteTimeout = 100;
 const chalk = require('chalk')
-if (!stuff.globalData.exists(`/banned`)) {
-    stuff.globalData.push(`/banned`, [])
+if (!stuff.dataStuff.exists(`/banned`)) {
+    stuff.dataStuff.push(`/banned`, [])
 }
 const config = require('../config.json');
 const fs = require('fs');
@@ -29,6 +31,7 @@ function messageThing(message) {
 }
 const { resolve, join } = require('path');
 const api = require('./api');
+const { counter } = require('./stuff');
 const cooldowns = new Discord.Collection();
 const h = {
     get auditLogs() {
@@ -41,7 +44,7 @@ function loadCommands() {
     var i = 0;
     const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
     for (const file of commandFiles) {
-        delete require.cache[resolve(`./commands/${file}.js`)]
+        delete require.cache[resolve(`./commands/${file}`)]
         const command = require(`./commands/${file}`);
         var hh = fs.readFileSync('commands/' + file, 'utf8')
         totalLines += hh.split(/\r\n|\r|\n/).length;
@@ -52,6 +55,8 @@ function loadCommands() {
     console.log(`Finished loading commands, ${totalLines} lines of code loaded`)
     stuff.loadPhoneCommands();
 }
+stuff.loadContent()
+stuff.updateContent()
 loadCommands();
 stuff.loadCommands = loadCommands;
 client.once('ready', () => {
@@ -64,59 +69,23 @@ client.once('ready', () => {
         try {
             stuff.forEachUser((id, data) => {
                 data.taxes.forEach(el => {
-                    stuff.addPoints(id, -el.amount * (data.multiplier * el.multiplierEffect) / 60)
+                    stuff.addPoints(id, -el.amount * (data.multiplier * el.multiplierEffect) / 60, `${el.name}`)
                 })
             })
-        } catch (e) {}
+        } catch (e) {console.log(e)}
     }, 1000 * 60)
+    client.backupInterval = setInterval(() => {
+        try {
+            stuff.backup();
+        } catch (e) {console.log(e)}
+    }, stuff.getConfig('backupInterval'))
     stuff.updateVenezuelaMode();
 });
-function sendAuditLog(message) {
-    var embed = {fields: []}
-    embed.title = "Message deleted";
-    embed.description = message.content;
-    embed.author = {
-        name: message.author.username,
-        icon: message.author.avatarURL()
-    }
-    if (embed.fields.length < 1) delete embed.fields;
-    h.auditLogs.send({embed: embed})
-}
-client.on('messageDelete', async message => {
-    try {
-        sendAuditLog(message)
-        client.lastDeleted = message;
-    } catch (err) {}
-})
-client.on('messageUpdate', (_message, message) => {
-    try {
-        if ((_message.content == message.content) || _message.embeds == message.embeds) return;
-        messageThing(message)
-    } catch (err) {
-        console.log(err);
-    }
-})
 client.on('messageReactionAdd', (reaction, user) => {
     try {
+        var message = reaction.message    
         if (stuff.db.getData(`/banned`).includes(user.id)) return;
         if (stuff.getConfig("randomReactions") && message.author.id != '676696728065277992') reaction.message.react(reaction.emoji.id);
-        var author = reaction.message.author.id
-        var message = reaction.message
-        if (user.id == author) return
-        if (reaction.emoji.id == stuff.getConfig("v_")) {
-            stuff.addPoints(author, 10 * Math.random() * stuff.getMultiplier(author, false)); 
-            stuff.addVCounter(user.id, 1);
-        } else if (reaction.emoji.id == stuff.getConfig("ohyes")) {
-            stuff.addPoints(author, -0.5 * Math.random());        
-        } else if (reaction.emoji.id == stuff.getConfig("ohno")) {
-            stuff.addPoints(author, 3 * Math.random() * stuff.getMultiplier(author, false));
-        } else if (reaction.emoji.id == stuff.getConfig("oO")) {
-            stuff.addPoints(author, 7.5 * Math.random() * stuff.getMultiplier(author, false));
-        } else if (reaction.emoji.id == stuff.getConfig("deepfriedv_")) {
-            stuff.addPoints(author, 5 * Math.random() * stuff.getMultiplier(author, false));
-        } else if (reaction.emoji.id == stuff.getConfig("madv_")) {
-            stuff.addPoints(author, 9 * Math.random() * stuff.getMultiplier(author, false));
-        }        
     } catch (err) {}  
 })
 
@@ -136,7 +105,40 @@ client.on('emojiDelete', async emoji => {
 })
 
 client.on('message', async message => {
+    var now = Date.now();
     try {
+        if (message.channel.id == stuff.getConfig("countingChannel") && !message.author.bot) {
+            var match = message.content.match(/(\d+)\s*[^]*/) || [];
+            if (match[1] == stuff.counter + 1) {
+                stuff.counter++;
+                var h = Math.floor(stuff.counter / 10)
+                if (h == stuff.counter / 10) {
+                    message.channel.setTopic(`Current count: ~${h * 10}`)
+                }
+                if (match[1].includes("69")) {
+                    message.channel.setTopic(`Current count: ~${stuff.counter}`)
+                    message.channel.send("nice");
+                    message.react("<:oO:749319330503852084>");
+                    var pinned = [...message.channel.messages.cache.filter(el => el.pinned).values()]
+                    message.pin();
+                    if (pinned.length >= 50) {
+                        await pinned[0].unpin();
+                    }
+                }
+            } else {
+                message.delete();
+            }
+        }
+        if (collecting && !message.author.bot) {
+            result += " " + message.content;
+        }
+        if (result.length >= 2000) {
+            if (result.length > 1) {
+                result = result.trim().slice(0, 1997);
+                message.channel.send(`"${result}"`);
+            }
+            result = "";
+        }
         var hasData = false;
         var u = message.author.id;
         if (stuff.userHealth[message.author.id] == undefined) {
@@ -152,7 +154,7 @@ client.on('message', async message => {
             stuff.db.push(`/${message.author.id}`, {
                 permissions: {},
                 multiplier: 1,
-                points: 0,
+                points: 3000,
                 defense: 0,
                 maxHealth: 100,
                 gold: 0,
@@ -163,7 +165,7 @@ client.on('message', async message => {
         }
         stuff.addTax(message.author.id, 'existing');
         if (message.channel.type == 'dm') return;
-        if (stuff.globalData.getData(`/banned`).includes(message.author.id)) return;
+        if (stuff.dataStuff.getData(`/banned`).includes(message.author.id)) return;
         if((message.content.includes("egg") || message.content.includes("🥚")) && message.author.id != client.user.id && message.author.id != '676696728065277992') {
             message.react('🥚');
         }
@@ -201,6 +203,8 @@ client.on('message', async message => {
             var promises = [];
             for (const match of matches) {
                 var c = match.slice(1).filter(el => el);
+                if (!stuff.getEmoji(c[0]).name) stuff.dataStuff.push(`/emoji/${c[0]}/name`, c[1])
+                stuff.addEmojiUse(c[0])
                 promises.push(message.react(c[0]))
             }
             Promise.all(promises).catch(e => console.log(e))
@@ -225,9 +229,19 @@ client.on('message', async message => {
         stuff.addTax(message.author.id, 'omegaStonks')
         stuff.addMedal(message.author.id, stuff.medals['omega-stonks']);
     }
-    if (stuff.getMaxHealth(u) > 1000000) {
-        stuff.db.push(`/${u}/maxHealth`, 1000000);
-        stuff.userHealth[u] = 1000000;
+    if (stuff.getMaxHealth(u) > 100000000) {
+        stuff.db.push(`/${u}/maxHealth`, 100000000);
+        stuff.userHealth[u] = 100000000;
+    }
+    var eastereggs = Object.values(stuff.eastereggs)
+    for (const e of eastereggs) {
+        if (e.triggerCheck(message)) e.onTrigger(message)
+    }
+    var cheats = Object.entries(stuff.getCheats(message.author.id))
+    for (const e of cheats) {
+        if (e[1] && stuff.cheats[e[0]]) {
+            stuff.cheats[e[0]].onMessage(message)
+        } 
     }
 } catch (e) {sendError(message.channel, e)}
    if (message.author.bot && message.author.id != config.ohnoId)
@@ -238,27 +252,13 @@ client.on('message', async message => {
            message.react('729900329440772137');
            message.channel.send({content: message.author.toString(), embed: {
                title: "get ponged",
+               color: 0x2244ff,
                description: `i have **${client.commands.size}** commands, use \`;help\` for a list of commands`
            }}).then(m => m.delete({timeout: 10000}))
        }
    }
-    try {stuff.addPoints(message.author.id, 0.5 * Math.random() * stuff.clamp(message.content.length, 0.5 * Math.random(), 2000 * Math.random()), 1, 500 * stuff.getMultiplier(message.author.id, false));}
-    catch (err) {console.log(err)}
-    try {
-        if (message.author.id != '676696728065277992') {
-            var r = /^(h+)(?!.)/g
-            if (r.test(message.content)) {
-                var h = message.content.replace(r, "$1$1");
-                if (h.length > 2000) {
-                    h = { content: h.slice(0, 2000), embed: { description: h.slice(2000, 4048), footer: { text: "you thought you could beat me this time you e" } }}
-                }
-                message.channel.send(h)
-            }
-        }
-    } catch (err) {console.log(err)}
-    var prefix = (message.channel.id == stuff.getConfig("noPrefixChannel")) ? "" : config.prefix;
+    var prefix = (message.channel.id == stuff.getConfig("noPrefixChannel")) ? "" : stuff.getConfig('prefix', ';');
     if (!message.content.startsWith(prefix)) return;
-    var now = Date.now();
     var args = message.content.slice(prefix.length).split(" ");
     const commandName = args.shift();;
     const command = client.commands.get(commandName) ?? client.commands.filter(v => {
@@ -267,7 +267,7 @@ client.on('message', async message => {
     }).first();
     if (!command) return;
     try {
-        if (stuff.getPermission(message.author.id, command.requiredPermission) || command.requiredPermission == undefined || stuff.getPermission(message.author.id, "*")) {
+        if (stuff.getPermission(message.author.id, command.requiredPermission, message.guild.id) || !command.requiredPermission || stuff.getPermission(message.author.id, "*", message.guild.id)) {
             if (stuff.getConfig("commands." + command.name)) {
                 if (command.removed) throw "this command has been removed, but not entirely (maybe it will come back if <@602651056320675840> wants to)";
                 if (!cooldowns.has(command.name)) {
@@ -278,18 +278,20 @@ client.on('message', async message => {
                 const cooldownAmount = (command.cooldown || 1) * 1000;
                 if (timestamps.has(message.author.id)) {
                     const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
-                    if (now < expirationTime) return;    
+                    if (now < expirationTime) {
+                        if (command.cooldown > 6) throw `Cooldown exists, ${((expirationTime - now) / 1000).toFixed(1)} seconds left`
+                        return
+                    };    
                 } else {
                     timestamps.set(message.author.id, now);
                     setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
                 }
                 var joinedArgs = args.join(" ");
-                var regex = /--([^-\s]+)='([^']+)'|--([^-\s]+) "([^']+)"|--([^-\s]+) ([^-'\s]+)|--([^-\s]+) '([^']+)'|--([^-\s]+)/gm
+                var regex = /--(\w+) ?("([^-]*)")?/gm
                 var extraArgsObject = {};
                 var _matches = joinedArgs.matchAll(regex);
                 for (const match of _matches) {
-                    var filteredMatch = match.filter(el => el != "" && el != " " && el != undefined)
-                    extraArgsObject[filteredMatch[1]] = filteredMatch[2] || true;
+                    extraArgsObject[match[1]] = match[3] || true;
                 } 
                 var matches = (regex.exec(joinedArgs) || []).filter(function(el) {
                     return el != "" && el != null && el != undefined;
@@ -302,6 +304,25 @@ client.on('message', async message => {
                 var a = [];
                 if (command.arguments) {
                     a = stuff.argsThing(command, newArgs, message)
+                    var required = command.arguments.filter(el => !el.optional)
+                    Object.entries(extraArgsObject).forEach(([k, v]) => {
+                        var arg = command.arguments[command.arguments.map(el => el.name).indexOf(k)]
+                        console.log(arg)
+                        if (arg) {
+                            a[k] = stuff.argConversion(arg, v, message)
+                            a["_" + k] = v
+                        }
+                    })
+                    console.log(a)
+                    var argArray = Object.entries(a)
+                    argArray.forEach(([k, v]) => {
+                        console.log(k + ": " + v)
+                        if (k.startsWith("_")) return;
+                        if (v == undefined) throw `Invalid usage`
+                    })
+                    if (argArray.length < required) {
+                        throw `Required argument \`${command.arguments[argArray.length].name}\` is missing`
+                    }
                 } else {
                     a = newArgs
                 }
@@ -314,8 +335,8 @@ client.on('message', async message => {
         console.log(`Took ${actualNow - now}ms to process a command`);
     } catch (error) {
         sendError(message.channel, error);
+        console.log(error)
         message.react("755546914715336765")
-        
     }
 });
 function sendError (channel, err) {
@@ -325,21 +346,15 @@ function sendError (channel, err) {
     } 
     var msgEmbed = {
         color: 0xff0000,
+        thumbnail: { url: 'https://cdn.discordapp.com/emojis/737474912666648688.png?v=1' },
         title: _err.name || "oof",
         description: _err.message || _err.toString(),
     }
-    if (_err.stack) {
-        msgEmbed.fields = [
-            {
-                name: "Stack Trace",
-                value: _err.stack
-            }
-        ]
-    }
     if (_err.footer) {
-        msgEmbed.footer = {text: _err.footer}
+        msgEmbed.footer = { text: _err.footer }
     }
     channel.send({embed: msgEmbed});
 }
+stuff.sendError = sendError;
 client.login(config.token);
 

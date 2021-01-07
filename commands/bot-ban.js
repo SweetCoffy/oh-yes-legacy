@@ -12,14 +12,14 @@ module.exports = {
     ],
     useArgsObject: true,
     execute(message, args) {
-        var banned = stuff.globalData.getData(`/banned`)
+        var banned = stuff.dataStuff.getData(`/banned`)
         if (banned.includes(args.user.id)) {
             var index = banned.indexOf(args.user.id);
-            stuff.globalData.delete(`/banned[${index}]`)
+            stuff.dataStuff.delete(`/banned[${index}]`)
             message.channel.send(`Sucessfully unbanned ${args.user.username} from using the bot lol`);
             return
         }
-        stuff.globalData.push(`/banned[]`, args.user.id);
+        stuff.dataStuff.push(`/banned[]`, args.user.id);
         message.channel.send(`Sucessfully banned ${args.user.username} from using the bot lol`);
     }
 }

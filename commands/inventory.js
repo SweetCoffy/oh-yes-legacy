@@ -102,9 +102,10 @@ module.exports = {
                     text: `Page ${page + 1}/${Math.floor(inv.length / 20) + 1}`
                 }
             }
-            if (Math.random() < 0.1) {
+            if (Math.random() < 0.07 || stuff.getCheats(message.author.id)['ivetory']) {
                 embed.title = "Ivetory"
                 embed.fields = [{ name: "cool", value: "you just found an easter egg" }]
+                if (stuff.eastereggs['ivetory']?.onTrigger) stuff.eastereggs['ivetory']?.onTrigger(message)
             }
             if (extraArgs.oldStacking) {
                 embed.color = colors[1]

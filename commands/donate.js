@@ -20,8 +20,8 @@ module.exports = {
         })
         var amountPerUser = amount / (entries.length)
         entries.forEach(el => {
-            stuff.addPoints(el[0], amountPerUser)
-            stuff.addPoints(message.author.id, -amountPerUser)
+            stuff.addPoints(el[0], amountPerUser, `Donation from ${message.author}`)
+            stuff.addPoints(message.author.id, -amountPerUser, `Donated to <@${el[0]}>`)
             stuff.addDonated(message.author.id, amountPerUser)
         })
         

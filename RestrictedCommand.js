@@ -6,6 +6,13 @@ const CommandError = require("./CommandError");
  */
 module.exports = class RestrictedCommand extends Command {
     requiredRolePermissions
+    /**
+     * 
+     * @param {string} name 
+     * @param {function(Message, string[]?)} onExecute 
+     * @param {string} requiredPermission 
+     * @param {string} description 
+     */
     constructor(name, onExecute, requiredPermission, description = "<eggs>") {
         super(name, onExecute, "", description);
         this.requiredRolePermissions = requiredPermission;

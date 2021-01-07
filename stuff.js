@@ -1,4 +1,4 @@
-const { Collection, Client } = require('discord.js');
+const { Collection, Client, MessageAttachment } = require('discord.js');
 const fs = require('fs');
 const { resolve } = require('path');
 const request = require('request');
@@ -21,7 +21,7 @@ const formatThings = {
         return `${result}`
     },
     "getData": function(args) {
-        return JSON.stringify(require('./stuff').globalData.getData(args[0]), null, 4);
+        return JSON.stringify(require('./stuff').dataStuff.getData(args[0]), null, 4);
     },
     "bold": function(args) {
         return "**" + args[0] + "**"
@@ -64,10 +64,14 @@ module.exports = {
     client: undefined,
     rarity: Rarity,
     db: new jsonDb.JsonDB("userdata", true, true, "/"),
-    globalData: new jsonDb.JsonDB("datastuff", true, true, "/"),
+    dataStuff: new jsonDb.JsonDB("datastuff", true, true, "/"),
+    roles: new jsonDb.JsonDB('roleperms.json', true, true, "/"),
+    facts: new jsonDb.JsonDB('funfacts.json', true, true, "/"),
     phoneCommands: new Collection(),
     originalPrices: {},
     formatThings: formatThings,
+    cheats: {},
+    eastereggs: {},
     taxes: {
         existing: {
             name: "Existing",
@@ -84,6 +88,19 @@ module.exports = {
         69,
         420
     ],
+    get counter() {
+        var h = parseInt(fs.readFileSync("counter.txt", 'utf8'))
+        return h;
+    },
+    set counter(value) {
+        if (value == NaN) return;
+        fs.writeFileSync("counter.txt", value.toString())
+    },
+    rolePermissions(role) {
+        var h = this.roles;
+        if (!h.exists(`/${role}/permissions`)) h.push(`/${role}/permissions`, [])
+        return h.getData(`/${role}/permissions`)
+    },
     addTax(user, tax) {
         var h = this.getTaxes(user);
         var t = this.taxes[tax];
@@ -100,7 +117,8 @@ module.exports = {
      */
     getRankValue: user => {
         if (typeof user != 'object') user = this.db.getData(`/${user}/`)  
-        return Math.floor(user.points + ((user.gold || 0) * 100) + (user.multiplierMultiplier || 1))
+        var stuff = require('./stuff')
+        return BigInt(stuff.clamp(Math.floor(user.points + ((user.gold || 0) * 100) + (user.multiplierMultiplier || 1)), 0, Number.MAX_VALUE))
     },
     /**
      * 
@@ -134,10 +152,15 @@ module.exports = {
         return r;
     },
 
-    define(word, i = 0) {
+    define(word, sorting = "mostvotes") {
         return new Promise((resolve, reject) => {
             axios.default.get(`http://api.urbandictionary.com/v0/define?term=${encodeURIComponent(word)}`).then(value => {
-                var res = value.data.list[i]   
+                var res = value.data.list[0];
+                if (sorting == "leastvotes") {
+                    res = value.data.list.sort((a, b) => (a.thumbs_up - a.thumbs_down) - (b.thumbs_up - b.thumbs_down))[0]
+                } else if (sorting = "mostvotes") {
+                    res = value.data.list.sort((a, b) => (b.thumbs_up - b.thumbs_down) - (a.thumbs_up - a.thumbs_down))[0]
+                }
                 // 
                 if (res == undefined) {
                     reject(new CommandError("Definition not found", `Could not find a definitition for \`${word}\``));
@@ -206,6 +229,12 @@ module.exports = {
             id: "gold-stonks",
             description: "You comitted prestige lol",
             icon: ':coin:',
+        },
+        "eggflag": {
+            name: "Egg flag",
+            id: "eggflag",
+            description: "You're a gud boi",
+            icon: "<:eggflag:779124272832053319>"
         }
     },
 
@@ -233,33 +262,81 @@ module.exports = {
         if (!item) return {};
         return item.extraData || {};
     },
-
-    mineables: [
-        {
+    getEmoji(id) {
+        return this.dataStuff.getData(`/`).emoji[id] || { id, uses: 0 };
+    },
+    addEmojiUse(id) {
+        var e = this.getEmoji(id)
+        e.uses = (e.uses || 0) + 1;
+        e.id = id;
+        this.dataStuff.push(`/emoji/${id}/`, e)
+    },
+    mineables: {
+        rock: {
             id: "rock",
             chance: 1,
             minAmount: 3,
             maxAmount: 50,
             miningPower: 1,
         },
-        {
+        copper: {
             id: "copper",
             chance: 0.9,
             minAmount: 1,
             maxAmount: 10,
             miningPower: 1,
         },
-        {
+        titanium: {
             id: "titanium",
             chance: 0.6,
             minAmount: 1,
             maxAmount: 7,
             miningPower: 2,
         }
-    ],
-
-
-
+    },
+    contentTypes: {
+        "item": "shopItems",
+        "ore": "mineables",
+        "recipe": "craftables",
+        "cheat": "cheats",
+        "easteregg": "eastereggs",
+        "type": "conversions",
+    },
+    loadedContent: {},
+    loadContent(dir = "content/") {
+        var files = fs.readdirSync(dir)
+        var regex = /(\w+)\.(.*)\..*/gm
+        var contentTypes = this.contentTypes
+        for (const file of files) {
+            console.log(`Trying to load ${file}`)
+            if (fs.statSync(dir + file).isDirectory()) {
+                console.log(`Loading ${file} as a folder`)
+                this.loadContent(dir + file + "/")
+                continue
+            }
+            var s = file.split(".")
+            var match = [file, ...s]
+            console.log(match)
+            if (!match[1]) {console.log(`Could not find the content type of ${file}`);continue}
+            if (!contentTypes[match[1]]) {console.log(`${file} has an invalid content type`);continue}
+            delete require.cache[resolve(dir + match[0])]
+            var content = require("./" + dir + match[0])
+            this.loadedContent[match[0]] = { id: match[2], type: match[1], fullName: match[0], content, enabled: true }
+            console.log(`Loaded ${file} as '${match[1]}' with id of '${match[2]}'`)
+        }
+    },
+    updateContent() {
+        var contentTypes = this.contentTypes
+        var entries = Object.entries(this.loadedContent)
+        for (const [k, v] of entries) {
+            if (v.type == "item") this.originalPrices[v.id] = v.content.price
+            if (v.enabled) {
+                this[contentTypes[v.type]][v.id] = v.content
+            } else {
+                delete this[contentTypes[v.type]][v.id]
+            }
+        }
+    },
     randomString(length = 5, characterSet = "abcdefghijklmnopqrswxyz", capitalizeChance = 0.5) {
         var characters = characterSet;
         var generated = "";
@@ -272,14 +349,20 @@ module.exports = {
         }
         return generated;
     },
-
     getGold(user) {
-        return this.db.getData(`/${user}/`).gold || 0
+        return BigInt(parseInt(this.db.getData(`/${user}/`).gold) || 0)
     },
-
+    addFunFact(author, content, imageURL = '') {
+        this.facts.push(`/funFacts[]`, {author, content, imageURL, created: Date.now()})
+    },
+    get funFact() {
+        var facts = this.facts.getData(`/funFacts`)
+        return facts[Math.floor(Math.random() * facts.length)]
+    },
     addGold(user, amount) {
         if (!amount) return;
-        this.db.push(`/${user}/gold`, this.getGold(user) + amount)
+        if (typeof amount != "bigint") amount = BigInt(Math.floor(amount)) || 0
+        this.db.push(`/${user}/gold`, (this.getGold(user) + amount).toString())
         if (amount > 0) {
             this.addAchievement(user, {
                 id: "stonks:gold",
@@ -421,12 +504,9 @@ module.exports = {
                 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
                 var oldCount = stuff.client.commands.size;
                 var count = 0;
-                
                 for (const file of commandFiles) {
                     delete require.cache[resolve(`./commands/${file}`)]
-                    const command = require(`./commands/${file}`);
-                    
-                    
+                    const command = require(`./commands/${file}`);   
                     client.commands.set(command.name, command);
                     count++;
                 }
@@ -436,7 +516,6 @@ module.exports = {
                 return reject(err);
             }
         })
-        
     },
 
 
@@ -445,19 +524,20 @@ module.exports = {
      * Repeats `callback` `times` times asynchronously
      * @param {function(Number)} callback The code to repeat
      * @param {Number} times The amount of times to repeat `callback`
-     * @returns {Promise<Number, Error | CommandError>} Promise for the completion of the loop
+     * @returns {Promise<Number, Error | CommandError, any[]>} Promise for the completion of the loop
      */
     repeat (callback, times) {
         return new Promise(resolve => {
             var iterations = 0;
+            var data = [];
             try {
                 for (var i = 0; i < times; i++) {
-                    callback(i);
+                    data.push(callback(i));
                     iterations++;
                 }
-                return resolve([iterations, undefined]);
+                return resolve([iterations, undefined, data]);
             } catch (err) { 
-                return resolve([iterations, err]);
+                return resolve([iterations, err, data]);
             }
         })
     },
@@ -548,26 +628,6 @@ module.exports = {
                     return true;
                 }
             },
-            "oil-can": {
-                icon: '🛢️',
-                type: 'idk',
-                inStock: 100000,
-                rarity: Rarity.red,
-                price: 1000000,
-                name: "Oil Can",
-                description: 'oh no',
-                veModeExclusive: true,
-                onUse(user) {
-                    var stuff = require('./stuff')
-                    stuff.removeItem(user, 'oil-can')
-                    if (stuff.currentBoss) {
-                        stuff.currentBoss.health = 1;
-                    }
-                    Object.entries(stuff.userHealth).forEach(h => {
-                        stuff.userHealth[h[0]] = 1;
-                    })
-                }
-            },
             "chilidog": {
                 icon: '🌭',
                 type: 'Consumable',
@@ -582,8 +642,8 @@ module.exports = {
                 onUse(user) {
                     var stuff = require('./stuff')
                     stuff.removeItem(user, 'chilidog')
-                    stuff.addMultiplierMultiplier(user, 690)
                     stuff.addMultiplierMultiplier(user, 6900)
+                    stuff.addMultiplierMultiplier(user, 690)
                 }
             },
             "full-cake": {
@@ -617,8 +677,8 @@ module.exports = {
                 onUse(user) {
                     var stuff = require('./stuff')
                     stuff.removeItem(user, 'burger')
-                    stuff.addMultiplier(user, 700)
-                    stuff.addMultiplierMultiplier(user, 7000)
+                    stuff.addMultiplier(user, 7000)
+                    stuff.addMultiplierMultiplier(user, 700)
                 }
             },
             "pizza": {
@@ -627,15 +687,15 @@ module.exports = {
                 inStock: 100000,
                 name: "Pizza",
                 veModeExclusive: true,
-                addedMultiplier: 1400,
+                addedMultiplier: 14000,
                 multiplierMultiplier: 1400,
                 rarity: Rarity.purple,
                 price: 1700,
                 onUse(user) {
                     var stuff = require('./stuff')
                     stuff.removeItem(user, 'pizza')
-                    stuff.addMultiplier(user, 1400)
-                    stuff.addMultiplierMultiplier(user, 14000)
+                    stuff.addMultiplier(user, 14000)
+                    stuff.addMultiplierMultiplier(user, 1400)
                 }
             },      
             "fries": {
@@ -671,13 +731,13 @@ module.exports = {
                 type: "idk",
                 description: "oh no",
                 icon: '🇻🇪',
-                inStock: 2,
-                rarity: Rarity.pink,
+                inStock: 9999999999,
+                rarity: Rarity.pink, //<:eggflag:779124272832053319>
                 price: 10000000,
                 extraInfo: "Enables venezuela mode",
                 onUse(user, message) {
                     var stuff = require('./stuff')
-                    if (stuff.globalData.getData('/').venezuelaMode) throw `Venezuela mode is already enabled!`
+                    if (stuff.dataStuff.getData('/').venezuelaMode) throw `Venezuela mode is already enabled!`
                     else {
                         stuff.venezuelaMode = true;
                         message.channel.send(`<:ohno:737474912666648688>`);
@@ -691,6 +751,32 @@ module.exports = {
                         stuff.removeItem(user, "venezuela-flag")
                         return true;
                     }
+                }
+            },
+            "egg-flag": {
+                name: "Egg flag",
+                type: "idk",
+                description: "oh yes",
+                icon: '<:eggflag:779124272832053319>',
+                inStock: 99999999999,
+                veModeExclusive: true,
+                rarity: Rarity.purple, //<:eggflag:779124272832053319>
+                price: 4869696969,
+                extraInfo: "Disables venezuela mode",
+                onUse(user, message) {
+                    var stuff = require('./stuff')
+                    stuff.venezuelaMode = false;
+                    message.channel.send(`<:ohyes:737493602011316326>`);
+                    stuff.addMedal(user, stuff.medals['eggflag'])
+                    stuff.addAchievement(user, {
+                        id: "other:eggflag",
+                        name: "Egg flag",
+                        description: "Cool, you disabled venezuela mode",
+                        rarity: Rarity.purple
+                    })
+                    stuff.removeItem(user, "egg-flag")
+                    return true;
+                    
                 }
             },
             "shield": {
@@ -759,9 +845,8 @@ module.exports = {
             "coin": {
                 type: "Consumable",
                 extraInfo: "Gives points",
-                
                 extraData: {
-                    pointCount: 1000000000
+                    pointCount: 1000000000,
                 },
                 inStock: 0,
                 rarity: Rarity.red,
@@ -773,7 +858,7 @@ module.exports = {
                 onUse(user, _message, _args, slot) {
                     var stuff = require('./stuff')
                     var it = stuff.getInventory(user)[slot]
-                    stuff.addPoints(user, it.extraData.pointCount)
+                    stuff.addPoints(user, it.extraData.pointCount, `Used a coin`)
                     stuff.removeItem(user, "coin")
                     return true;
                 }
@@ -1082,43 +1167,6 @@ module.exports = {
                     return true;
                 }
             },
-            "credit-card": {
-                name: "Credit Card",
-                icon: "💳",
-                price: 5000,
-                unstackable: true,
-                inStock: 999999999,
-                extraInfo: "It can hold moni",
-                extraData: {
-                    storedPoints: 5000,
-                },
-                rarity: Rarity.blue,
-                onUse(user, message, args, slot) {
-                    const stuff = require('./stuff')
-                    var data = stuff.getInventory(user)[slot];
-                    if (args[0] == "moni") {
-                        message.channel.send(`Your credit card has ${stuff.format(data.extraData.storedPoints)} <:ip:770418561193607169>`);
-                    } else if (args[0] == "pay") {
-                        var amount = parseFloat(args[2])
-                        if (args[2] == "all") amount = data.extraData.storedPoints
-                        if (!amount) throw "e";
-                        if (amount > data.extraData.storedPoints) throw "not enough moni"
-                        var u = message.mentions.users.first();
-                        if (!u) throw "you can't pay to void!"
-                        stuff.addPoints(u.id, amount);
-                        stuff.setItemProperty(user, slot, "storedPoints", stuff.getItemProperty(user, slot, "storedPoints") - amount)
-                        message.channel.send(`You paid ${stuff.format(amount)} <:ip:770418561193607169> to ${u.username}`);
-                    } else if (args[0] == "store") {
-                        var amount = parseFloat(args[1])
-                        if (args[1] == "all") amount = stuff.getPoints(user);
-                        if (!amount) throw "e";
-                        if (amount > stuff.getPoints(user)) throw "not enough moni"
-                        stuff.addPoints(user, -amount)
-                        stuff.setItemProperty(user, slot, "storedPoints", stuff.getItemProperty(user, slot, "storedPoints") + amount)
-                        message.channel.send(`You stored ${stuff.format(amount)} <:ip:770418561193607169> in your credit card`)
-                    }
-                }
-            },
             "cooked-egg": {
                 name: `Cooked egg`,
                 icon: ":cooking:",
@@ -1159,7 +1207,6 @@ module.exports = {
                 inStock: 99999999,
                 rarity: Rarity.gray,
                 type: "Pet food",
-                description: "Click for a free cookie!",
                 onUse: function(user, message) {
                     const stuff = require('./stuff');
                     stuff.removeItem(user, "cookie");
@@ -1269,8 +1316,6 @@ module.exports = {
                 inStock: 9999999999,
                 rarity: Rarity.blue,
                 type: "Other",
-                description: "Remember to add that one package called `h`!",
-                extraInfo: "Allows buying items from the shop at a cheaper price\nAllows submitting new phone commands",
                 extraData: {
                     packages: [],
                     os: "Egg OS",
@@ -1426,7 +1471,19 @@ module.exports = {
         var s = require('./stuff')
         s.db.push(`/${user}/inventory[${slot}]/extraData/${prop}`, value)
     },
-    
+    backup() {
+        var contents = fs.readFileSync('userdata.json', 'utf8')
+        var now = new Date(Date.now())
+        var filename = `backups/${now.getFullYear()}/${now.getMonth()}/`;
+        var exists = fs.existsSync(filename);
+        if (!exists) {
+            fs.mkdirSync(filename, {recursive: true});
+            fs.writeFileSync(filename + `${now.getDate()}.json`, contents, 'utf8')
+        } else {
+            fs.writeFileSync(filename + `${now.getDate()}.json`, contents, 'utf8')
+        }
+        console.log("Backup succesful")
+    },
     loadPhoneCommands() {
         var s = require('./stuff')
         const commandFiles = fs.readdirSync('./phone-commands');
@@ -1557,66 +1614,64 @@ module.exports = {
         return resolve('./userdata.json')
     },
     format(number, options = {k: "k", m: "M", b: "B", t: "T", q: "q", Q: "Q", s: "s", S: "S", O: "O", N: "N"}) {
-        var r;
-        var v = Math.abs(number);
-        var prefix = "";
-        // 1000000000000000000
-        if (v > 998 && v < 999999) {
-            r = (number / 1000) + options.k || "k";
-            prefix = "K"
-        } else if (v > 999998 && v < 999999999) {
-            r = (number / 1000000) + options.m || "M";
-            prefix = "M"
-        } else if (v > 999999998 && v < 999999999999) {
-            r = (number / 1000000000) + options.b || "B";
-            prefix = "B"
-        } else if (v > 999999999998 && v < 999999999999999){
-            r = (number / 1000000000000) + options.t || "T";
-            prefix = "T"
-        } else if (v > 999999999999998 && v < 999999999999999999) {
-            r = (number / 1000000000000000) + options.q || "q";
-            prefix = "q"
-        } else if (v > 999999999999999998 && v < 999999999999999999999) {
-            r = (number / 1000000000000000000) + options.Q || "Q";
-            prefix = 'Q'
-        } else if (v > 999999999999999999998 && v < 999999999999999999999999) {
-            r = (number / 1000000000000000000000) + options.s || "s";
-            prefix = "s"
-        } else if (v > 999999999999999999999998 && v < 999999999999999999999999999) {
-            r = (number / 1000000000000000000000000) + options.S || "S";
-            prefix = 'S'
-        } else if (v > 999999999999999999999999998 && v < 999999999999999999999999999999) {
-            r = (number / 1000000000000000000000000000) + options.O || "O";
-            prefix = 'O'
-        } else if (v > 999999999999999999999999999998) {
-            r = (number / 1000000000000000000000000000000) + options.N || "N";
-            prefix = 'N'
-        } else { 
-            if (typeof number != 'number') {
-                return "<invalid number>"
-            } else if (!number && number != 0) {
-                return "<invalid number>"
-            }
-            if (Math.floor(number) !== number) {
-                r = number.toFixed(1);
+        try {
+            var clamp = this.clamp;
+            if (typeof number == "bigint") number = Number(clamp(number, Number.MIN_VALUE, Number.MAX_VALUE))
+            var r;
+            var v = Math.floor(Math.abs(number));
+            var prefix = "";
+            // 1000000000000000000
+            if (v > 998n && v < 999999n) {
+                r = (number / 1000) + options.k || "k";
+                prefix = "K"
+            } else if (v > 999998n && v < 999999999n) {
+                r = (number / 1000000) + options.m || "M";
+                prefix = "M"
+            } else if (v > 999999998n && v < 999999999999n) {
+                r = (number / 1000000000) + options.b || "B";
+                prefix = "B"
+            } else if (v > 999999999998n && v < 999999999999999n){
+                r = (number / 1000000000000) + options.t || "T";
+                prefix = "T"
+            } else if (v > 999999999999998n && v < 999999999999999999n) {
+                r = (number / 1000000000000000) + options.q || "q";
+                prefix = "q"
+            } else if (v > 999999999999999998n && v < 999999999999999999999n) {
+                r = (number / 1000000000000000000) + options.Q || "Q";
+                prefix = 'Q'
+            } else if (v > 999999999999999999998n && v < 999999999999999999999999n) {
+                r = (number / 1000000000000000000000) + options.s || "s";
+                prefix = "s"
+            } else if (v > 999999999999999999999998n && v < 999999999999999999999999999n) {
+                r = (number / 1000000000000000000000000) + options.S || "S";
+                prefix = 'S'
+            } else if (v > 999999999999999999999999998n && v < 999999999999999999999999999999n) {
+                r = (number / 1000000000000000000000000000) + options.O || "O";
+                prefix = 'O'
+            } else if (v > 999999999999999999999999999998n && isFinite(v)) {
+                r = BigInt(Math.floor(number / 1000000000000000000000000000000)) + options.N || "N";
+                prefix = 'N'
             } else {
-                r = number;
+                if (!isFinite(v) && v) return (v < 0) ? '-∞' : '∞' 
+                if (Math.floor(number) !== number) {
+                    r = number.toFixed(1);
+                } else {
+                    r = number;
+                }
             }
+            var _r = parseFloat(r);
+            if (Math.floor(_r) !== _r) {
+                if (prefix == "N") {
+                    r = BigInt(Math.floor(_r)) + prefix
+                } else r = _r.toFixed(1) + prefix
+            } else {
+                r = BigInt(Math.floor(_r)) + prefix
+            }
+            return r;
+        } catch (er) {
+            console.log(er)
+            return `${typeof number == 'number' ? number.toFixed(1) : number} <${er.name}>`
         }
-
-        var _r = parseFloat(r);
-
-        if (Math.floor(_r) !== _r) {
-            r = _r.toFixed(1) + prefix
-        } else {
-            r = _r + prefix
-        }
-
-
-
-        
-
-        return r;
     },
     
     addPackage: function(user, slot, package) {  
@@ -1712,16 +1767,14 @@ module.exports = {
         }
     },
     
-    addPoints (user, amount) {
+    addPoints (user, amount, reason) {
         var h = this;
-        //amount = BigInt(Math.floor(amount) || 0)
-        this.db.push(`/${user}/points`, h.getPoints(user) + amount)
+        this.db.push(`/${user}/points`, (h.getPoints(user) + BigInt(Math.floor(amount) || 0)).toString())
     },
-
     getPoints (user) {
-        return this.db.getData(` /${user}/points`) || 0;
+        var h = this
+        return BigInt(h.clamp(parseInt(this.db.getData(`/${user}/`).points || 0), Number.MIN_VALUE / 2, Number.MAX_VALUE)) || 0n;
     },
-
     setPhoneVer (user, slot, ver, verName) {
         var items = this.db.getData(` /${user}/inventory/`);
         items[slot].extraData.ver = ver;
@@ -1729,15 +1782,11 @@ module.exports = {
         this.db.push(` /${user}/inventory`, items)
     },
 
-    getConfig(setting) {
+    getConfig(setting, fallback = undefined) {
         var config = JSON.parse(fs.readFileSync("more-config.json").toString().replace("}}", "}"));
         
 
-        if (config[setting] == undefined) {
-            return true;
-        }
-
-        return config[setting];
+        return config[setting] ?? fallback ?? true;
     },
 
     set(setting, value) {
@@ -1750,6 +1799,16 @@ module.exports = {
     
     setPermission (user, perm, value) {
         this.db.push(` /${user}/permissions/${perm}`, value);
+    },
+    addRolePermission(role, perm) {
+        var perms = this.roles.getData(`/${role}/permissions`);
+        if (perms.includes(perm)) return;
+        this.roles.push(`/${role}/permissions[]`, perm)
+    },
+    removeRolePermission(role, perm) {
+        var perms = this.roles.getData(`/${role}/permissions`);
+        var index = perms.indexOf(perm);
+        this.roles.delete(`/${role}/permissions[${index}]`)
     },
     
     
@@ -1768,7 +1827,12 @@ module.exports = {
         })
 
     },
-     
+    removeSetting(name) {
+        var obj = JSON.parse(fs.readFileSync("more-config.json", 'utf8'))
+        var d = delete obj[name]
+        fs.writeFileSync("more-config.json", JSON.stringify(obj, null, 4))
+        return d
+    },
     
     how2(thing) {
         var data = JSON.parse(fs.readFileSync('how2.json', 'utf8'));
@@ -1797,16 +1861,86 @@ module.exports = {
         return undefined;
     },
     
-    getPermission(user, perm) {
-        // return true if the user is me because reasons
-        if (user == "602651056320675840") return true;
+    getPermission(user = "", perm = "", guildId) {
+        var client = this.client;
+        var roles = this.roles;
+        //if (user == "602651056320675840") return true;
         try {
-            var v = this.db.getData(`/${user}/permissions/${perm}`)
-            return v;
+            if (!guildId) {
+                console.log('h');
+                var v = this.db.getData(`/${user}/permissions/`)[perm];
+                return v;
+            } else {
+                var member = client.guilds.cache.get(guildId).member(user);
+                var perms = {};
+                member.fetch();
+                console.log(member.roles.cache.map(el => `${el.name}, ${el.id}`))
+                member.roles.cache.forEach((_r, id) => {
+                    if (!roles.exists(`/${id}/permissions`)) roles.push(`/${id}/`, { permissions: [] });
+                    var p = roles.getData(`/${id}/permissions`)
+                    p.forEach(v => {perms[v] = true})
+                })
+                console.log(perms);
+                var segments = perm.split(".");
+                for (var i = 0; i < segments.length; i++) {
+                    var s = segments.slice(0, i).join(".")
+                    console.log(s) 
+                    if (perms[`${s}.*`]) return true;
+                }
+                
+                return perms[perm] ?? false;
+            }
         } catch (_e) {
+            console.log(_e)
             return false;
         }
-        
+    },
+    permissions(user, guildId) {
+        try {            
+            var perms = {};
+            var client = this.client;
+            var roles = this.roles;
+            var member = client.guilds.cache.get(guildId).member(user);
+            member.fetch();
+            member.roles.cache.forEach(role => {
+                if (!roles.exists(`/${role.id}/permissions`)) roles.push(`/${role.id}/`, []);
+                var p = roles.getData(`/${role.id}/permissions`)
+                p.forEach(v => perms[v] = true)
+            })
+            return perms;
+        } catch (_e) {
+            console.log(_e);
+            return {};
+        }
+    },
+    getCheats(user) {
+        return this.db.getData(`/${user}/`).cheats || {};
+    },
+    getUnlockedCheats(user) {
+        return this.db.getData(`/${user}/`).unlockedCheats || {}
+    },
+    addCheat(user, cheat) {
+        var c = this.getUnlockedCheats(user)
+        c[cheat] = true;
+        this.db.push(`/${user}/unlockedCheats`, c)
+    },
+    setCheat(user, cheat, value) {
+        var unlocked = this.getUnlockedCheats(user)
+        if (!unlocked[cheat]) throw `You haven't unlocked this yet`
+        var c = this.getCheats(user)
+        if (value != undefined) c[cheat] = value;
+        else c[cheat] = !c[cheat]
+        this.db.push(`/${user}/cheats`, c)
+        return c[cheat]
+    },
+    argConversion: (arg, str, message) => {
+        console.log('h')
+        var conversions = require('./stuff').conversions;
+        var v = conversions[arg.type](str, message)
+        var _default = conversions[arg.type](arg.default || "", message)
+        var h = (v == undefined || (isNaN(v) && typeof v == 'number') || v == '') ? _default : v
+        console.log(h)
+        return h;
     },
     argsThing(command, newArgs, message) {
         if (command.arguments) {
@@ -1822,15 +1956,11 @@ module.exports = {
             }
             var a = [];
             var requiredArgs = command.arguments.filter(el => !el.optional);
-            if (newArgs.length < requiredArgs.length) {
-                throw new CommandError("Not enough arguments", `Required argument \`${requiredArgs[newArgs.length].name || `arg${newArgs.length}`}\` is missing`, `You need at least ${requiredArgs.length} arguments to run this command`);
-            }
             command.arguments.forEach((arg, i) => {
                 console.log('h2')
                 var el = newArgs[i];
                 if (i >= command.arguments.length - 1) el = newArgs.slice(i).join(" ");
                 var val = argConversion(arg, el, message);
-                if (val == undefined || (typeof val == 'number' && isNaN(val))) throw new CommandError("Invalid Type", `Argument \`${arg.name || "arg" + i}\` must be of type \`${arg.type}\``)
                 if (command.useArgsObject) argsObject[arg.name] = val
                 if (command.useArgsObject) argsObject["_" + arg.name] = el || arg.default
                 a[i] = val;
@@ -1846,8 +1976,14 @@ module.exports = {
         number: parseFloat,
         member: (str, message) => {
             var regex = /<@!?(\d+)>/
-            var match = str.match(regex);
+            var match = str.match(regex) || [];
             return message.guild.member(match[1]);
+        },
+        stringArray: (str, message) => {
+            var regex = /\[([^\[\]]+)\]/
+            var match = str.match(regex) || [];
+            var elements = (match[1] || "").split(",").map(el => el.trim())
+            return elements;
         },
         role: (str, message) => {
             if (str == '@everyone' || str == 'everyone') return message.guild.roles.everyone
@@ -1879,9 +2015,9 @@ module.exports = {
             var stuff = require('./stuff')
             var inv = stuff.getInventory(message.author.id).map(el => el.id)
             console.log(inv);
-            var slot = inv.indexOf(str);
+            var slot = inv.lastIndexOf(str);
             console.log(slot)
-            if (slot < 0 && inv[str] != undefined) return parseInt(str)
+            if (inv[parseInt(str)] != undefined) return parseInt(str)
             if (slot < 0) return undefined
             return slot;
         },
@@ -1908,14 +2044,15 @@ module.exports = {
             return str;
         }
     },
+
     updateVenezuelaMode() {
         var self = this;
-        var value = self.globalData.getData(`/venezuelaMode`);
+        var value = self.dataStuff.getData(`/venezuelaMode`);
         console.log(value)
         console.log(self.originalPrices)
         if (value) {
             Object.entries(self.shopItems).forEach(([k, v]) => {
-                v.price *= 500000;
+                v.price = self.originalPrices[k] * 250000;
             })
         } else {
             Object.entries(self.shopItems).forEach(([k, v]) => {  
@@ -1925,10 +2062,10 @@ module.exports = {
     },
     _venezuelaMode: false,
     get venezuelaMode() {
-        return this.globalData.getData(`/`).venezuelaMode || false;
+        return this.dataStuff.getData(`/`).venezuelaMode || false;
     },
     set venezuelaMode(value) {
-        this.globalData.push(`/venezuelaMode`, value);
+        this.dataStuff.push(`/venezuelaMode`, value);
         var self = this;
         self._venezuelaMode = value;
         self.updateVenezuelaMode();
@@ -1944,7 +2081,7 @@ module.exports = {
             s.writeItemData(user, slot, {durability: d.durability - (Math.random() * 10)});
             var items = [];
             
-            s.mineables.forEach(el => {
+            Object.values(s.mineables).forEach(el => {
                 if (Math.random() < el.chance && miningPower >= el.miningPower) {
                     var amount = Math.floor(s.clamp(Math.random() * el.maxAmount, el.minAmount, el.maxAmount) * (1 + (miningPower - el.miningPower)))
                     items.push({

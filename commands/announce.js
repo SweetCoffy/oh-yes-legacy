@@ -29,6 +29,7 @@ module.exports = {
 
         var channel = message.client.channels.cache.get(stuff.getConfig("announcements"));
         channel.send({embed: embed}).then(msg => {
+            if (extraArgs.publish) msg.crosspost();
             message.channel.send({
                 embed: {
                     title: "oh yes",

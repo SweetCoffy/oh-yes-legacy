@@ -11,30 +11,28 @@ module.exports = {
      * @param {Message} message 
      */
     execute(message) {
-        if (stuff.getPoints(message.author.id) < stuff.getConfig("prestigeMin")) throw new CommandError("Not enough money", `You need at least ${stuff.format(stuff.getConfig("prestigeMin"))} to do prestige!`)
-        var mult = stuff.getMultiplier(message.author.id);
-        var moni = stuff.getPoints(message.author.id);
-        moni /= 10000000;
-        mult /= 10000000;
-        var niceId = message.author.id.includes("69") ? 4200000000 : 0;
-        var niceTag = message.author.discriminator.includes("69") ? 4200000 : 0;
+        if (stuff.getPoints(message.author.id) < stuff.getConfig("prestigeMin")) throw new CommandError("Not enough money", `You need at least ${stuff.format(stuff.getConfig("prestigeMin"))} to do prestige`)
+        var mult = BigInt(Math.floor(stuff.getMultiplier(message.author.id) / 10000000));
+        var moni = stuff.getPoints(message.author.id) / 10000000n;
+        var niceId = message.author.id.includes("69") ? 4200000000n : 0n;
+        var niceTag = message.author.discriminator.includes("69") ? 4200000n : 0n;
         var e = Math.pow(2, stuff.getEquipment(message.author.id).length)
-        var inv = Math.min(stuff.getInventory(message.author.id).length, e) * 2
-        var warns = -((stuff.db.getData(`/${message.author.id}/`).warns || []).length * 10)
-        var total = moni + inv + warns + niceId + niceTag + mult;
+        var inv = BigInt(Math.min(stuff.getInventory(message.author.id).length, e) * 2)
+        var warns = BigInt(-((stuff.db.getData(`/${message.author.id}/`).warns || []).length * 10))
+        var total = BigInt(moni + inv + warns + niceId + niceTag + mult);
         var embed = {
             title: "prestige",
             description: `**how much :coin: gold you will get:**
             
-            from Money: __**${stuff.format(moni)}**__
-            from Multiplier: __**${stuff.format(mult)}**__
-            from Items/Equipment: __**${stuff.format(inv)}**__
-            from Warns: __**${stuff.format(warns)}**__
-            from Nice tag: __**${stuff.format(niceTag)}**__
-            from Nice ID: __**${stuff.format(niceId)}**__
+from Money: __**${stuff.format(moni)}**__
+from Multiplier: __**${stuff.format(mult)}**__
+from Items/Equipment: __**${stuff.format(inv)}**__
+from Warns: __**${stuff.format(warns)}**__
+from Nice tag: __**${stuff.format(niceTag)}**__
+from Nice ID: __**${stuff.format(niceId)}**__
             
-            Total: \`${stuff.format(total)}\`
-            Are you sure to do prestige? (react with ✅ to confirm)
+Total: \`${stuff.format(total)}\`
+Are you sure to do prestige? (react with ✅ to confirm)
             `,
             footer: { text: `you also got another equipment slot lol` }
         }
@@ -59,7 +57,7 @@ module.exports = {
                 })
                 stuff.addMedal(message.author.id, stuff.medals['gold-stonks']);
                 message.channel.send(`${message.author} Just did prestige lol`);
-            }).catch(() => message.channel.send(`${message.author} You didn't react in time, cancelling prestige`))
+            }).catch(err => {message.channel.send(`${message.author} You didn't react in time, cancelling prestige`); console.log(err)})
         });
         
 

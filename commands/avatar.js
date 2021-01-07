@@ -19,8 +19,11 @@ module.exports = {
          */
         var user = args.user;
         var embed = {
-            title: "ha ha yes",
-            image: { url: user.displayAvatarURL({dynamic: true, size: 2048, format: 'png'}) }
+            author: {
+                name: user.username,
+                iconURL: user.avatarURL({ dynamic: true }),
+            },
+            image: { url: user.displayAvatarURL({dynamic: true, size: 4096, format: 'png'}) }
         }
         message.channel.send({ embed: embed });
     }

@@ -130,7 +130,7 @@ module.exports = {
                 if (stuff.currentBoss.health <= 0) {
                     message.channel.send(`${stuff.currentBoss.name} has been defeated!`)
                     stuff.currentBoss.fighting.forEach(u => {
-                        stuff.addPoints(u, stuff.currentBoss.drops / stuff.currentBoss.fighting.length);
+                        stuff.addPoints(u, stuff.currentBoss.drops / stuff.currentBoss.fighting.length, `Killed a boss`);
                         var itemDrops = stuff.currentBoss.itemDrops;
                         if (itemDrops) {
                             itemDrops.forEach(it => {

@@ -1,5 +1,4 @@
 const { Message } = require("discord.js");
-const { threshold } = require("jimp");
 
 /**
  * Base class for the class based command handler

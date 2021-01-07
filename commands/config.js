@@ -3,28 +3,29 @@ const stuff = require('../stuff');
 module.exports = {
     name: "config",
     description: "shows a list of all settings",
+    useArgsObject: true,
+    arguments: [
+        {
+            name: "page",
+            type: "positiveInt",
+            optional: true,
+            default: 1
+        }
+    ],
     execute (message, args) {
-        if (message.channel.id != stuff.getConfig('botChannel')) throw "you can't execute this command outside of the bot channel!"
-        
         var settingNames = [];
         stuff.forEachSetting(function(k, v) {
             var e = v;
-
-            if (typeof v == "boolean") {
-                if (v) {
-                    e = '\🟩';
-                } else {
-                    e = '\🟥';
-                }
-            }
-
-            settingNames.push(`(${typeof v}) \`${k}\`: \`${e}\``)
+            settingNames.push(`**${k}** : ${e}`)
         })
+        var lastPage = Math.ceil(settingNames.length / 20)
+        var pageIndex = stuff.clamp(args.page - 1, 0, lastPage - 1);
+        var startFrom = (20 * pageIndex)
         var embed = {
             title: "setting list",
-            description: settingNames.join("\n"),
+            description: settingNames.slice(startFrom, startFrom + 20).join("\n"),
             footer: {
-                text: "use ;set <setting name> <value> to set a value"
+                text: `Page ${pageIndex + 1}/${lastPage}`
             }
         }
 

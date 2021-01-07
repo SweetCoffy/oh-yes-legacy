@@ -20,7 +20,7 @@ module.exports = {
             if (p < stuff.existencePrice) {
                 throw `you need ${stuff.format(stuff.existencePrice - p)} Internet Points\™️ to renew Existence`
             } else {
-                stuff.addPoints(id, -stuff.existencePrice);
+                stuff.addPoints(id, -stuff.existencePrice, `Bought existence`);
                 stuff.setExistenceExpiration(id, slot, new Date().getTime() + 60000)
                 message.channel.send("You renewed Existence!");
             }

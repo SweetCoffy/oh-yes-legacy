@@ -2,6 +2,7 @@ const { Guild, Collection } = require("discord.js");
 
 module.exports = {
     name: "server-info",
+    aliases: [ 'serverinfo' ],
     description: "shows info about the server lol",
     async execute(message, args) {
         var guild = message.guild;
@@ -11,35 +12,36 @@ module.exports = {
         var members = _members.filter(v => !v.user.bot)
         var embed = {
             title: guild.name,
+            color: 0x2244ff,
             description: `this server is **${((bots.size / _members.size) * 100).toFixed(1)}**% bots and **${((members.size / _members.size) * 100).toFixed(1)}**% humans`,
             fields: [
                 {
-                    name: "id",
+                    name: "ID",
                     value: guild.id,
                     inline: true,
                 },
                 {
-                    name: "members",
+                    name: "Members",
                     value: `${_members.size} (${bots.size} bots, ${members.size} humans)`,
                     inline: true,
                 },
                 {
-                    name: "owner",
+                    name: "Owner",
                     value: `<@${guild.ownerID}>`,
                     inline: true,
                 },
                 {
-                    name: "rules channel",
+                    name: "Rules channel",
                     value: `<#${guild.rulesChannelID}>`,
                     inline: true,
                 },
                 {
-                    name: "region",
+                    name: "Region",
                     value: `${guild.region}`,
                     inline: true,
                 },
                 {
-                    name: "highest role",
+                    name: "Highest role",
                     value: `${guild.roles.highest}`,
                     inline: true,
                 }

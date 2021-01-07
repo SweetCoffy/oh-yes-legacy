@@ -16,7 +16,7 @@ module.exports = {
         if (thing.length == 2) moneyEarned = amount
         if (thing.length == 1) moneyEarned = amount * 10
         
-        stuff.addPoints(message.author.id, moneyEarned);
+        stuff.addPoints(message.author.id, moneyEarned, `Totally didn't commit gambling`);
         var embed = {
             color: 0x0398fc,
             title: "totally not gambling",

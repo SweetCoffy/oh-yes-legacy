@@ -78,15 +78,15 @@ module.exports = {
                     var cantAfford = stuff.getPoints(message.author.id) < stuff.shopItems[item].price * discount;
                     if (curr != "ip") cantAfford = stuff.getGold(message.author.id) < stuff.shopItems[item].price * discount
                     if (cantAfford) {
-                        throw `you need ${((stuff.shopItems[item].price * discount) - stuff.getPoints(message.author.id)).toFixed(1)} more ${(curr == "ip") ? "<:ip:770418561193607169>" : ":coin:"} to buy this item!`
+                        throw `you need ${stuff.format(BigInt(stuff.shopItems[item].price * discount) - stuff.getPoints(message.author.id))} more ${(curr == "ip") ? "<:ip:770418561193607169>" : ":coin:"} to buy this item!`
                     } else {      
                         stuff.addItem(message.author.id, {name: it.name, onUse: it.onUse, icon: it.icon, id: item, extraData: {...it.extraData}, rarity: it.rarity})
-                        if(curr == "ip") stuff.addPoints(message.author.id, -it.price * discount)
+                        if(curr == "ip") stuff.addPoints(message.author.id, -it.price * discount, `Bought ${it.icon} ${it.name}`)
                         if(curr == "gold") stuff.addGold(message.author.id, -it.price * discount)
                     }  
                 }, repeatAmount).then(([repeat, err]) => {                    
                     embed.description = `You bought ${repeat} ${it.icon} ${it.name} for ${stuff.format(it.price * discount * repeat)} ${(curr == "ip") ? "<:ip:770418561193607169>" : ":coin:"}`;
-                    if (err) stuff.sendError(message.channel, err);
+                    if (err) {stuff.sendError(message.channel, err);console.log(err)}
                     message.channel.send({embed: embed})
                 })
             } else {

@@ -25,7 +25,6 @@ module.exports = {
                     .setTitle(`There you go`)
                     .attachFiles(['eggs.png'])
                     .setImage('attachment://eggs.png')
-                    .setFooter(`Image generation powered by Jimp`)
                     await msg.channel.send({embed: embed})
                     msg.delete();
                 } catch (err) {

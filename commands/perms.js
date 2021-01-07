@@ -11,11 +11,11 @@ module.exports = {
          * @type GuildMember
          */
         var member = message.guild.member(user)
-        var entries = Object.entries(stuff.db.getData(`/${user.id}/permissions`));
+        var entries = Object.entries(stuff.permissions(user.id, message.guild.id));
         var permissionNames = [];
         var r = member.roles.cache;
         entries.forEach(el => {
-            permissionNames.push(`${stuff.getPermission(user.id, el[0]) ? "✅" : "❌"} **${el[0]}**`)
+            permissionNames.push(`\`${el[0]}\``)
         })
         
         var embed = {
@@ -24,7 +24,7 @@ module.exports = {
             fields: [
                 {
                     name: `Oh yes permissions (${entries.filter(el => el).length})`,
-                    value: permissionNames.join("\n") || "<nothing>"
+                    value: permissionNames.join(", ") || "<nothing>"
                 },
                 {
                     name: `Role permissions (${member.permissions.toArray(true).length})`,

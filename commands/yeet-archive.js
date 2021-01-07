@@ -8,30 +8,26 @@ module.exports = {
     async execute(message) {
         var guild = message.guild;
         var archived = guild.channels.cache.filter(value => {
-            
             return value.parentID == stuff.getConfig("archiveCategory")
         })
 
-        var msg = await message.channel.send(`Are you sure to fully yeet the **${archived.size}** archived channels? React with ✅ to confirm`)
+        var msg = await message.channel.send(`Are you sure to yeet **${archived.size}** archived channels? React with ✅ to confirm`)
         var r = await msg.react('✅');
         console.log (archived)
         r.message.awaitReactions((r, u) => {
             return r.emoji.name == "✅" && u.id == message.author.id;
         }, {max: 1, time: 15000, errors: ['time']}).then(async() => {
-            var yeetedList = [];
             message.channel.send(`Okay then, yeeting all the ${archived.size} archived channels`);
-            archived.forEach(async c => {
-                await c.delete();
-                yeetedList.push(`Yeeted ${c.name} (${c.id})`)
-            })
-            var msg = await message.channel.send(`Yeeted ${archived.size} channels, React with ✅ to see the yeeted channels`);
-            await msg.react('✅');
-            msg.awaitReactions((r, u) => {
-                return r.emoji.name == "✅" && u.id == message.author.id;
-            }, {max: 1, time: 15000, errors: ['time']}).then(() => {
-                msg.edit(`Yeeted channel list: \n${yeetedList.join("\n")}`)
-            }).catch(() => {})
-        }).catch(() => {
+            for (const c of archived) {
+                try {
+                    await c[1].delete()
+                } catch (er) {
+                    console.log(er)
+                }
+            }
+            var msg = await message.channel.send(`Yeeted ${archived.size} channels`);
+        }).catch(err => {
+            console.log(err)
             message.channel.send("You took too long to react, cancelling yeet");
         })
 

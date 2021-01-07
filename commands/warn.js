@@ -12,16 +12,28 @@ var execute = function(message, args) {
         reason: reason,
         code: code,
     })
-    stuff.globalData.push(`/warns/${code}`, {
+    stuff.dataStuff.push(`/warns/${code}`, {
         date: Date.now(),
         reason: reason,
         user: user.id,
     })
-    var channel = message.client.channels.cache.get(stuff.getConfig("reportsChannel"))
+    user.send({embed: {
+        title: `You've been warned by ${message.author.username}`,
+        color: 0xff0000,
+        description: reason,
+        footer: { text: `warn code: ${code}, if you continue to do so you'll get ban- jk, most of these warns are pointless anyway` }
+    }}).catch(() => console.log('oh no'))
+    message.channel.send({embed: {
+        title: `Warned ${user.username}`,
+        color: 0xfc4e03,
+        description: reason,
+        fields: [ { name: 'Warn code', value: `\`${code}\`` } ]
+    }})
+    var channel = message.client.channels.cache.get(stuff.getConfig("crimes"))
     channel.send({embed: {
         title: `Warn alert`,
         color: 0xfc4e03,
-        description: `${message.author} warned ${user}`,
+        description: `${user} has been warned by ${message.author}`,
         fields: [
             {
                 name: "Reason",
@@ -29,7 +41,7 @@ var execute = function(message, args) {
             },
             {
                 name: "Channel",
-                value: "" + message.channel
+                value: `${message.channel} (${message.channel.id})`
             },
             {
                 name: "Warn code",

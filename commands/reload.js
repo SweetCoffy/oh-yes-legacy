@@ -5,10 +5,11 @@ module.exports = {
     description: "reloads all commands lol",
     requiredPermission: 'commands.reload',
     execute(message) {
-        
         console.clear()
         stuff.loadCommands()
-        message.channel.send(`Commands reloaded succesfully`);
-        
+        stuff.loadContent()
+        stuff.updateContent()
+        stuff.updateVenezuelaMode()
+        message.channel.send(`Commands and items reloaded succesfully`);
     }
 }
