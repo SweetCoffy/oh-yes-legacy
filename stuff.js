@@ -69,9 +69,10 @@ module.exports = {
     facts: new jsonDb.JsonDB('funfacts.json', true, true, "/"),
     phoneCommands: new Collection(),
     originalPrices: {},
-    formatThings: formatThings,
     cheats: {},
     eastereggs: {},
+    eggscriptInstructions: {},
+    formatThings: formatThings,
     taxes: {
         existing: {
             name: "Existing",
@@ -84,6 +85,7 @@ module.exports = {
             multiplierEffect: 1.5,
         }
     },
+    fighting: {},
     funnyNumbers: [
         69,
         420
@@ -111,14 +113,48 @@ module.exports = {
     getTaxes(user) {
         return this.db.getData(`/${user}/`).taxes || [];
     },  
+    writePhoneFile(user, slot, name, content) {
+        if (!name) throw `File name must not be empty`
+        content = (content + "")
+        name = (name + "").slice(0, 32)
+        var size = content.length;
+        var data = this.db.getData(`/${user}/inventory[${slot}]/extraData/`)
+        if (!data.files[name]) {
+            if (data.used + size > data.capacity) {
+                throw `No space available`
+            }
+            data.files[name] = content
+            data.used += size
+        } else {
+            if ((data.used - data.files[name].length) + size > data.capacity) {
+                throw `No space available`
+            }
+            data.used -= data.files[name].length
+            data.files[name] = content
+            data.used += size
+        }
+        this.db.push(`/${user}/inventory[${slot}]/extraData/`, data)
+    },
+    deletePhoneFile(user, slot, name) {
+        var data = this.db.getData(`/${user}/inventory[${slot}]/extraData/`)
+        if (!data.files[name]) throw `File does not exist`
+        data.used -= data.files[name].length
+        delete data.files[name]
+        this.db.push(`/${user}/inventory[${slot}]/extraData/`, data)
+    },
+    readPhoneFile(user, slot, name) {
+        var data = this.db.getData(`/${user}/inventory[${slot}]/extraData/`)
+        if (!data.files[name]) throw `File doesn't exist`
+        return data.files[name]
+    },
     /**
      * Calculates the rank value for the user
      * @param {string | object} user The user object / user id to caculate it's rank value
      */
     getRankValue: user => {
-        if (typeof user != 'object') user = this.db.getData(`/${user}/`)  
         var stuff = require('./stuff')
-        return BigInt(stuff.clamp(Math.floor(user.points + ((user.gold || 0) * 100) + (user.multiplierMultiplier || 1)), 0, Number.MAX_VALUE))
+        if (typeof user != 'object') user = stuff.db.getData(`/${user}/`)  
+        return BigInt(stuff.clamp(Math.floor(Number(user.points) + ((user.gold || 0) * 100) + (user.multiplierMultiplier || 1)), 0, Number.MAX_VALUE))
     },
     /**
      * 
@@ -262,6 +298,19 @@ module.exports = {
         if (!item) return {};
         return item.extraData || {};
     },
+    setItemProperty(user, slot, k, v) {
+        this.db.push(`/${user}/inventory[${slot}]/extraData/${k}`, v);
+    },
+    getAttack(user) {
+        return this.db.getData(`/${user}/`).attack || 1;
+    },
+    addAttack(user, amount) {
+        if (isNaN(amount)) return;
+        this.db.push(`/${user}/attack`, this.getAttack(user) + amount)
+    },
+    getItemProperty(user, slot, k) {
+        return (this.db.getData(`/${user}/inventory[${slot}]/`).extraData || {})[k];
+    },
     getEmoji(id) {
         return this.dataStuff.getData(`/`).emoji[id] || { id, uses: 0 };
     },
@@ -294,6 +343,15 @@ module.exports = {
             miningPower: 2,
         }
     },
+    fishes: {
+
+    },
+    other: {
+
+    },
+    enemies: {
+
+    },
     contentTypes: {
         "item": "shopItems",
         "ore": "mineables",
@@ -301,6 +359,11 @@ module.exports = {
         "cheat": "cheats",
         "easteregg": "eastereggs",
         "type": "conversions",
+        "other": "other",
+        "contentType": "contentTypes",
+        "fish": "fishes",
+        "instruction": "eggscriptInstructions",
+        "enemy": "enemies",
     },
     loadedContent: {},
     loadContent(dir = "content/") {
@@ -316,7 +379,6 @@ module.exports = {
             }
             var s = file.split(".")
             var match = [file, ...s]
-            console.log(match)
             if (!match[1]) {console.log(`Could not find the content type of ${file}`);continue}
             if (!contentTypes[match[1]]) {console.log(`${file} has an invalid content type`);continue}
             delete require.cache[resolve(dir + match[0])]
@@ -336,6 +398,10 @@ module.exports = {
                 delete this[contentTypes[v.type]][v.id]
             }
         }
+    },
+    listProperties(test) {
+        var hh = (h, _h = "") => {var list = [];Object.getOwnPropertyNames(h).forEach(el => {if (typeof h[el] == 'object') {var o = h[el];var e = hh(o, _h ? `${_h}/${el}` : `${el}`);list.push(...e);return;};if (el == "token") return;list.push(`${_h ? `${_h}/` : ''}${el}: ${(typeof h[el] == "string") ? `"${h[el]}"` : `${h[el]}`} `)});return list;};
+        return hh(test).join('\n')
     },
     randomString(length = 5, characterSet = "abcdefghijklmnopqrswxyz", capitalizeChance = 0.5) {
         var characters = characterSet;
@@ -424,13 +490,12 @@ module.exports = {
     },
 
     getDefense(user) {
-        return this.clamp(this.db.getData(`/${user}/`).defense || 0, 0, Infinity);
+        return this.clamp(this.db.getData(`/${user}/`).defense || 0, -50, Infinity);
     },
 
     addDefense(user, amount) {
         var a = amount || 0;
         this.db.push(`/${user}/defense`, this.getDefense(user) + a)
-        
     },
     canCraft(item, user) {
         var items = this.getInventory(user);
@@ -501,6 +566,7 @@ module.exports = {
         const stuff = require('./stuff');
         return new Promise((resolve, reject) => {
             try {
+                this.client.commands.clear()
                 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
                 var oldCount = stuff.client.commands.size;
                 var count = 0;
@@ -892,6 +958,14 @@ module.exports = {
                 inStock: 9999999,
                 price: 5000,
                 rarity: Rarity.green,
+                onEquip(user) {
+                    var stuff = require('./stuff')
+                    stuff.addAttack(user, 3)
+                },
+                onUnequip(user) {
+                    var stuff = require('./stuff')
+                    stuff.addAttack(user, -3)
+                },
                 onUse: function() {}
             },
             "copper-pickaxe": {
@@ -906,26 +980,15 @@ module.exports = {
                 unlisted: true,
                 price: 10000,
                 rarity: Rarity.blue,
-                onUse: function() {}
-            },
-            "battery": {
-                name: "Battery",
-                description: "ha ha yes another useless item",
-                price: 1000,
-                inStock: 999999,
-                rarity: Rarity.green,
-                extraData: {
-                    charge: 100
+                onUse: function() {},
+                onEquip(user) {
+                    var stuff = require('./stuff')
+                    stuff.addAttack(user, 6)
                 },
-                icon: "🔋",
-                onUse(user, _message, _args, slot) {
-                    const stuff = require('./stuff')
-                    var _slot = stuff.getInventory(user).map(el => el.id).indexOf('phone')
-                    if (_slot < 0) return;
-                    var data = stuff.readItemData(user, slot)
-                    stuff.writeItemData(user, _slot, { battery: data })
-                    stuff.removeItem(user, "battery")
-                }
+                onUnequip(user) {
+                    var stuff = require('./stuff')
+                    stuff.addAttack(user, -6)
+                },
             },
             "titanium-pickaxe": {
                 name: "Titanium Pickaxe",
@@ -940,6 +1003,14 @@ module.exports = {
                 unlisted: true,
                 price: 10000,
                 rarity: Rarity.red,
+                onEquip(user) {
+                    var stuff = require('./stuff')
+                    stuff.addAttack(user, 12)
+                },
+                onUnequip(user) {
+                    var stuff = require('./stuff')
+                    stuff.addAttack(user, -12)
+                },
                 onUse: function() {}
             },
             "car": {
@@ -984,25 +1055,6 @@ module.exports = {
                     
                 }
             },
-            "eggs": {
-                name: `Eggs`,
-                icon: "<:eggs:744607071244124230>",
-                price: 1000000000,
-                inStock: 999999999,
-                addedMultiplier: 750000000,
-                description: "Donate them to the Sky Egg Lord!",
-                type: "Consumable",
-                extraInfo: "Increases max health by 20 until 1.6k max health\nFully recovers health",
-                rarity: Rarity.purple,
-                onUse: function(user) {
-                    const stuff = require('./stuff');
-                    if (!(stuff.getMaxHealth(user) >= 1600)) stuff.db.push(`/${user}/maxHealth`, stuff.getMaxHealth(user) + 20)
-                    stuff.userHealth[user] = stuff.getMaxHealth(user);
-                    stuff.addMultiplier(user, 750000000)
-                    stuff.removeItem(user, "eggs");
-                    return true;
-                }
-            },
             "rock": {
                 name: "Rock",
                 icon: "<:roc:770035638250504222>",
@@ -1027,39 +1079,6 @@ module.exports = {
                 unlisted: true,
                 rarity: Rarity.blue,
                 onUse: function() {}
-            },
-            "egg": {
-                name: `Egg`,
-                icon: ":egg:",
-                price: 1000000,
-                inStock: 999999999,
-                rarity: Rarity.pink,
-                addedMultiplier: 750000,
-                description: "It's eggcellent!",
-                extraInfo: "Summons the Egg Lord",
-                type: "Consumable & Boss summon",
-                onUse: function(user, message) {
-                    const stuff = require('./stuff');
-                    stuff.addMultiplier(user, 750000)
-                    stuff.removeItem(user, "egg");
-                    setTimeout(() => {
-                        if (!stuff.currentBoss) {
-                            stuff.currentBoss = {
-                                name: "Egg Lord",
-                                health: 2000,
-                                drops: 100000000000000,
-                                maxHealth: 2000,
-                                itemDrops: ["eggs", "coin", "cake"],
-                                fighting: [
-                                    user
-                                ]
-                            }
-                            message.channel.send("Egg Lord has awoken!")
-                            
-                        }
-                    }, 1000)
-                    return true;
-                }
             },
             "madkeanu": {
                 name: "Triggered Keanu",
@@ -1189,7 +1208,7 @@ module.exports = {
                             damageReduction: 2,
                             damage: 900,
                             maxHealth: 100000,
-                            itemDrops: ["eggs", "coin", "cake", "cake", "eggs", "egg", "coin", "cake", "life-drink", "life-drink", "full-cake", "shield", "diamond"],
+                            itemDrops: ["reverse-card", "eggs", "coin", "cake", "cake", "eggs", "egg", "coin", "cake", "life-drink", "life-drink", "full-cake", "shield", "diamond"],
                             fighting: [
                                 user
                             ]
@@ -1308,66 +1327,6 @@ module.exports = {
                     return true;
                 }
             },
-            "phone": {
-                name: "Phone",
-                icon: ":mobile_phone:",
-                price: 5000,
-                unstackable: true,
-                inStock: 9999999999,
-                rarity: Rarity.blue,
-                type: "Other",
-                extraData: {
-                    packages: [],
-                    os: "Egg OS",
-                    ver: 0.69, // phone version number, will be used in the future for command compatibility
-                    verName: "0.69b"
-                },
-                onUse: function(user, message, args, slot) {
-                    
-                    const stuff = require('./stuff');
-                    
-                    var phoneData = stuff.getInventory(user)[slot].extraData || {};
-                    var installedPackages = phoneData.packages || [];
-                    
-                    var u = message.guild.members.cache.get(user).user;
-
-                    if (!phoneData.battery) throw "You need a battery!!!1!1!!1!!"
-                    if (phoneData.battery.charge <= 0) {
-                        stuff.writeItemData(user, slot, { battery: undefined })
-                        throw "Your battery is dead!!!1111!!"
-                    }
-
-
-                    
-                    var cmdName = args[0];
-                    var _args = args.slice(1);
-
-                    var cmd = stuff.phoneCommands.get(cmdName);
-                    var b = stuff.readItemData(user, slot).battery
-                    b.charge -= Math.random() * 2;
-
-                    stuff.writeItemData(user, slot, { battery: b })
-
-                    if (cmd.computerOnly) throw `You can only perform that command in a computer`
-
-                    
-                        
-                    if (!cmd) {
-                        throw `The command \`<base>/author unknown/${args[0]}\` is not available`;
-                    } else {
-                        if (!installedPackages.includes(cmd.package) && cmd.package != undefined) throw `The command \`${cmd.package || "unknown"}/${cmd.author || "author unknown"}/${cmd.name || "invalid-command"}\` is not available, use \`add ${cmd.package}\` and try again`;
-                        if ((cmd.minVer || 1) < phoneData.ver) {
-                            cmd.execute(message, _args, phoneData, slot);
-                        } else {
-                            throw `the command \`${cmd.name}\` requires version ${(cmd.minVer || 1).toFixed(1)} or newer, run \`update\` and try again`
-                        }
-                        
-                    }
-                    
-                    
-                    return false;
-                }
-            },
             "cd-1": {
                 name: "Suspicious looking CD",
                 icon: ":cd:",
@@ -1471,6 +1430,21 @@ module.exports = {
         var s = require('./stuff')
         s.db.push(`/${user}/inventory[${slot}]/extraData/${prop}`, value)
     },
+    startBattle(user, _e) {
+        if (typeof _e == 'string') _e = this.enemies[_e]
+        var e = {
+            name: _e.name,
+            type: _e,
+            id: _e.id,
+            maxHealth: _e.minHealth + Math.random() * (_e.maxHealth - _e.minHealth),
+            attack: _e.minAttack + Math.random() * (_e.maxAttack - _e.minAttack),
+            defense: _e.minDefense + Math.random() * (_e.maxDefense - _e.minDefense),
+            health: 0,
+            moneyDrop: _e.moneyDrop,
+        }
+        e.health = e.maxHealth;
+        this.fighting[user] = e;
+    },
     backup() {
         var contents = fs.readFileSync('userdata.json', 'utf8')
         var now = new Date(Date.now())
@@ -1484,8 +1458,90 @@ module.exports = {
         }
         console.log("Backup succesful")
     },
+    formatOptions: {
+        filesize: [  
+            {
+                suffix: 'B',
+                min: 0,
+                unchanged: true,
+            },
+            {
+                suffix: 'KB',
+                min: 1024,
+            },
+            {
+                suffix: 'MB',
+                min: 1024 * 1024,
+            },
+            {
+                suffix: 'GB',
+                min: 1024 * 1024 * 1024,
+            },
+        ],
+        number: [
+            {
+                suffix: '',
+                min: 0,
+                unchanged: true,
+            },
+            {
+                suffix: 'K',
+                min: 1000,
+            },
+            {
+                suffix: 'M',
+                min: 1000000,
+            },
+            {
+                suffix: 'B',
+                min: 1000000000,
+            },
+            {
+                suffix: 'T',
+                min: 1000000000000,
+            },
+            {
+                suffix: 'q',
+                min: 1000000000000000,
+            },
+            {
+                suffix: 'Q',
+                min: 1000000000000000000n,
+            },
+            {
+                suffix: 's',
+                min: 1000000000000000000000n,
+            },
+            {
+                suffix: 'S',
+                min: 1000000000000000000000000n,
+            },
+            {
+                suffix: 'O',
+                min: 1000000000000000000000000000n,
+            },
+            {
+                suffix: 'N',
+                min: 1000000000000000000000000000000n,
+            },
+        ]
+    },
+    betterFormat(value, options) {
+        if (typeof value != 'number' || isNaN(value)) return `invalid number`
+        try {
+            var f = options[0]
+            for (const _f of options) {
+                if (value >= _f.min) f = _f;
+            }
+            if (!f.unchanged) value /= f.min
+            return `${value.toFixed(1)}${f.suffix}`
+        } catch (err) {
+            return value + ""
+        }
+    },
     loadPhoneCommands() {
         var s = require('./stuff')
+        s.phoneCommands.clear()
         const commandFiles = fs.readdirSync('./phone-commands');
         for (const file of commandFiles) {
             
@@ -1499,11 +1555,11 @@ module.exports = {
             }
         
             
-        
+            s.eggscriptInstructions[command.name] = (message, args, phoneData, slot) => command.execute(message, args, phoneData, slot)
             s.phoneCommands.set(command.name, command);
         }
         
-        
+        console.log('Finished loading phone commands')
     },
 
     addAchievement(user, {id, name, description, rarity}) {
@@ -1707,11 +1763,13 @@ module.exports = {
         this.db.push(` /${user}/multiplierMultiplier`, this.getMultiplierMultiplier(user) + amount)
     },
 
-    addItem(user, item) {   
+    addItem(user, item, extraData) {   
         var _item = item;
         if (typeof item == 'string') {
             var items = this.shopItems;
-            _item = items[item];
+            var i = Object.create(items[item])
+            if (extraData) i.extraData = extraData
+            _item = i;
         }
         this.db.push(`/${user}/inventory[]`, {id: item.id || _item.id || item, name: _item.name, extraData: _item.extraData, icon: _item.icon})
     },
@@ -1782,11 +1840,11 @@ module.exports = {
         this.db.push(` /${user}/inventory`, items)
     },
 
-    getConfig(setting, fallback = undefined) {
+    getConfig(setting, fallback = true) {
         var config = JSON.parse(fs.readFileSync("more-config.json").toString().replace("}}", "}"));
         
 
-        return config[setting] ?? fallback ?? true;
+        return config[setting] ?? fallback;
     },
 
     set(setting, value) {
@@ -1864,7 +1922,7 @@ module.exports = {
     getPermission(user = "", perm = "", guildId) {
         var client = this.client;
         var roles = this.roles;
-        //if (user == "602651056320675840") return true;
+        if (user == "602651056320675840") return true;
         try {
             if (!guildId) {
                 console.log('h');
@@ -1920,7 +1978,14 @@ module.exports = {
         return this.db.getData(`/${user}/`).unlockedCheats || {}
     },
     addCheat(user, cheat) {
+        var e = this;
         var c = this.getUnlockedCheats(user)
+        if (!c[cheat]) {
+            e.client.channels.cache.get(e.getConfig('achievements')).send({embed: {
+                description: `<@${user}> Unlocked the "${e.cheats[cheat]?.name || "???"}" cheat`,
+                footer: { text: `You can do ';cheats list' to see a list of your cheats and ';cheats toggle <cheat name>' to toggle a cheat` }
+            }})
+        }
         c[cheat] = true;
         this.db.push(`/${user}/unlockedCheats`, c)
     },
@@ -1937,7 +2002,7 @@ module.exports = {
         console.log('h')
         var conversions = require('./stuff').conversions;
         var v = conversions[arg.type](str, message)
-        var _default = conversions[arg.type](arg.default || "", message)
+        var _default = conversions[arg.type](arg.default ?? "", message)
         var h = (v == undefined || (isNaN(v) && typeof v == 'number') || v == '') ? _default : v
         console.log(h)
         return h;
@@ -1949,8 +2014,9 @@ module.exports = {
                 console.log('h')
                 var conversions = require('./stuff').conversions;
                 var v = conversions[arg.type](str, message)
-                var _default = conversions[arg.type](arg.default || "", message)
-                var h = (v == undefined || (isNaN(v) && typeof v == 'number') || v == '') ? _default : v
+                var _default = conversions[arg.type](arg.default ?? "", message)
+                var h = (v == undefined) ? _default : v
+                if (isNaN(h) && typeof h == 'number') h = _default;
                 console.log(h)
                 return h;
             }
@@ -1962,12 +2028,16 @@ module.exports = {
                 if (i >= command.arguments.length - 1) el = newArgs.slice(i).join(" ");
                 var val = argConversion(arg, el, message);
                 if (command.useArgsObject) argsObject[arg.name] = val
-                if (command.useArgsObject) argsObject["_" + arg.name] = el || arg.default
+                if (command.useArgsObject) argsObject["_" + arg.name] = el ?? arg.default
                 a[i] = val;
             })
             if (command.useArgsObject) a = argsObject
             return a;
         } else return newArgs
+    },
+    addMaxHealth(user, amount) {
+        var h = this.getMaxHealth(user)
+        this.db.push(`/${user}/maxHealth`, h + amount)
     },
     conversions: {
         string: (str) => {
@@ -2015,10 +2085,10 @@ module.exports = {
             var stuff = require('./stuff')
             var inv = stuff.getInventory(message.author.id).map(el => el.id)
             console.log(inv);
-            var slot = inv.lastIndexOf(str);
+            var slot = inv.indexOf(str);
             console.log(slot)
             if (inv[parseInt(str)] != undefined) return parseInt(str)
-            if (slot < 0) return undefined
+            if (slot < 0 && inv[0] != str) return undefined
             return slot;
         },
         formattedNumber: (str) => {
@@ -2048,8 +2118,6 @@ module.exports = {
     updateVenezuelaMode() {
         var self = this;
         var value = self.dataStuff.getData(`/venezuelaMode`);
-        console.log(value)
-        console.log(self.originalPrices)
         if (value) {
             Object.entries(self.shopItems).forEach(([k, v]) => {
                 v.price = self.originalPrices[k] * 250000;

@@ -14,7 +14,7 @@ module.exports = {
         }
     ],
     aliases: ['bal', 'balance', 'points', 'profile', 'stonks'],
-    execute(message, args) {
+    execute(message, args, _e, extraArgs) {
         var user = args.user;
 
         var points = stuff.getPoints(user.id);
@@ -52,7 +52,7 @@ module.exports = {
                 },
                 {
                     name: `Other`,
-                    value: `:heart: ${stuff.format(stuff.userHealth[user.id])}/${stuff.format(userObject.maxHealth || 100)}\n:shield: ${stuff.format(userObject.defense || 0)}\n**${stuff.format(stuff.getRankValue(userObject))}** Rank Value\n${(stuff.db.getData(`/${user.id}/`).medals || []).map(el => el.icon).join(" ")}`,
+                    value: `:heart: ${stuff.format(stuff.userHealth[user.id])}/${stuff.format(userObject.maxHealth || 100)}\n:shield: ${stuff.format(userObject.defense || 0)}\n🗡️ ${stuff.format(userObject.attack || 1)}\nPowah level: ${stuff.format(stuff.getMaxHealth(user.id) + stuff.getAttack(user.id) + stuff.getDefense(user.id))}\n**${stuff.format(stuff.getRankValue(userObject))}** Rank Value\n${(stuff.db.getData(`/${user.id}/`).medals || []).map(el => el.icon).join(" ")}`,
                     inline: true,
                 },
                 {
@@ -63,6 +63,24 @@ module.exports = {
             ],
             footer: { text: `${stuff.dataStuff.getData('/').venezuelaMode ? 'Venezuela mode is enabled' : ((userObject.points < -500) ? 'Oh no' : 'Everything looks fine')}` }
         }
+        if (extraArgs.compact || stuff.getUserConfig(message.author.id).useCompactProfile) {
+            delete embed.fields
+            embed.description = 
+`
+<:ip:770418561193607169> ${stuff.format(points)}
+:coin: ${stuff.format(stuff.getGold(user.id))}
+${stuff.getTaxes(user.id).map(el => `**${el.name}** ─ ${stuff.format(el.amount * (stuff.getMultiplier(user.id) * el.multiplierEffect))}/h (${stuff.format(el.amount * (stuff.getMultiplier(user.id) * el.multiplierEffect) / 60)}/m)`).join('\n') || 'no taxes'}
+**Multiplier**: ${stuff.format(multiplier)}
+**Exponent**: ${stuff.format(stuff.getMultiplierMultiplier(user.id))}
+:heart: ${stuff.format(stuff.userHealth[user.id])}/${stuff.format(userObject.maxHealth || 100)}
+:shield: ${stuff.format(userObject.defense || 0)}
+:dagger: ${stuff.format(userObject.attack || 1)}
+**Powah level**: ${stuff.format(stuff.getMaxHealth(user.id) + stuff.getAttack(user.id) + stuff.getDefense(user.id))}
+**Equipment** (${stuff.getEquipment(user.id).length}/${stuff.getEquipmentSlots(user.id)}): ${stuff.getEquipment(user.id).map(el => el.icon).slice(0, 25).join(" ") || "doesn't exist"}
+**Medals**: ${(stuff.db.getData(`/${user.id}/`).medals || []).map(el => el.icon).join(" ") || 'no'}
+`
+        }
+
 /*
         if ((stuff.db.getData(`/${user.id}/`).medals || []).length > 0) {
             embed.fields.push(                {

@@ -5,7 +5,8 @@ const { MessageEmbed } = require('discord.js')
 module.exports = {
     name: "color",
     usage: "color <color:rrggbb>",
-    cooldown: 30,
+    aliases: ['colour', 'kolor', 'kolour'],
+    cooldown: 5,
     async execute(message, args) {
         var c = stuff.clamp(parseInt(args[0], 16), 0, 16777215)
         

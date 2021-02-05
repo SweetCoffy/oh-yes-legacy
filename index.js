@@ -39,20 +39,16 @@ const h = {
     }
 }
 function loadCommands() {
-    var totalLines = 0;
     console.log('Loading commands...')
     var i = 0;
     const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
     for (const file of commandFiles) {
         delete require.cache[resolve(`./commands/${file}`)]
         const command = require(`./commands/${file}`);
-        var hh = fs.readFileSync('commands/' + file, 'utf8')
-        totalLines += hh.split(/\r\n|\r|\n/).length;
         client.commands.set(command.name, command);
-        console.log(`Loaded '${file}' as '${command.name}', ${i + 1}/${commandFiles.length}`);
         i++;
     }
-    console.log(`Finished loading commands, ${totalLines} lines of code loaded`)
+    console.log(`Finished loading commands`)
     stuff.loadPhoneCommands();
 }
 stuff.loadContent()
@@ -69,7 +65,9 @@ client.once('ready', () => {
         try {
             stuff.forEachUser((id, data) => {
                 data.taxes.forEach(el => {
-                    stuff.addPoints(id, -el.amount * (data.multiplier * el.multiplierEffect) / 60, `${el.name}`)
+                    var hasReverseCard = stuff.getInventory(id).map(el => el.id).includes('reverse-card');
+                    var a = -el.amount * (data.multiplier * el.multiplierEffect) / 60
+                    stuff.addPoints(id, hasReverseCard ? -a : a, `${el.name}`)
                 })
             })
         } catch (e) {console.log(e)}
@@ -166,7 +164,7 @@ client.on('message', async message => {
         stuff.addTax(message.author.id, 'existing');
         if (message.channel.type == 'dm') return;
         if (stuff.dataStuff.getData(`/banned`).includes(message.author.id)) return;
-        if((message.content.includes("egg") || message.content.includes("🥚")) && message.author.id != client.user.id && message.author.id != '676696728065277992') {
+        if((message.content.includes("egg") || message.content.includes("🥚")) && message.author.id != client.user.id && message.author.id != '676696728065277992' && stuff.getConfig('randomReactions')) {
             message.react('🥚');
         }
         if (message.content.includes("<:v_:755546914715336765>")) {
@@ -204,7 +202,6 @@ client.on('message', async message => {
             for (const match of matches) {
                 var c = match.slice(1).filter(el => el);
                 if (!stuff.getEmoji(c[0]).name) stuff.dataStuff.push(`/emoji/${c[0]}/name`, c[1])
-                stuff.addEmojiUse(c[0])
                 promises.push(message.react(c[0]))
             }
             Promise.all(promises).catch(e => console.log(e))
@@ -267,8 +264,11 @@ client.on('message', async message => {
     }).first();
     if (!command) return;
     try {
+        if (!command.usableAnywhere && stuff.getConfig('botChannel', undefined)) {
+            if (message.channel.id != stuff.getConfig('botChannel', undefined)) throw `imagine using bots outside of <#${stuff.getConfig('botChannel', undefined)}>`
+        }
         if (stuff.getPermission(message.author.id, command.requiredPermission, message.guild.id) || !command.requiredPermission || stuff.getPermission(message.author.id, "*", message.guild.id)) {
-            if (stuff.getConfig("commands." + command.name)) {
+            if (stuff.getConfig("commands." + command.name) || command.usableAnytime) {
                 if (command.removed) throw "this command has been removed, but not entirely (maybe it will come back if <@602651056320675840> wants to)";
                 if (!cooldowns.has(command.name)) {
                     cooldowns.set(command.name, new Discord.Collection())
@@ -335,12 +335,12 @@ client.on('message', async message => {
         console.log(`Took ${actualNow - now}ms to process a command`);
     } catch (error) {
         sendError(message.channel, error);
-        console.log(error)
         message.react("755546914715336765")
     }
 });
 function sendError (channel, err) {
     var _err = err;
+    console.log(err)
     if (typeof err == 'string') {
         _err = CommandError.fromString(err);
     } 

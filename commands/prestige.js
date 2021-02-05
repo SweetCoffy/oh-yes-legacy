@@ -5,7 +5,7 @@ const stuff = require("../stuff")
 module.exports = {
     name: "prestige",
     description: "resets basically all of your data for gold coins, seems legit",
-    
+    aliases: ['self-perish'],
     /**
      * 
      * @param {Message} message 
@@ -20,6 +20,7 @@ module.exports = {
         var inv = BigInt(Math.min(stuff.getInventory(message.author.id).length, e) * 2)
         var warns = BigInt(-((stuff.db.getData(`/${message.author.id}/`).warns || []).length * 10))
         var total = BigInt(moni + inv + warns + niceId + niceTag + mult);
+        var totalSlots = stuff.clamp(Number(total / 1000000n), 0, stuff.getConfig('prestigeSlotsMax', 5));
         var embed = {
             title: "prestige",
             description: `**how much :coin: gold you will get:**
@@ -34,7 +35,7 @@ from Nice ID: __**${stuff.format(niceId)}**__
 Total: \`${stuff.format(total)}\`
 Are you sure to do prestige? (react with ✅ to confirm)
             `,
-            footer: { text: `you also got another equipment slot lol` }
+            footer: { text: `you also got ${1 + totalSlots} equipment slots` }
         }
 
         message.channel.send({embed: embed}).then(msg => {
@@ -42,12 +43,12 @@ Are you sure to do prestige? (react with ✅ to confirm)
             msg.awaitReactions((reaction, user) => user.id == message.author.id && reaction.emoji.name == "✅", {max: 1, time: 15000, errors: ['time']}).then(() => {
                 stuff.db.push(`/${message.author.id}/points`, 0)
                 stuff.db.push(`/${message.author.id}/multiplier`, 1)
-                stuff.db.push(`/${message.author.id}/maxHealth`, 100)
+                //stuff.db.push(`/${message.author.id}/maxHealth`, 100)
                 stuff.db.push(`/${message.author.id}/inventory`, [])
                 stuff.db.push(`/${message.author.id}/pets`, [])
                 stuff.db.push(`/${message.author.id}/defense`, 0)
                 stuff.db.push(`/${message.author.id}/equipment`, [])
-                stuff.db.push(`/${message.author.id}/equipmentSlots`, stuff.getEquipmentSlots(message.author.id) + 1)
+                stuff.db.push(`/${message.author.id}/equipmentSlots`, stuff.getEquipmentSlots(message.author.id) + (1 + totalSlots))
                 stuff.addGold(message.author.id, total)
                 stuff.addAchievement(message.author.id, {
                     id: "other:prestige",

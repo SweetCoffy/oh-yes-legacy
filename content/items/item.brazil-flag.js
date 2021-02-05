@@ -1,5 +1,5 @@
 const { Message } = require("discord.js")
-const stuff = require("../stuff")
+const stuff = require('../../stuff')
 module.exports = {
     name: "Brazil Flag",
     icon: "🇧🇷",

@@ -15,10 +15,10 @@ module.exports = {
     execute(message, args) {
         var i = stuff.getInventory(message.author.id)[args.item]
         if (!i) throw `You don't have an item at slot \`${args.item}\``
-        if (!i.extraData) throw `The item ${i.icon} ${i.name} doesn't have data`
+        if (!i) throw `The item ${i.icon} ${i.name} doesn't have data`
         var embed = {
             title: `Item data: ${i.icon} ${i.name}`,
-            description: Object.entries(i.extraData).map(el => `${stuff.thing(el[0])}: ${typeof el[1] == 'number' ? stuff.format(el[1]) : el[1].toString()}`).join("\n")
+            description: stuff.listProperties(i)
         }
         message.channel.send({embed: embed});
     }

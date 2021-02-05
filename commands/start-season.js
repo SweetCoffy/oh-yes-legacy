@@ -1,3 +1,4 @@
+const { fighting } = require("../stuff");
 const stuff = require("../stuff");
 
 module.exports = {
@@ -26,7 +27,8 @@ module.exports = {
                         stuff.db.push(`/${el[0]}/equipment`, [])
                         stuff.db.push(`/${el[0]}/equipmentSlots`, 6)
                         stuff.db.push(`/${el[0]}/achievements`, [])
-                        stuff.userHealth = [];
+                        stuff.userHealth = {}
+                        stuff.fighting = {}
                     })
                     stuff.set("season", stuff.getConfig("season") + 1)
                     stuff.venezuelaMode = false;

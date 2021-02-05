@@ -1,7 +1,6 @@
 {
     "729094522264485979": {
         "permissions": [
-            "commands.set",
             "commands.announce",
             "commands.get-user",
             "commands.eval",
@@ -18,10 +17,7 @@
         "permissions": []
     },
     "736713474197028876": {
-        "permissions": [
-            "commands.debug",
-            "*"
-        ]
+        "permissions": []
     },
     "737319749029068821": {
         "permissions": []
@@ -165,6 +161,29 @@
         "permissions": []
     },
     "796108630339747910": {
+        "permissions": []
+    },
+    "795474480302260315": {
+        "permissions": []
+    },
+    "799032203735728144": {
+        "permissions": [
+            "commands.set"
+        ]
+    },
+    "799280074414489601": {
+        "permissions": []
+    },
+    "799319999008473149": {
+        "permissions": []
+    },
+    "800155463587987507": {
+        "permissions": []
+    },
+    "801465339568193599": {
+        "permissions": []
+    },
+    "807001249232453672": {
         "permissions": []
     }
 }

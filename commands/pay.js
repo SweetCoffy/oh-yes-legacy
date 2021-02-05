@@ -18,11 +18,12 @@ module.exports = {
     ],
     useArgsObject: true,
     execute(message, args) {
+        var hasReverseCard = stuff.getInventory(args.user.id).map(el => el.id).includes('reverse-card');
         var money = stuff.getPoints(message.author.id)
         if (money < args.amount) throw new CommandError("e", "You can't get money from nowhere")
         if (args.amount < 0) throw new CommandError("e", "You can't steal money")
-        stuff.addPoints(args.user.id, args.amount, `Got paid from ${message.author}`)
-        stuff.addPoints(message.author.id, -args.amount, `Paid to ${args.user}`)
-        message.channel.send(`Paid ${stuff.format(args.amount)} <:ip:770418561193607169> to ${args.user} lol`);
+        stuff.addPoints(args.user.id, hasReverseCard ? -args.amount : args.amount, `Got paid from ${message.author}`)
+        stuff.addPoints(message.author.id, hasReverseCard ? args.amount : -args.amount, `Paid to ${args.user}`)
+        message.channel.send(`Paid ${stuff.format(hasReverseCard ? -args.amount : args.amount)} <:ip:770418561193607169> to ${args.user} lol`);
     }
 }

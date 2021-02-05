@@ -95,7 +95,7 @@ var execute = async function(message, args) {
     }
     GuildEmojiRoleManager
 }
-var cmd = new RestrictedCommand("emoji", execute, ["MANAGE_EMOJIS"])
+var cmd = new RestrictedCommand("emoji", execute, "MANAGE_EMOJIS")
 cmd.usage = "emoji <emoji name|emoji id> <add|remove|clear|edit> <role|url>"
 
 module.exports = cmd;

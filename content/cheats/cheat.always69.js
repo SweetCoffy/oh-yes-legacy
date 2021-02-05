@@ -1,4 +1,4 @@
-var stuff = require('../stuff')
+var stuff = require('../../stuff')
 module.exports = {
     name: "Always 69",
     description: "Makes your money always be 69",

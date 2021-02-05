@@ -8,19 +8,19 @@ module.exports = {
         var things = [
             {
                 message: "You got free Internet Points\™️ from someone... h",
-                amount: 700,
+                amount: 70,
             },
             {
                 message: "You told someone to not do the cat",
-                amount: 15000,
+                amount: 1500,
             },
             {
                 message: "You sold your eggs to some questionable company",
-                amount: 10000,
+                amount: 1000,
             },
             {
                 message: "You gave eggs to the Sky Egg Lord and got Internet Points\™ in exchange",
-                amount: 1000,
+                amount: 100,
             },
         ]        
         var thing = stuff.randomArrayElement(things);

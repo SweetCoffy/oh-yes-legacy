@@ -5,6 +5,8 @@ module.exports = {
     requiredPermission: "commands.set",
     description: "sets a config value",
     usage: "set <setting:string> <value:any>",
+    usableAnywhere: true,
+    usableAnytime: true,
 
     execute (message, args, extraArgs) {
 

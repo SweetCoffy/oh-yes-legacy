@@ -12,11 +12,6 @@ var execute = function(message, args) {
         reason: reason,
         code: code,
     })
-    stuff.dataStuff.push(`/warns/${code}`, {
-        date: Date.now(),
-        reason: reason,
-        user: user.id,
-    })
     user.send({embed: {
         title: `You've been warned by ${message.author.username}`,
         color: 0xff0000,

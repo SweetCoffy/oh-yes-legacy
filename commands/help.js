@@ -8,7 +8,7 @@ module.exports = {
     description: "shows command info",
     usage: "help [commandname:string]",
 
-    execute (message, args, _extraArgs, extraArgs) {
+    async execute (message, args, _extraArgs, extraArgs) {
         const commands = message.client.commands;
         
         
@@ -112,7 +112,7 @@ module.exports = {
                     })
                 }
 
-                e.fields.push({name: "Cooldown", value: (cmd.cooldown | 1 ) + " second(s)"})
+                e.fields.push({name: "Cooldown", value: (cmd.cooldown || 1 ) + " second(s)"})
 
                 if (cmd.requiredPermission) {
                     e.fields.push({name: "Requires permission", value: cmd.requiredPermission})
@@ -172,20 +172,37 @@ module.exports = {
             });
 
             var page = (extraArgs.page || 1) - 1;
-
             var startFrom = 0 + (20 * page);
-
+            // commandNames.slice(startFrom, startFrom + 20).join(currSeparator)
             var embed = {
                 title: "command list",
                 description: commandNames.slice(startFrom, startFrom + 20).join(currSeparator),
                 footer: {
-                    text: `use ;help <command name> for info about a command, page ${page + 1}/${Math.ceil(commandNames.length / 20)}`,
+                    text: `Use ;help <command name> to see info about a command, page ${page + 1}`,
                 }
             }
 
 
 
-            message.channel.send({embed: embed})
+            var m = await message.channel.send({embed: embed})
+            await m.react('⬅️')
+            await m.react('➡️')
+            await m.react('🚫')
+            var collector = m.createReactionCollector((r, u) => !u.bot && u.id == message.author.id && ['⬅️','➡️','🚫'].includes(r.emoji.name), { time: 1000 * 120 })
+            setTimeout(async () => {
+                await m.react('⚠️')
+            }, 1000 * 100)
+            collector.on('collect', async (r, u) => {
+                await r.users.remove(message.author.id)
+                if (r.emoji.name == '⬅️') {page--;startFrom = 0 + (20 * page)}
+                if (r.emoji.name == '➡️') {page++;startFrom = 0 + (20 * page)}
+                if (r.emoji.name == '🚫') { message.delete();return m.delete() }
+                embed.description = commandNames.slice(startFrom, startFrom + 20).join(currSeparator)
+                embed.footer.text = `Use ;help <command name> to see info about a command, page ${page + 1}`
+                m.edit({embed: embed})
+            }).on('end', () => {
+                m.delete()
+            })
 
         }
     }

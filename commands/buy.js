@@ -27,12 +27,13 @@ module.exports = {
         var item = args.item;
         var amount = args.amount;
         var useOldShop = _extraArgsObject.oldShop || stuff.getUserConfig(message.author.id).useOldShop;
-        var hideUnaffordable = _extraArgsObject.hideUnaffordable
+        var showHidden = _extraArgsObject.showHidden
         if (!item) {
             var entries = Object.entries(stuff.shopItems).sort(function(a, b) {
-                return b[1].price - a[1].price;
+                return (b[1].price * (b[1].unlisted ? 0 : 1)) - (a[1].price * (a[1].unlisted ? 0 : 1));
             }).filter(el => {
-                return !el[1].unlisted && el[1].price
+                if (showHidden) return true;
+                else return (!el[1].unlisted && el[1].price) 
             }).filter(el => {
                 if (el[1].veModeExclusive && !stuff.venezuelaMode) return false;
                 return true;
@@ -44,8 +45,8 @@ module.exports = {
             var startFrom = 0 + (itemsPerPage * page);
 
             entries.forEach(entry => {
-                if (!useOldShop) itemNames.push(`${entry[1].icon} \`${entry[0]}\` **${entry[1].name}** ─ ${((entry[1].currency || "ip") == "ip") ? "<:ip:770418561193607169>" : ":coin:"} __${stuff.format(entry[1].price)}__ ${(discount < 1) ? `${(1 - discount) * 100}% OFF` : ``}${(entry[1].type) ? ` ─ ${entry[1].type}` : ``}${(entry[1].extraInfo) ? `\n${entry[1].extraInfo}` : ``}`);
-                if (useOldShop) itemNames.push(`${entry[1].icon} \`${entry[0]}\` **${entry[1].name}**, ${stuff.format(entry[1].price)} ${((entry[1].currency || "ip") == "ip") ? "Internet Points" : "Gold"}  ${(discount < 1) ? `${(1 - discount) * 100}% OFF` : ``}`);
+                if (!useOldShop) itemNames.push(`${entry[1].icon} \`${entry[0]}\` **${entry[1].name}**${entry[1].unlisted ? ' (Unlisted)' : ''}${entry[1].price ? ` ─ ${((entry[1].currency || "ip") == "ip") ? "<:ip:770418561193607169>" : ":coin:"} __${stuff.format(entry[1].price)}__ ` : ''}${(entry[1].type) ? ` ─ ${entry[1].type}` : ``}${(entry[1].extraInfo) ? `\n${entry[1].extraInfo}` : ``}`);
+                if (useOldShop) itemNames.push(`${entry[1].icon} \`${entry[0]}\` **${entry[1].name}**${entry[1].unlisted ? ' (Unlisted)' : ''}${entry[1].price ? `, ${stuff.format(entry[1].price)} ${((entry[1].currency || "ip") == "ip") ? "Internet Points" : "Gold"}` : ''} ${(discount < 1) ? `${(1 - discount) * 100}% OFF` : ``}`);
             })
 
             var embed = {

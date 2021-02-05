@@ -1,5 +1,5 @@
 const { MessageFlags } = require('discord.js')
-var stuff = require('../stuff')
+var stuff = require('../../stuff')
 module.exports = {
     triggerCheck: () => false,
     onTrigger (message) {

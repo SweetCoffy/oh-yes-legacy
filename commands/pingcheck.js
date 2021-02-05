@@ -37,40 +37,40 @@ module.exports = {
             },
             {
                 letter: "D",
-                points: 1000,
+                points: 2000,
             },
             {
                 letter: "C",
-                points: 25000,
+                points: 30000,
             },
             {
                 letter: "B",
-                points: 50000,
+                points: 60000,
             },
             {
                 letter: "A",
-                points: 75000,
+                points: 85000,
             },
             {
                 letter: "S",
-                points: 90000,
-            },
-            {
-                letter: "H",
-                points: 100000,
-            },
-            {
-                letter: "H+",
                 points: 150000,
             },
             {
+                letter: "H",
+                points: 200000,
+            },
+            {
+                letter: "H+",
+                points: 500000,
+            },
+            {
                 letter: "How",
-                points: 100000000000,
+                points: 100000000000000000000000,
             },
         ]
         try {
             if (args.pings > args.duration * 2) throw "e"
-            if (args.duration > 20) throw 'e'
+            if (args.duration > 30) throw 'e'
             var oldNow = Date.now();
             await message.channel.send(`Send ${Math.ceil(args.pings / 2)} messages containing "h" within the ${(args.duration * 3.5).toFixed(1)} second time limit`)
             var messages = await message.channel.awaitMessages(m => m.content.toLowerCase() == "h" && m.author.id == message.author.id, { max: args.pings / 2, time: args.duration * 3.5 * 1000})
@@ -96,6 +96,14 @@ module.exports = {
             } })
             stuff.addPoints(message.author.id, points, `Pingcheck'd ${args.user}`)
             stuff.addPoints(args.user.id, points / 2, `Got pingcheck'd`)
+            var hasReverseCard = stuff.getInventory(args.user.id).map(el => el.id).includes('reverse-card');
+            if ((messages.size < args.pings / 4)) {
+                args.user = message.author
+            }
+            if (hasReverseCard) {
+                args.user = message.author
+                message.channel.send(`${message.author} You have been reverse card'd`)
+            }
             message.channel.send(`${args.user} Starting pingcheck...`)
             var h = setInterval(() => {
                 i++;

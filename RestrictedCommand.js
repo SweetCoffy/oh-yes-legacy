@@ -1,6 +1,7 @@
 const Command = require("./Command");
 const { Message } = require("discord.js");
 const CommandError = require("./CommandError");
+const stuff = require("./stuff");
 /**
  * An actual permissions based command
  */
@@ -29,7 +30,7 @@ module.exports = class RestrictedCommand extends Command {
         if (hasPermissions) {
             this.onExecute(message, args, extraArgs, extraArgsObject)
         } else {
-            throw new CommandError("Missing permissions", `undefined`)
+            throw new CommandError("Missing permissions", `You need the ${stuff.thing(stuff.snakeToCamel(this.requiredPermission))} permission to use this command`)
         }
     }
 }

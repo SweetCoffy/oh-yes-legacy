@@ -16,14 +16,14 @@ module.exports = {
             type: "number",
             description: "The page of the inventory to show",
             optional: true,
-            default: "1",
+            default: 1,
         }
     ],
     execute(message, args, _extraArgs, extraArgs) {
         var authorId = message.author.id;
         var useCompact = !extraArgs.disableStacking;
         var _inv = stuff.getInventory(authorId);
-        var page = (args.page) - 1;
+        var page = stuff.clamp((args.page) - 1, 0, 999999);
         var startFrom = 0 + (20 * page);
 
         
@@ -72,7 +72,6 @@ module.exports = {
                 return Object.values(obj);
             } 
            
-            var i = 0;
             var inv = useCompact ? h(_inv) : _inv;
             if (extraArgs.oldStacking) inv = _inv.reduce(reducer);
             
@@ -89,9 +88,8 @@ module.exports = {
             
 
             
-            inv.forEach(item => {
-                itemNames.push(`${(item.amount != 1) ? `${item.amount}x ` : ""}${item.icon} \`${item.id}\` ${item.name}`);
-                i++;
+            inv.forEach((item, i) => {
+                itemNames.push(`${(item.amount != 1 && item.amount) ? `${item.amount}x ` : `${item.amount ? '' : `\`${i}\` `}`}${item.icon} \`${item.id}\` ${item.name}`);
             });
 
             var embed = {
