@@ -30,7 +30,8 @@
     },
     "728718708079460424": {
         "permissions": [
-            "commands.eval"
+            "commands.eval",
+            "yes"
         ]
     },
     "768678551427219487": {
