@@ -113,7 +113,7 @@ module.exports = {
                     clearInterval(h)
                     message.channel.send(`${args.user} Pingcheck complete`)
                 }
-            }, interval)
+            }, 1)
 
         } catch (err) {
             stuff.sendError(message.channel, err)

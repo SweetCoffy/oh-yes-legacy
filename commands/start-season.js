@@ -24,6 +24,7 @@ module.exports = {
                         stuff.db.push(`/${el[0]}/inventory`, [])
                         stuff.db.push(`/${el[0]}/pets`, [])
                         stuff.db.push(`/${el[0]}/defense`, 0)
+                        stuff.db.push(`/${el[0]}/attack`, 1)
                         stuff.db.push(`/${el[0]}/equipment`, [])
                         stuff.db.push(`/${el[0]}/equipmentSlots`, 6)
                         stuff.db.push(`/${el[0]}/achievements`, [])

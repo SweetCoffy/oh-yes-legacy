@@ -1827,7 +1827,7 @@ module.exports = {
     
     addPoints (user, amount, reason) {
         var h = this;
-        this.db.push(`/${user}/points`, (h.getPoints(user) + BigInt(Math.floor(amount) || 0)).toString())
+        this.db.push(`/${user}/points`, (h.getPoints(user) + BigInt(Math.floor(parseInt(amount)) || 0)).toString())
     },
     getPoints (user) {
         var h = this
