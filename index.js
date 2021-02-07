@@ -15,19 +15,8 @@ const config = require('../config.json');
 const fs = require('fs');
 const CommandError = require('./CommandError');
 function messageThing(message) {
-    var cname = message.channel.name;
-    var uname = message.author.username;
-    var c = message.content;
-    var fancyContent = c.replace(/`([^`]+)`/gs, chalk.bgHex("121212")("$1"))
-    .replace(/\*(.+)\*/gs, chalk.italic("$1"))
-    .replace(/\*\*(.+)\*\*/gs, chalk.bold("$1"))
-    .replace(/~~(.+)~~/, chalk.strikethrough("$1"))
+
     
-    var embed = message.embeds[0];
-    if (embed) {
-        fancyContent += `\n${chalk.bgHex(embed.hexColor || "121212")("---------------------------------------")}\n${chalk.whiteBright(embed.title || "")}\n${(embed.description || "").replace(/\*\*([^*]+)\*\*/g, chalk.bold("$1"))}\n${chalk.gray(embed.fields.map(el => `\t${chalk.whiteBright(el.name)}\n\t${chalk.gray(el.value)}`).join("\n\n"))}\n${chalk.gray((embed.footer || {}).text || "")}\n${chalk.bgHex(embed.hexColor || "121212")("---------------------------------------")}`
-    }
-    console.log(`${chalk.gray(cname + "/")}${uname}${chalk.gray(":")} ${fancyContent}`)
 }
 const { resolve, join } = require('path');
 const api = require('./api');
