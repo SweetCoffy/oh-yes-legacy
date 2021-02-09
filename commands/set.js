@@ -4,65 +4,25 @@ module.exports = {
     name: "set",
     requiredPermission: "commands.set",
     description: "sets a config value",
-    usage: "set <setting:string> <value:any>",
     usableAnywhere: true,
     usableAnytime: true,
-
-    execute (message, args, extraArgs) {
-
-        var didConvert = false;
-        
-        var unconvertedVal = args.slice(1).join(" ");
-
-        var val = unconvertedVal;
-        
-        var conversions = 
+    arguments: [
         {
-            "Bool": stuff.string2bool,
-            "Int": parseInt,
-            "Float": parseFloat,
-            "StringArray": stuff.string2stringArray,
-            "Object": JSON.parse
+            name: "setting",
+            type: "string"
+        },
+        {
+            name: "value",
+            type: "any"
         }
-        
-        if (stuff.string2bool(unconvertedVal) != undefined) {
-            val = stuff.string2bool(unconvertedVal);
-            didConvert = true;
-        }
-
-        if (extraArgs.length > 0) {
-            var regex = /as(.*)/
-            var convertTo = regex.exec(extraArgs[0])[1];
-    
-            
-            if (conversions[convertTo] != undefined) {
-                val = (conversions[convertTo])(unconvertedVal);
-                didConvert = true;
-            } else {
-                throw `could not find conversion: \`${convertTo}\``
-            }
-        }
-        
-
-        
-
-        
-
-        stuff.set(args[0], val);
-
-        
+    ],
+    useArgsObject: true,
+    execute (message, args) {
+        stuff.set(args.setting, args.value);    
         var embed = {
-            title: `set \`${args[0]}\` to \`${val}\``,
+            title: `set \`${args.setting}\` to \`${args.value}\``,
         }
-
-        if (didConvert) {
-            embed.description = `(converted to \`${(typeof val).toString()}\`)`
-        }
-
-
-        
         message.channel.send({embed: embed});
-
     }
 }
 
