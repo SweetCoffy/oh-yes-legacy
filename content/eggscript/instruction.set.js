@@ -1,1 +1,0 @@
-module.exports = (message, args, phoneData) => phoneData.vars[args.unshift()] = args.join(" ")

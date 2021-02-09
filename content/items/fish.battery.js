@@ -1,1 +1,0 @@
-module.exports = { id: "battery", extraData: { charge: 64, quality: 0.7 } }
