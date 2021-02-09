@@ -360,6 +360,7 @@ module.exports = {
         "easteregg": "eastereggs",
         "type": "conversions",
         "other": "other",
+        "selfRole": 'selfRoles',
         "contentType": "contentTypes",
         "fish": "fishes",
         "instruction": "eggscriptInstructions",
@@ -2128,6 +2129,7 @@ module.exports = {
             })
         }
     },
+    selfRoles: {},
     _venezuelaMode: false,
     get venezuelaMode() {
         return this.dataStuff.getData(`/`).venezuelaMode || false;
