@@ -10,7 +10,8 @@ module.exports = {
         var selectedRoles = message.member.roles.cache.map(el => el.id).filter(el => roles.map(el => el.id).includes(el))
         var e = ['🔼', '🔽', '🇦', '✅']
         var embed = {
-            name: `Self role selector`,
+            title: `Self role selector`,
+            color: 0x0390fc,
             description: `${roles.map((el, i) => `${(i == selected) ? '► ' : ''}${(selectedRoles.includes(el.id)) ? '✅' : '⬛'}<@&${el.id}> — ${el.description}`).join("\n")}`,
             footer: { text: `🔼 🔽: Move cursor\n🇦: Select\n✅: Finish` }
         }
