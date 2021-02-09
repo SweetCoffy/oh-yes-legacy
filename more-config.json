@@ -48,7 +48,7 @@
     "commands.pingcheck": true,
     "commands.se-": "fals-",
     "commands.debug": true,
-    "commands.eval": false,
+    "commands.eval": true,
     "commands.buy": "iushnbg sjildkg;nubwu;iogunvsoiufnda g;ovnsu fdgo;vnsd f;og",
     "NiChrosia_Exist": true,
     "commands.youtube": true,

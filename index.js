@@ -7,6 +7,7 @@ stuff.client = client;
 client.commands = new Discord.Collection();
 client.requiredVotes = 10;
 client.voteTimeout = 100;
+client.slashCommands = new Discord.Collection();
 const chalk = require('chalk')
 if (!stuff.dataStuff.exists(`/banned`)) {
     stuff.dataStuff.push(`/banned`, [])
@@ -27,19 +28,32 @@ const h = {
         return client.channels.cache.get(stuff.getConfig("auditLogs"))
     }
 }
-function loadCommands() {
+async function loadSlashCommands() {
+    console.log(`Loading slash commands...`)
+    client.slashCommands.clear();
+    var app = await client.app
+    app
+    const commandFiles = fs.readdirSync('./slashCommands').filter(file => file.endsWith('.js'));
+    for (const file of commandFiles) {
+        delete require.cache[resolve(`./slashCommands/${file}`)]
+        const command = require(`./slashCommands/${file}`);
+        client.slashCommands.set(command.name, command);
+    }
+}
+async function loadCommands() {
     console.log('Loading commands...')
-    var i = 0;
+    client.commands.clear()
     const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
     for (const file of commandFiles) {
         delete require.cache[resolve(`./commands/${file}`)]
         const command = require(`./commands/${file}`);
         client.commands.set(command.name, command);
-        i++;
     }
+    loadSlashCommands()
     console.log(`Finished loading commands`)
     stuff.loadPhoneCommands();
 }
+stuff.loadSlashCommands = loadSlashCommands
 stuff.loadContent()
 stuff.updateContent()
 loadCommands();
@@ -338,6 +352,9 @@ function sendError (channel, err) {
         thumbnail: { url: 'https://cdn.discordapp.com/emojis/737474912666648688.png?v=1' },
         title: _err.name || "oof",
         description: _err.message || _err.toString(),
+    }
+    if (_err.stack) {
+        msgEmbed.fields = [{name: `Stack Trace`, value: _err.stack.slice(0, 1024)}]
     }
     if (_err.footer) {
         msgEmbed.footer = { text: _err.footer }
