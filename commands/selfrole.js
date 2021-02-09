@@ -13,7 +13,7 @@ module.exports = {
             title: `Self role selector`,
             color: 0x0390fc,
             description: `${roles.map((el, i) => `${(i == selected) ? '► ' : ''}${(selectedRoles.includes(el.id)) ? '✅' : '⬛'}<@&${el.id}> — ${el.description}`).join("\n")}`,
-            footer: { text: `🔼 🔽: Move cursor\n🇦: Select\n✅: Finish` }
+            footer: { text: `🔼 🔽: Move cursor\n🇦: Select\n✅: Done` }
         }
         var msg = await message.channel.send({embed: embed})
         for (const emoji of e) {
@@ -33,7 +33,6 @@ module.exports = {
             updateEmbed()
             if (r.emoji.name == '✅') {
                 c.stop()
-                await msg.delete()
                 var rolesToRemove = roles.map(el => el.id).filter(el => !selectedRoles.includes(el))
                 var rolesToAdd = selectedRoles
                 for (const r of rolesToRemove) {
@@ -43,9 +42,14 @@ module.exports = {
                     message.member.roles.add(r)
                 }
             }
-        }).on('end', () => msg.reactions.removeAll())
+        }).on('end', async () => {
+            msg.reactions.removeAll()
+            selected = -1;
+            embed.footer = { text: `No` }
+            updateEmbed()
+        })  
         async function updateEmbed() {
-            embed.description = `${roles.map((el, i) => `${(i == selected) ? '► ' : ''}${(selectedRoles.includes(el.id)) ? '✅' : '⬛'}<@&${el.id}> — ${el.description}`).join("\n")}`
+            embed.description = `${roles.map((el, i) => `${(i == selected) ? '► ' : ''}${(selectedRoles.includes(el.id)) ? '✅' : '⬛'} <@&${el.id}> — ${el.description}`).join("\n")}`
             msg = await msg.edit({embed: embed})
         }
     }
