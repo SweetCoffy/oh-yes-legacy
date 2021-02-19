@@ -179,7 +179,9 @@
         "permissions": []
     },
     "800155463587987507": {
-        "permissions": []
+        "permissions": [
+            "commands.lockdown"
+        ]
     },
     "801465339568193599": {
         "permissions": []
@@ -188,6 +190,21 @@
         "permissions": []
     },
     "808551255864901674": {
+        "permissions": []
+    },
+    "808553724741943316": {
+        "permissions": []
+    },
+    "808540913219272754": {
+        "permissions": []
+    },
+    "808832050890407936": {
+        "permissions": []
+    },
+    "810309188651188245": {
+        "permissions": []
+    },
+    "811183934502731798": {
         "permissions": []
     }
 }

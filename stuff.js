@@ -72,6 +72,7 @@ module.exports = {
     cheats: {},
     eastereggs: {},
     eggscriptInstructions: {},
+    stonks: {},
     formatThings: formatThings,
     taxes: {
         existing: {
@@ -2129,6 +2130,13 @@ module.exports = {
             })
         }
     },
+    updateStonks() {
+        var self = this;
+        Object.entries(self.shopItems).forEach(([k, v]) => {  
+            var percent = self.randomRange(self.getConfig('stonksMinPercent'), self.getConfig('stonksMaxPercent'))
+            self.stonks[k] = { mult: 1 + percent, percent }
+        })
+    },
     selfRoles: {},
     _venezuelaMode: false,
     get venezuelaMode() {
@@ -2139,6 +2147,9 @@ module.exports = {
         var self = this;
         self._venezuelaMode = value;
         self.updateVenezuelaMode();
+    },
+    randomRange(min, max) {
+        return min + Math.random() * (max - min)
     },
     mine(user, slot) {
         

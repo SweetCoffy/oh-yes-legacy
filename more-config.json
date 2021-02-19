@@ -12,7 +12,7 @@
     "announcements": "796838205014016021",
     "server-info": "736691780140924979",
     "unarchiveSuggestions": "736730736219914321",
-    "season": 26,
+    "season": 27,
     "ip": "<:ip:763937198764326963>",
     "idk": [
         "755546914715336765",
@@ -24,7 +24,7 @@
     "vChance": "0",
     "prestigeMin": 10000000000,
     "achievements": "751179205315919952",
-    "massBuyLimit": "96",
+    "massBuyLimit": 128,
     "cursedThing": "undefined",
     "auditLogs": "770065254880247858",
     "randomReactions": false,
@@ -58,5 +58,8 @@
     "commands.warn": true,
     "<@528309195116642314>.Alive": true,
     "": "",
-    "egg": 0.5
+    "egg": 0.5,
+    "<@!619439584119357440>.learnedThat": true,
+    "stonksMaxPercent": 0.3,
+    "stonksMinPercent": -0.3
 }

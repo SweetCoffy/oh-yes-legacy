@@ -11,6 +11,7 @@ module.exports = {
         stuff.loadPhoneCommands()
         stuff.updateContent()
         stuff.updateVenezuelaMode()
+        stuff.updateStonks()
         message.channel.send(`Commands and items reloaded succesfully`);
     }
 }

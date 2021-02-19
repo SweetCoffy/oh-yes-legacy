@@ -34,7 +34,7 @@ module.exports = {
                     stuff.set("season", stuff.getConfig("season") + 1)
                     stuff.venezuelaMode = false;
                     message.channel.send("Data reset and started a new season lol");
-                    message.client.channels.cache.get('736697212213657680').send({embed: {
+                    message.client.channels.cache.get(stuff.getConfig(`announcementsChannel`)).send({embed: {
                         title: `Season ${stuff.getConfig("season")} has started lol`,
                         color: 0x7734eb,
                         description: `All user data has been reset lol`
