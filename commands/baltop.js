@@ -16,7 +16,7 @@ module.exports = {
         var embed = {
             title: "Leaderboards",
             color: 0x03adfc,
-            description: sortedEntries.map((el, i) => `**#${i + 1}** <@${el[0]}> ─ ${stuff.format(el[1].points)}️ <:ip:770418561193607169> | ${stuff.format(el[1].gold || 0)}️ :coin: ─ ${stuff.format(stuff.getRankValue(el[0]))} Rank value`).slice(0, 10).join("\n")
+            description: sortedEntries.map((el, i) => `**#${i + 1}** <@${el[0]}> ─ ${stuff.format(el[1].points)}️ <:ip:770418561193607169> | ${stuff.format(el[1].gold || 0)}️ :coin: ─ ${stuff.format(stuff.getRankValue(el[0]))} Rank value`).slice(0, 20).join("\n")
         }
         message.channel.send({embed: embed});
     }

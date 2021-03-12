@@ -24,27 +24,6 @@ var execute = function(message, args) {
         description: reason,
         fields: [ { name: 'Warn code', value: `\`${code}\`` } ]
     }})
-    var channel = message.client.channels.cache.get(stuff.getConfig("crimes"))
-    channel.send({embed: {
-        title: `Warn alert`,
-        color: 0xfc4e03,
-        description: `${user} has been warned by ${message.author}`,
-        fields: [
-            {
-                name: "Reason",
-                value: reason,
-            },
-            {
-                name: "Channel",
-                value: `${message.channel} (${message.channel.id})`
-            },
-            {
-                name: "Warn code",
-                value: `\`${code}\``
-            }
-        ],
-        timestamp: Date.now()
-    }})
 }
 var cmd = new RestrictedCommand("warn", execute, "KICK_MEMBERS", "warns someone lol");
 cmd.useArgsObject = true;

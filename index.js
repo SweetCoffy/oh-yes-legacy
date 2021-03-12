@@ -1,5 +1,6 @@
 const Discord = require('discord.js');
 const stuff = require('./stuff');
+stuff.db.load()
 const client = new Discord.Client();
 var collecting = false;
 var result = "";
@@ -20,7 +21,6 @@ function messageThing(message) {
     
 }
 const { resolve, join } = require('path');
-const api = require('./api');
 const { counter } = require('./stuff');
 const cooldowns = new Discord.Collection();
 const h = {
@@ -58,9 +58,8 @@ stuff.loadContent()
 stuff.updateContent()
 loadCommands();
 stuff.loadCommands = loadCommands;
-client.once('ready', () => {
+client.once('ready', async () => {
     console.log('oh yes');
-    api.init(client);
     Object.entries(stuff.shopItems).forEach(([k, v]) => {
         stuff.originalPrices[k] = v.price || 0;
     })
@@ -81,6 +80,11 @@ client.once('ready', () => {
         } catch (e) {console.log(e)}
     }, stuff.getConfig('backupInterval'))
     stuff.updateVenezuelaMode();
+    var stonksThing = () => {
+        stuff.updateStonks()
+        client.stonksTimeout = setTimeout(stonksThing, stuff.getConfig('stonkUpdateInterval'))
+    }
+    stonksThing()
 });
 client.on('messageReactionAdd', (reaction, user) => {
     try {
@@ -108,6 +112,7 @@ client.on('emojiDelete', async emoji => {
 client.on('message', async message => {
     var now = Date.now();
     try {
+        try {stuff.db.save()} catch (_er) {console.log(_er)}
         if (message.channel.id == stuff.getConfig("countingChannel") && !message.author.bot) {
             var match = message.content.match(/(\d+)\s*[^]*/) || [];
             if (match[1] == stuff.counter + 1) {
@@ -172,23 +177,6 @@ client.on('message', async message => {
         }
         if (message.content.includes("<:v_:755546914715336765>")) {
         stuff.addVCounter(message.author.id, 1);
-    }
-    if (message.channel.id == stuff.getConfig("botChannel") && stuff.currentBoss) {
-        client.user.setPresence({
-            status: "online",
-            activity: {
-                name: `${stuff.currentBoss.name}: ${stuff.format(stuff.currentBoss.health)}/${stuff.format(stuff.currentBoss.maxHealth)}`,
-                type: "PLAYING",
-            }
-        })
-    } else if (message.channel.id == stuff.getConfig("botChannel")) {
-        client.user.setPresence({
-            status: "online",
-            activity: {
-                name: `No bosses currently active`,
-                type: "PLAYING"
-            }
-        })
     }
     if (stuff.getConfig("randomReactions") && message.author.id != '676696728065277992') {
         try {
@@ -260,7 +248,7 @@ client.on('message', async message => {
     var prefix = (message.channel.id == stuff.getConfig("noPrefixChannel")) ? "" : stuff.getConfig('prefix', ';');
     if (!message.content.startsWith(prefix)) return;
     var args = message.content.slice(prefix.length).split(" ");
-    const commandName = args.shift();;
+    const commandName = args.shift();
     const command = client.commands.get(commandName) ?? client.commands.filter(v => {
         if (!v.aliases) return
         if (v.aliases.includes(commandName)) return true
@@ -304,6 +292,10 @@ client.on('message', async message => {
                 var newArgs = joinedArgs.split(" ").filter(function(el) {
                     return el != "" && el != null && el != undefined;
                 }) || [];
+                var r = /"([^"]+?)"|([^ ]+)/g
+                if (command.supportsQuoteArgs) {
+                    newArgs = [...newArgs.join(" ").matchAll(r)].map(el => el[1] || el[2])
+                }
                 var a = [];
                 if (command.arguments) {
                     a = stuff.argsThing(command, newArgs, message)

@@ -13,6 +13,7 @@ module.exports = {
             type: "stringArray"
         }
     ],
+    supportsQuoteArgs: true,
     useArgsObject: true,
     /**
      * 

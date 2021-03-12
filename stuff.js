@@ -63,7 +63,7 @@ module.exports = {
      */
     client: undefined,
     rarity: Rarity,
-    db: new jsonDb.JsonDB("userdata", true, true, "/"),
+    db: new jsonDb.JsonDB("userdata", false, false, "/"),
     dataStuff: new jsonDb.JsonDB("datastuff", true, true, "/"),
     roles: new jsonDb.JsonDB('roleperms.json', true, true, "/"),
     facts: new jsonDb.JsonDB('funfacts.json', true, true, "/"),
@@ -1468,15 +1468,15 @@ module.exports = {
                 unchanged: true,
             },
             {
-                suffix: 'KB',
+                suffix: 'KiB',
                 min: 1024,
             },
             {
-                suffix: 'MB',
+                suffix: 'MiB',
                 min: 1024 * 1024,
             },
             {
-                suffix: 'GB',
+                suffix: 'GiB',
                 min: 1024 * 1024 * 1024,
             },
         ],
@@ -1828,8 +1828,11 @@ module.exports = {
     },
     
     addPoints (user, amount, reason) {
+        var a = BigInt(Math.floor(amount) || 0);
+        console.log(amount)
         var h = this;
-        this.db.push(`/${user}/points`, (h.getPoints(user) + BigInt(Math.floor(parseInt(amount)) || 0)).toString())
+        if (amount > 0) this.db.push(`/${user}/points`, (h.getPoints(user) + a).toString())
+        else this.db.push(`/${user}/points`, (h.getPoints(user) - a).toString())
     },
     getPoints (user) {
         var h = this
@@ -2136,6 +2139,20 @@ module.exports = {
             var percent = self.randomRange(self.getConfig('stonksMinPercent'), self.getConfig('stonksMaxPercent'))
             self.stonks[k] = { mult: 1 + percent, percent }
         })
+        var i = self.shopItems;
+        var h = Object.entries(self.stonks).sort((a, b) => {
+            var aDiff = (i[a[0]].price * a[1].mult) - i[a[0]].price
+            var bDiff = (i[b[0]].price * b[1].mult) - i[b[0]].price
+            return bDiff - aDiff
+        });
+        var embed = {
+            title: "Updated Stonk Market",
+            description: `${h.map(el => {
+                var diff = (i[el[0]].price * el[1].mult) - i[el[0]].price;
+                return `${i[el[0]].icon} **${i[el[0]].name}** — ${(diff >= 0) ? `+${self.format(diff)}` : `-${self.format(-diff)}`}`
+            }).slice(0, 30).join(`\n`) || 'empty lol'}`
+        }
+        self.client.channels.cache.get(self.getConfig("achievements")).send({embed: embed})
     },
     selfRoles: {},
     _venezuelaMode: false,

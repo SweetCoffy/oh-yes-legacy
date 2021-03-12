@@ -22,13 +22,13 @@ module.exports = {
             optional: true,
         }
     ],
-    cooldown: 2,
+    cooldown: 4,
 
     execute(message, args, _extraArgs, extraArgs) {
         if (args.length < 1) throw "e"; 
         var author = message.author.id;
         var itName = args._item;
-        var repeatAmount = stuff.clamp(args.repeat, 1, stuff.getConfig("massBuyLimit"));
+        var repeatAmount = stuff.clamp(args.repeat, 1, stuff.getConfig("massUseLimit"));
         stuff.repeat(() => {
             var h;
             var slot = args.item
@@ -40,7 +40,7 @@ module.exports = {
             h = stuff.shopItems[it.id].onUse(author, message, args.args.split(" "), slot)
             return h;
         }, repeatAmount).then(([iter, err, data]) => {
-            if (err) stuff.sendError(message.channel, err)
+            if (err && iter <= 0) stuff.sendError(message.channel, err)
             
                 if (stuff.shopItems[itName]) {
                     var onBulkUse = stuff.shopItems[itName].onBulkUse;
@@ -48,7 +48,7 @@ module.exports = {
                         onBulkUse(message.author.id, data, message)
                     }
                 }
-                message.channel.send(`You used ${iter} items!`)
+                if (iter > 0) message.channel.send(`You used ${iter} items!`)
             
         })
     }

@@ -5,6 +5,7 @@ module.exports = {
     name: "perms",
     description: "shows your permissions lol",
     usage: "perms [user]",
+    aliases: ["permissions"],
     execute(message, args) {
         var user = message.mentions.users.first() || message.author;
         /**
