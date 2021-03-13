@@ -272,6 +272,12 @@ module.exports = {
             id: "eggflag",
             description: "You're a gud boi",
             icon: "<:eggflag:779124272832053319>"
+        },
+        "sun-stonks": {
+            name: "The Fucking Sun:tm: Stonks",
+            id: "sun-stonks",
+            icon: "<:thefukinsun:819716692602781696>",
+            description: `You decided to ascend into the 69th dimension`
         }
     },
 
@@ -1465,79 +1471,165 @@ module.exports = {
             {
                 suffix: 'B',
                 min: 0,
+                decimalPlaces: 0,
                 unchanged: true,
             },
             {
                 suffix: 'KiB',
+                decimalPlaces: 2,
                 min: 1024,
             },
             {
                 suffix: 'MiB',
+                decimalPlaces: 2,
                 min: 1024 * 1024,
             },
             {
                 suffix: 'GiB',
+                decimalPlaces: 2,
                 min: 1024 * 1024 * 1024,
+            },
+            {
+                suffix: 'TiB',
+                decimalPlaces: 2,
+                min: 1024 * 1024 * 1024 * 1024,
+            },
+            {
+                suffix: 'PiB',
+                decimalPlaces: 2,
+                min: 1024 * 1024 * 1024 * 1024 * 1024,
             },
         ],
         number: [
             {
                 suffix: '',
+                decimalPlaces: 0,
                 min: 0,
                 unchanged: true,
             },
             {
-                suffix: 'K',
-                min: 1000,
+                suffix: ' K',
+                decimalPlaces: 2,
+                min: 1000n,
             },
             {
-                suffix: 'M',
-                min: 1000000,
+                suffix: ' M',
+                decimalPlaces: 2,
+                min: 1000000n,
             },
             {
-                suffix: 'B',
-                min: 1000000000,
+                suffix: ' B',
+                decimalPlaces: 2,
+                min: 1000000000n,
             },
             {
-                suffix: 'T',
-                min: 1000000000000,
+                suffix: ' T',
+                decimalPlaces: 2,
+                min: 1000000000000n,
             },
             {
-                suffix: 'q',
-                min: 1000000000000000,
+                suffix: ' Qd',
+                decimalPlaces: 2,
+                min: 1000000000000000n,
             },
             {
-                suffix: 'Q',
+                suffix: ' Qn',
+                decimalPlaces: 2,
                 min: 1000000000000000000n,
             },
             {
-                suffix: 's',
+                suffix: ' Sx',
+                decimalPlaces: 2,
                 min: 1000000000000000000000n,
             },
             {
-                suffix: 'S',
+                suffix: ' Sp',
+                decimalPlaces: 2,
                 min: 1000000000000000000000000n,
             },
             {
-                suffix: 'O',
+                suffix: ' O',
+                decimalPlaces: 2,
                 min: 1000000000000000000000000000n,
             },
             {
-                suffix: 'N',
+                suffix: ' N',
+                decimalPlaces: 2,
                 min: 1000000000000000000000000000000n,
+            },
+            {
+                suffix: ' D',
+                decimalPlaces: 2,
+                min: 1000000000000000000000000000000000n,
+            },
+            {
+                suffix: ' Ud',
+                decimalPlaces: 2,
+                min: 1000000000000000000000000000000000000n,
+            },
+            {
+                suffix: ' Dd',
+                decimalPlaces: 2,
+                min: 1000000000000000000000000000000000000000n,
+            },
+            {
+                suffix: ' Td',
+                decimalPlaces: 2,
+                min: 1000000000000000000000000000000000000000000n,
+            },
+            {
+                suffix: ' Qdd',
+                decimalPlaces: 2,
+                min: 1000000000000000000000000000000000000000000000n,
+            },
+            {
+                suffix: ' Qnd',
+                decimalPlaces: 2,
+                min: 1000000000000000000000000000000000000000000000000n,
+            },
+            {
+                suffix: ' Sxd',
+                decimalPlaces: 2,
+                min: 1000000000000000000000000000000000000000000000000000n,
+            },
+            {
+                suffix: ' Spd',
+                decimalPlaces: 2,
+                min: 1000000000000000000000000000000000000000000000000000000n,
+            },
+            {
+                suffix: ' Od',
+                decimalPlaces: 2,
+                min: 1000000000000000000000000000000000000000000000000000000000n,
+            },
+            {
+                suffix: ' Nd',
+                decimalPlaces: 2,
+                min: 1000000000000000000000000000000000000000000000000000000000000n,
+            },
+            {
+                suffix: ' Vg',
+                decimalPlaces: 2,
+                min: 10n ** 63n,
             },
         ]
     },
     betterFormat(value, options) {
-        if (typeof value != 'number' || isNaN(value)) return `invalid number`
+        var s = this;
+        if ((typeof value != 'number' && typeof value != 'bigint')) return `NaN`
+        if (typeof value != 'bigint' && isNaN(value)) return `NaN`
         try {
+            if (typeof value == 'number') value = BigInt(Math.floor(value))
             var f = options[0]
             for (const _f of options) {
                 if (value >= _f.min) f = _f;
             }
-            if (!f.unchanged) value /= f.min
-            return `${value.toFixed(1)}${f.suffix}`
+            var result = 0;
+            if (!f.unchanged) result = Number(s.clamp(Number(value) / Number(f.min), -Number.MAX_VALUE, Number.MAX_VALUE))
+            else result = Number(s.clamp(value, -Number.MAX_VALUE, Number.MAX_VALUE))
+            return `${result.toFixed(f.decimalPlaces ?? 1)}${f.suffix}`
         } catch (err) {
+            console.log(err)
             return value + ""
         }
     },
@@ -1638,7 +1730,6 @@ module.exports = {
     },
 
     getInventory(user) {
-
         var s = require('./stuff')
         return s.db.getData(` /${user}/inventory`).filter(el => {
             return el.name != undefined && el.icon != undefined;
@@ -1672,6 +1763,8 @@ module.exports = {
         return resolve('./userdata.json')
     },
     format(number, options = {k: "k", m: "M", b: "B", t: "T", q: "q", Q: "Q", s: "s", S: "S", O: "O", N: "N"}) {
+        var s = require('./stuff');
+        return s.betterFormat(number, s.formatOptions.number);
         try {
             var clamp = this.clamp;
             if (typeof number == "bigint") number = Number(clamp(number, Number.MIN_VALUE, Number.MAX_VALUE))
@@ -2211,5 +2304,50 @@ module.exports = {
             throw new CommandError("<:v_:755546914715336765>", `How are you supposed to mine with \`${inv[slot].id}\`?`);
         }
     },
-
+    currencies: {
+        "ip": {
+            name: "Internet Points™️",
+            propertyName: "points",
+            icon: "<:ip:770418561193607169>",
+            value: 1,
+        },
+        "gold": {
+            name: "Gold",
+            propertyName: "gold",
+            icon: ":coin:",
+            value: 100,
+        },
+        "sun": {
+            name: "The Fucking Suns™️",
+            propertyName: "suns",
+            icon: "<:thefukinsun:819716692602781696>",
+            value: 1000000000000,
+        },
+        "cheesy-way": {
+            name: "Cheesy Ways™️",
+            propertyName: "cheeseWays",
+            icon: "🌌",
+            value: 1000000000000000000,
+        },
+        "braincell": {
+            name: "Braincells™️",
+            propertyName: "braincells",
+            icon: "🧠",
+            value: 1000,
+        },
+    },
+    getMoney(user, currency = "ip") {
+        var h = this
+        var cur = h.currencies[currency] || h.currencies.ip;
+        return BigInt(h.clamp(parseInt(this.db.getData(`/${user}/`)[cur.propertyName] || 0), Number.MIN_VALUE / 2, Number.MAX_VALUE)) || 0n;
+    },
+    addMoney(user, amount, currency = "ip") {
+        var stuff = require('./stuff')
+        var cur = stuff.currencies[currency] || stuff.currencies.ip;
+        var a = BigInt(Math.floor(amount) || 0);
+        console.log(amount)
+        var h = stuff;
+        if (a > 0n) stuff.db.push(`/${user}/${cur.propertyName}`, (h.getMoney(user, currency) + a).toString())
+        else stuff.db.push(`/${user}/${cur.propertyName}`, (h.getMoney(user, currency) + a).toString())
+    }
 }

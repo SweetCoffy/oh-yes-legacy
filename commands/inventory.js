@@ -87,19 +87,19 @@ module.exports = {
             
             
 
-            
             inv.forEach((item, i) => {
                 itemNames.push(`${(item.amount != 1 && item.amount) ? `${item.amount}x ` : `${item.amount ? '' : `\`${i}\` `}`}${item.icon} \`${item.id}\` ${item.name}`);
             });
-
+            
             var embed = {
                 title: "Inventory",
                 color: colors[0],
                 description: itemNames.slice(startFrom, startFrom + 20).join("\n"),
                 footer: {
-                    text: `Page ${page + 1}/${Math.floor(inv.length / 20) + 1}`
+                    text: `Page ${page + 1}/${Math.floor(inv.length / 20) + 1}, You currently have ${stuff.format(_inv.length)} items`
                 }
             }
+
             if (Math.random() < 0.07 || stuff.getCheats(message.author.id)['ivetory']) {
                 embed.title = "Ivetory"
                 embed.fields = [{ name: "cool", value: "you just found an easter egg" }]
@@ -107,11 +107,11 @@ module.exports = {
             }
             if (extraArgs.oldStacking) {
                 embed.color = colors[1]
-                embed.title = "Inventory (old stacking)"
+                embed.title = "Inventory (old version)"
             }
             if (!useCompact) {
                 embed.color = colors[2]
-                embed.title = "Inventory (no stacking)"
+                embed.title = "Inventory (oldest version)"
             }
             message.channel.send({embed: embed});
         }

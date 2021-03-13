@@ -3,15 +3,15 @@ const CommandError = require("../CommandError");
 const stuff = require("../stuff")
 
 module.exports = {
-    name: "prestige",
-    description: "resets basically all of your data for gold coins, seems legit",
+    name: "rebirth",
+    description: "The first layer of prestige, resets quite a lot of your stuff for gold, you will also keep your The Fucking Suns™️ if you have ascended before",
     aliases: ['self-perish'],
     /**
      * 
      * @param {Message} message 
      */
     execute(message) {
-        if (stuff.getPoints(message.author.id) < stuff.getConfig("prestigeMin")) throw new CommandError("Not enough money", `You need at least ${stuff.format(stuff.getConfig("prestigeMin"))} to do prestige`)
+        if (stuff.getPoints(message.author.id) < stuff.getConfig("prestigeMin")) throw new CommandError("Not enough money", `You need at least ${stuff.format(stuff.getConfig("prestigeMin"))} to do rebirth`)
         var mult = BigInt(Math.floor(stuff.getMultiplier(message.author.id) / 10000000));
         var moni = stuff.getPoints(message.author.id) / 10000000n;
         var niceId = message.author.id.includes("69") ? 4200000000n : 0n;

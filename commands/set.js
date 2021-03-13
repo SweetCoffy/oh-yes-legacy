@@ -6,6 +6,7 @@ module.exports = {
     description: "sets a config value",
     usableAnywhere: true,
     usableAnytime: true,
+    supportsQuoteArgs: true,
     arguments: [
         {
             name: "setting",
@@ -14,13 +15,19 @@ module.exports = {
         {
             name: "value",
             type: "any"
+        },
+        {
+            name: "forceString",
+            type: "bool"
         }
     ],
     useArgsObject: true,
     execute (message, args) {
-        stuff.set(args.setting, args.value);    
+        var v = args.value
+        if (args.forceString) v = args._value;
+        stuff.set(args.setting, v);    
         var embed = {
-            title: `set \`${args.setting}\` to \`${args.value}\``,
+            title: `set \`${args.setting}\` to \`${v}\``,
         }
         message.channel.send({embed: embed});
     }

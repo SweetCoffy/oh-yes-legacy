@@ -9,10 +9,10 @@
     "oO": "749319330503852084",
     "deepfriedv_": "750501468385050624",
     "madv_": "758760245455224903",
-    "announcements": "796838205014016021",
+    "announcements": "819754844004548608",
     "server-info": "736691780140924979",
     "unarchiveSuggestions": "736730736219914321",
-    "season": 27,
+    "season": 28,
     "ip": "<:ip:763937198764326963>",
     "idk": "%appdata%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup",
     "vChance": "0",
@@ -42,7 +42,7 @@
     "commands.pingcheck": false,
     "commands.se-": "fals-",
     "commands.debug": true,
-    "commands.eval": false,
+    "commands.eval": true,
     "commands.buy": "iushnbg sjildkg;nubwu;iogunvsoiufnda g;ovnsu fdgo;vnsd f;og",
     "NiChrosia_Exist": true,
     "commands.youtube": true,
@@ -60,5 +60,8 @@
     "stonkUpdateInterval": 240000,
     "massCraftLimit": 128,
     "Peter.timeLeftTillHeartStops": 12200,
-    "massUseLimit": 758
+    "massUseLimit": 758,
+    "ascendMinimum": 10000000000000000000,
+    "massEquipLimit": 128,
+    "inventoryDisplayedItemLimit": 500000
 }

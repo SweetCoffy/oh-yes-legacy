@@ -29,13 +29,14 @@ module.exports = {
         var author = message.author.id;
         var itName = args._item;
         var repeatAmount = stuff.clamp(args.repeat, 1, stuff.getConfig("massUseLimit"));
+        var inv = stuff.getInventory(author);
         stuff.repeat(() => {
             var h;
             var slot = args.item
             if (isNaN(args._item)) {
-                slot = stuff.getInventory(author).map(el => el.id).indexOf(args._item)
+                slot = inv.findIndex(el => el.id == args._item)
             }
-            var it = stuff.getInventory(author)[slot];
+            var it = inv[slot];
             if (it == undefined) throw `you don't have an item at slot \`${slot}\``
             h = stuff.shopItems[it.id].onUse(author, message, args.args.split(" "), slot)
             return h;

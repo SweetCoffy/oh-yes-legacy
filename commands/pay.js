@@ -14,16 +14,23 @@ module.exports = {
             name: "amount",
             type: "formattedNumber",
             description: "The amount to pay"
+        },
+        {
+            name: "currency",
+            type: "string",
+            optional: true,
+            default: "ip"
         }
     ],
     useArgsObject: true,
     execute(message, args) {
-        var hasReverseCard = stuff.getInventory(args.user.id).map(el => el.id).includes('reverse-card');
-        var money = stuff.getPoints(message.author.id)
+        var cur = stuff.currencies[args.currency]
+        if (!cur) throw `Invalid currency`
+        var money = stuff.getMoney(message.author.id, args.currency)
         if (money < args.amount) throw new CommandError("e", "You can't get money from nowhere")
         if (args.amount < 0) throw new CommandError("e", "You can't steal money")
-        stuff.addPoints(args.user.id, hasReverseCard ? -args.amount : args.amount, `Got paid from ${message.author}`)
-        stuff.addPoints(message.author.id, hasReverseCard ? args.amount : -args.amount, `Paid to ${args.user}`)
-        message.channel.send(`Paid ${stuff.format(hasReverseCard ? -args.amount : args.amount)} <:ip:770418561193607169> to ${args.user} lol`);
+        stuff.addMoney(args.user.id, args.amount, args.currency)
+        stuff.addMoney(message.author.id, -args.amount, args.currency)
+        message.channel.send(`Paid ${stuff.format(args.amount)} ${cur.icon} to ${args.user} lol`);
     }
 }

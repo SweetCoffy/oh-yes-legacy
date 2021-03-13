@@ -4,9 +4,9 @@ module.exports = {
     name: "Brazil Flag",
     icon: "🇧🇷",
     inStock: 9999999,
-    price: 99999999999999999999999,
+    price: 0.0002,
     rarity: stuff.rarity.purple,
-    currency: "gold",
+    currency: "sun",
     veModeExclusive: true,
     description: 'Use it to send someone to Brazil',
     /**

@@ -89,9 +89,9 @@ module.exports = {
                 }
                 if (cmd.arguments) {
                     e.fields.push({
-                        name: "Detailed usage",
+                        name: "Parameters",
                         value: cmd.arguments.map((el, i) => {
-                            var str = `**${el.name || "arg" + i}**${el.optional ? "?" : ""} : ${el.type}${el.default ? ` = ${el.default}` : ''}\n${el.description || '*<placeholder>*'}`
+                            var str = `${el.type}${el.optional ? "?" : ""} **${el.name || "arg" + i}**${el.default ? ` = ${el.default}` : ''}\n${el.description || 'nothing'}`
                             return str;
                         }).join("\n\n"),
                         inline: true
@@ -157,12 +157,10 @@ module.exports = {
                     var commandEnabled = stuff.getConfig("commands." + element.name.toLowerCase());
                     var en;
     
-                    if (commandEnabled && !commandRemoved) {
-                        en = "";
-                    } else if (!commandRemoved){
-                        en = "🔴";
+                    if (commandEnabled) {
+                        en = "🔹";
                     } else {
-                        en = "⚫";
+                        en = "🔸";
                     }
                     
                     if (!commandRemoved || showRemovedCommands) {

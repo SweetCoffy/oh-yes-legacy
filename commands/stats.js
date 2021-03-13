@@ -13,7 +13,7 @@ module.exports = {
             description: "The user to show info about"
         }
     ],
-    aliases: ['bal', 'balance', 'points', 'profile', 'stonks'],
+    aliases: ['bal', 'balance', 'points', 'profile', 'stonks', 'stat'],
     execute(message, args, _e, extraArgs) {
         var user = args.user;
 
@@ -32,7 +32,7 @@ module.exports = {
             fields: [
                 {
                     name: "Money",
-                    value: `<:ip:770418561193607169> ${stuff.format(points)}\n:coin: ${stuff.format(stuff.getGold(user.id))}`,
+                    value: `${Object.entries(stuff.currencies).filter(el => stuff.getMoney(user.id, el[0]) > 0n).map(el => `${el[1].icon} ${stuff.format(stuff.getMoney(user.id, el[0]))}`).join('\n')}`,
                     inline: true,
                 },
                 {
@@ -67,15 +67,18 @@ module.exports = {
             delete embed.fields
             embed.description = 
 `
-<:ip:770418561193607169> ${stuff.format(points)}
-:coin: ${stuff.format(stuff.getGold(user.id))}
+${Object.entries(stuff.currencies).filter(el => stuff.getMoney(user.id, el[0]) > 0n).map(el => `${el[1].icon} ${stuff.format(stuff.getMoney(user.id, el[0]))}`).join('\n')}
+
 ${stuff.getTaxes(user.id).map(el => `**${el.name}** ─ ${stuff.format(el.amount * (stuff.getMultiplier(user.id) * el.multiplierEffect))}/h (${stuff.format(el.amount * (stuff.getMultiplier(user.id) * el.multiplierEffect) / 60)}/m)`).join('\n') || 'no taxes'}
+
 **Multiplier**: ${stuff.format(multiplier)}
 **Exponent**: ${stuff.format(stuff.getMultiplierMultiplier(user.id))}
+
 :heart: ${stuff.format(stuff.userHealth[user.id])}/${stuff.format(userObject.maxHealth || 100)}
 :shield: ${stuff.format(userObject.defense || 0)}
 :dagger: ${stuff.format(userObject.attack || 1)}
 **Powah level**: ${stuff.format(stuff.getMaxHealth(user.id) + stuff.getAttack(user.id) + stuff.getDefense(user.id))}
+
 **Equipment** (${stuff.getEquipment(user.id).length}/${stuff.getEquipmentSlots(user.id)}): ${stuff.getEquipment(user.id).map(el => el.icon).slice(0, 25).join(" ") || "doesn't exist"}
 **Medals**: ${(stuff.db.getData(`/${user.id}/`).medals || []).map(el => el.icon).join(" ") || 'no'}
 `

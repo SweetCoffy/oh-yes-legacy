@@ -3,7 +3,6 @@ const stuff = require('../stuff')
 module.exports = {
     name: "buy",
     description: "buys something from the shop",
-    usage: "buy <item>",
     useArgsObject: true,
     arguments: [
         {
@@ -30,7 +29,7 @@ module.exports = {
         var showHidden = _extraArgsObject.showHidden
         if (!item) {
             var entries = Object.entries(stuff.shopItems).sort(function(a, b) {
-                return (b[1].price * (b[1].unlisted ? 0 : 1)) - (a[1].price * (a[1].unlisted ? 0 : 1));
+                return (b[1].price * stuff.currencies[b[1].currency || "ip"].value * (b[1].unlisted ? 0 : 1)) - (a[1].price * stuff.currencies[a[1].currency || "ip"].value * (a[1].unlisted ? 0 : 1));
             }).filter(el => {
                 if (showHidden) return true;
                 else return (!el[1].unlisted && el[1].price) 
@@ -45,8 +44,8 @@ module.exports = {
             var startFrom = 0 + (itemsPerPage * page);
 
             entries.forEach(entry => {
-                if (!useOldShop) itemNames.push(`${entry[1].icon} \`${entry[0]}\` **${entry[1].name}**${entry[1].unlisted ? ' (Unlisted)' : ''}${entry[1].price ? ` ─ ${((entry[1].currency || "ip") == "ip") ? "<:ip:770418561193607169>" : ":coin:"} __${stuff.format(entry[1].price * stuff.stonks[entry[0]].mult)}__ ` : ''}${(entry[1].type) ? ` ─ ${entry[1].type}` : ``}${(entry[1].extraInfo) ? `\n${entry[1].extraInfo}` : ``}`);
-                if (useOldShop) itemNames.push(`${entry[1].icon} \`${entry[0]}\` **${entry[1].name}**${entry[1].unlisted ? ' (Unlisted)' : ''}${entry[1].price ? `, ${stuff.format(entry[1].price * stuff.stonks[entry[0]].mult)} ${((entry[1].currency || "ip") == "ip") ? "Internet Points" : "Gold"}` : ''} ${(discount < 1) ? `${(1 - discount) * 100}% OFF` : ``}`);
+                if (!useOldShop) itemNames.push(`${entry[1].icon} \`${entry[0]}\` **${entry[1].name}**${entry[1].unlisted ? ' (Unlisted)' : ''}${entry[1].price ? ` ─ ${(stuff.currencies[entry[1].currency] || stuff.currencies.ip).icon} __${stuff.format(entry[1].price * stuff.stonks[entry[0]].mult)}__ ` : ''}${(entry[1].type) ? ` ─ ${entry[1].type}` : ``}${(entry[1].extraInfo) ? `\n${entry[1].extraInfo}` : ``}`);
+                if (useOldShop) itemNames.push(`${entry[1].icon} \`${entry[0]}\` **${entry[1].name}**${entry[1].unlisted ? ' (Unlisted)' : ''}${entry[1].price ? `, ${stuff.format(entry[1].price * stuff.stonks[entry[0]].mult)} ${(stuff.currencies[entry[1].currency] || stuff.currencies.ip).name}` : ``}`);
             })
 
             var embed = {
@@ -68,7 +67,7 @@ module.exports = {
                 if (it.veModeExclusive && !stuff.venezuelaMode) throw `You can only buy this item in venezuela mode`
                 var embed = {
                     title: `${it.icon} ${it.name}`,
-                    description: `You bought ${it.icon} ${it.name} for ${stuff.format(it.price * stuff.stonks[item].mult)} ️${(curr == "ip") ? "<:ip:770418561193607169>" : ":coin:"}`
+                    description: `You bought ${it.icon} ${it.name} for ${stuff.format(it.price * stuff.stonks[item].mult)} ️${(stuff.currencies[curr] || stuff.currencies.ip).icon}`
                 }
                 var curr = it.currency || "ip"
                 var price = stuff.shopItems[item].price * stuff.stonks[item].mult;
@@ -76,17 +75,15 @@ module.exports = {
                     embed.color = it.rarity;
                 }
                 stuff.repeat(i => {
-                    var cantAfford = stuff.getPoints(message.author.id) < price;
-                    if (curr != "ip") cantAfford = stuff.getGold(message.author.id) < price
+                    var cantAfford = stuff.getMoney(message.author.id, curr || "ip") < price;
                     if (cantAfford) {
                         throw `You can't afford this item`
                     } else {      
                         stuff.addItem(message.author.id, {name: it.name, onUse: it.onUse, icon: it.icon, id: item, extraData: {...it.extraData}, rarity: it.rarity})
-                        if(curr == "ip") stuff.addPoints(message.author.id, Math.floor(price))
-                        if(curr == "gold") stuff.addGold(message.author.id, Math.floor(price))
+                        stuff.addMoney(message.author.id, -price, curr)
                     }  
                 }, repeatAmount).then(([repeat, err]) => {                    
-                    embed.description = `You bought ${repeat}x ${it.icon} ${it.name} for ${stuff.format(it.price * stuff.stonks[item].mult * repeat)} ${(curr == "ip") ? "<:ip:770418561193607169>" : ":coin:"}`;
+                    embed.description = `You bought ${repeat}x ${it.icon} ${it.name} for ${stuff.format(it.price * stuff.stonks[item].mult * repeat)} ${(stuff.currencies[curr] || stuff.currencies.ip).icon}`;
                     if (err && repeat <= 0) {stuff.sendError(message.channel, err);console.log(err)}
                     else if (repeat > 0) message.channel.send({embed: embed})
                 })
