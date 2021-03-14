@@ -53,7 +53,7 @@ module.exports = {
                 color: 0x34a1eb,
                 description: itemNames.slice(startFrom, startFrom + itemsPerPage).join(useOldShop ? "\n" : "\n\n"),
                 footer: {
-                    text: `Page ${page + 1}/${stuff.clamp(Math.ceil(entries.length / itemsPerPage), 1, Infinity)}, ${stuff.venezuelaMode ? "oh no venezuela mode is enabled" : "add --page <page number> at the end to see a different page"}`
+                    text: `Page ${page + 1}/${stuff.clamp(Math.ceil(entries.length / itemsPerPage), 1, Infinity)}, ${stuff.venezuelaMode ? "oh no venezuela mode is enabled" : "add --page \"<page number>\" at the end to see a different page"}`
                 }    
             }
             if (useOldShop) embed.title = "Shop (old version)"

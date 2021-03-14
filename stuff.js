@@ -595,7 +595,7 @@ module.exports = {
 
 
     /**
-     * Repeats `callback` `times` times asynchronously
+     * Repeats `callback` `times` times
      * @param {function(Number)} callback The code to repeat
      * @param {Number} times The amount of times to repeat `callback`
      * @returns {Promise<Number, Error | CommandError, any[]>} Promise for the completion of the loop
@@ -1926,7 +1926,7 @@ module.exports = {
     
     addPoints (user, amount, reason) {
         var a = BigInt(Math.floor(amount) || 0);
-        console.log(amount)
+        
         var h = this;
         if (amount > 0) this.db.push(`/${user}/points`, (h.getPoints(user) + a).toString())
         else this.db.push(`/${user}/points`, (h.getPoints(user) - a).toString())
@@ -2027,31 +2027,31 @@ module.exports = {
         if (user == "602651056320675840") return true;
         try {
             if (!guildId) {
-                console.log('h');
+                ;
                 var v = this.db.getData(`/${user}/permissions/`)[perm];
                 return v;
             } else {
                 var member = client.guilds.cache.get(guildId).member(user);
                 var perms = {};
                 member.fetch();
-                console.log(member.roles.cache.map(el => `${el.name}, ${el.id}`))
+                
                 member.roles.cache.forEach((_r, id) => {
                     if (!roles.exists(`/${id}/permissions`)) roles.push(`/${id}/`, { permissions: [] });
                     var p = roles.getData(`/${id}/permissions`)
                     p.forEach(v => {perms[v] = true})
                 })
-                console.log(perms);
+                ;
                 var segments = perm.split(".");
                 for (var i = 0; i < segments.length; i++) {
                     var s = segments.slice(0, i).join(".")
-                    console.log(s) 
+                     
                     if (perms[`${s}.*`]) return true;
                 }
                 
                 return perms[perm] ?? false;
             }
         } catch (_e) {
-            console.log(_e)
+            
             return false;
         }
     },
@@ -2069,7 +2069,7 @@ module.exports = {
             })
             return perms;
         } catch (_e) {
-            console.log(_e);
+            ;
             return {};
         }
     },
@@ -2101,31 +2101,31 @@ module.exports = {
         return c[cheat]
     },
     argConversion: (arg, str, message) => {
-        console.log('h')
+        
         var conversions = require('./stuff').conversions;
         var v = conversions[arg.type](str, message)
         var _default = conversions[arg.type](arg.default ?? "", message)
         var h = (v == undefined || (isNaN(v) && typeof v == 'number') || v == '') ? _default : v
-        console.log(h)
+        
         return h;
     },
     argsThing(command, newArgs, message) {
         if (command.arguments) {
             var argsObject = {};
             const argConversion = (arg, str, message) => {
-                console.log('h')
+                
                 var conversions = require('./stuff').conversions;
                 var v = conversions[arg.type](str, message)
                 var _default = conversions[arg.type](arg.default ?? "", message)
                 var h = (v == undefined) ? _default : v
                 if (isNaN(h) && typeof h == 'number') h = _default;
-                console.log(h)
+                
                 return h;
             }
             var a = [];
             var requiredArgs = command.arguments.filter(el => !el.optional);
             command.arguments.forEach((arg, i) => {
-                console.log('h2')
+                
                 var el = newArgs[i];
                 if (i >= command.arguments.length - 1) el = newArgs.slice(i).join(" ");
                 var val = argConversion(arg, el, message);
@@ -2182,13 +2182,13 @@ module.exports = {
             return message.client.users.cache.get(match[1]);
         },
         inventoryItem: (str, message) => {
-            console.log('function called')
-            console.log(str)
+            
+            
             var stuff = require('./stuff')
             var inv = stuff.getInventory(message.author.id).map(el => el.id)
-            console.log(inv);
+            ;
             var slot = inv.indexOf(str);
-            console.log(slot)
+            
             if (inv[parseInt(str)] != undefined) return parseInt(str)
             if (slot < 0 && inv[0] != str) return undefined
             return slot;
@@ -2355,7 +2355,7 @@ module.exports = {
         var stuff = require('./stuff')
         var cur = stuff.currencies[currency] || stuff.currencies.ip;
         var a = BigInt(Math.floor(amount) || 0);
-        console.log(amount)
+        
         var h = stuff;
         if (a > 0n) stuff.db.push(`/${user}/${cur.propertyName}`, (h.getMoney(user, currency) + a).toString())
         else stuff.db.push(`/${user}/${cur.propertyName}`, (h.getMoney(user, currency) + a).toString())

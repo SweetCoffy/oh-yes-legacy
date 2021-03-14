@@ -37,9 +37,8 @@ module.exports = {
                 slot = inv.findIndex(el => el.id == args._item)
             }
             var it = inv[slot];
-            if (it == undefined) throw `you don't have an item at slot \`${slot}\``
-            h = stuff.shopItems[it.id].onUse(author, message, args.args.split(" "), slot)
-            return h;
+            if (!it) throw `you don't have an item at slot \`${slot}\``
+            return stuff.shopItems[it.id].onUse(author, message, args.args.split(" "), slot);
         }, repeatAmount).then(([iter, err, data]) => {
             if (err && iter <= 0) stuff.sendError(message.channel, err)
             

@@ -73,8 +73,7 @@ module.exports = {
         }
 
         if (itemData.price) {
-            if (!itemData.unlisted) embed.fields.push({name: "Buy price", value: stuff.format(itemData.price), inline: true})
-            embed.fields.push({name: "Sell price", value: stuff.format(itemData.price / 2 || 0), inline: true})
+            embed.fields.push({name: "Buy/Sell price", value: `${stuff.format(itemData.price * stuff.stonks[args[0]].mult)} ${stuff.currencies[itemData.currency || 'ip'].icon}`, inline: true})
         }
         var craftable = stuff.craftables[args[0]];
         if (craftable) {
