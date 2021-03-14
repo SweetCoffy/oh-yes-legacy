@@ -35,12 +35,12 @@ module.exports = {
             stuff.repeat(() => {
                 var canCraft = stuff.canCraft(args.item, message.author.id);
                 if (canCraft) {
+                    stuff.addItem(message.author.id, craftable.id);
                     craftable.ingredients.forEach(el => {
                         for (var i = 0; i < el.amount; i++) {
                             stuff.removeItem(message.author.id, el.id)
                         }
                     })
-                    stuff.addItem(message.author.id, craftable.id);
                 } else {
                     throw "You can't craft this item!!!1!!1!!1"
                 }

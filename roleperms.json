@@ -208,7 +208,9 @@
         "permissions": []
     },
     "813198809458147348": {
-        "permissions": []
+        "permissions": [
+            "commands.set"
+        ]
     },
     "813853289011216476": {
         "permissions": []
@@ -244,6 +246,9 @@
         "permissions": []
     },
     "820238229466120222": {
+        "permissions": []
+    },
+    "819721229585481739": {
         "permissions": []
     }
 }

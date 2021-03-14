@@ -1695,10 +1695,13 @@ module.exports = {
 
     removeEquipment(user, slot) {
         var s = require('./stuff')
+        var u = s.db.data[user]
+        if (u.inventory.length + 1 > u.maxItems) throw `Inventory limit reached`
+        s.addItem(user, item);
         var item = s.getEquipment(user)[slot]
+        if (!item) throw `no`
         s.db.delete(`/${user}/equipment[${slot}]`);
         s.shopItems[item.id].onUnequip(user, slot)
-        s.addItem(user, item);
     },
 
     getEquipmentSlots(user) {
@@ -1860,6 +1863,7 @@ module.exports = {
 
     addItem(user, item, extraData) {   
         var _item = item;
+        if (this.db.data[user].inventory.length + 1 > this.db.data[user].maxItems) throw `Inventory limit reached`
         if (typeof item == 'string') {
             var items = this.shopItems;
             var i = Object.create(items[item])
@@ -2322,6 +2326,12 @@ module.exports = {
             propertyName: "suns",
             icon: "<:thefukinsun:819716692602781696>",
             value: 1000000000000,
+        },
+        "capacity": {
+            name: "Item Capacity",
+            propertyName: "maxItems",
+            icon: "📦",
+            value: 0,
         },
         "cheesy-way": {
             name: "Cheesy Ways™️",

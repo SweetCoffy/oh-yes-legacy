@@ -164,6 +164,7 @@ client.on('message', async message => {
                 defense: 0,
                 maxHealth: 100,
                 gold: 0,
+                maxItems: 256000,
                 taxes: [],
                 inventory: [],
                 pets: [],

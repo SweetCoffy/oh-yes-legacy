@@ -96,7 +96,7 @@ module.exports = {
                 color: colors[0],
                 description: itemNames.slice(startFrom, startFrom + 20).join("\n"),
                 footer: {
-                    text: `Page ${page + 1}/${Math.floor(inv.length / 20) + 1}, You currently have ${stuff.format(_inv.length)} items`
+                    text: `Page ${page + 1}/${Math.floor(inv.length / 20) + 1}, You currently have ${stuff.format(_inv.length)} / ${stuff.format(stuff.getMoney(message.author.id, 'capacity'))} items`
                 }
             }
 
