@@ -38,18 +38,22 @@ module.exports = {
                     stuff.addItem(message.author.id, craftable.id);
                     craftable.ingredients.forEach(el => {
                         for (var i = 0; i < el.amount; i++) {
-                            stuff.removeItem(message.author.id, el.id)
+                            var inv = stuff.db.data[message.author.id].inventory
+                            var idx = inv.findIndex(e => e.id == el.id)
+                            inv.splice(idx, 1)
                         }
                     })
                 } else {
                     throw "You can't craft this item!!!1!!1!!1"
                 }
             }, repeat).then(([iter, err]) => {
-                if (err) stuff.sendError(message.channel, err)
-                message.channel.send({embed: {
-                    title: "ha ha yes",
-                    description: `You crafted ${iter}x ${it.icon} **${it.name}** with the following items:\n${craftable.ingredients.map(el => `- ${el.amount * iter}x ${stuff.shopItems[el.id].icon} **${stuff.shopItems[el.id].name}**`).join("\n")}`
-                }})
+                if (err && iter < 1) stuff.sendError(message.channel, err)
+                else if (iter > 0) {
+                    message.channel.send({embed: {
+                        title: "ha ha yes",
+                        description: `You crafted ${iter}x ${it.icon} **${it.name}** with the following items:\n${craftable.ingredients.map(el => `- ${el.amount * iter}x ${stuff.shopItems[el.id].icon} **${stuff.shopItems[el.id].name}**`).join("\n")}`
+                    }})
+                }
             })
         }
     }

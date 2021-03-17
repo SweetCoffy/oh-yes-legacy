@@ -234,7 +234,9 @@
         "permissions": []
     },
     "818628950510010398": {
-        "permissions": []
+        "permissions": [
+            "commands.announce"
+        ]
     },
     "817047391156830260": {
         "permissions": []
@@ -252,6 +254,27 @@
         "permissions": []
     },
     "820466944158597131": {
+        "permissions": []
+    },
+    "820083631585361991": {
+        "permissions": []
+    },
+    "819366544760242176": {
+        "permissions": []
+    },
+    "819585225813917777": {
+        "permissions": []
+    },
+    "820628502181183488": {
+        "permissions": []
+    },
+    "821294950946963464": {
+        "permissions": []
+    },
+    "820596899765288991": {
+        "permissions": []
+    },
+    "821294229585657887": {
         "permissions": []
     }
 }

@@ -95,7 +95,7 @@ module.exports = {
         if (itemData.extraData) {
             embed.fields.push({
                 name: "Default data",
-                value: Object.entries(itemData.extraData).map(el => `${stuff.thing(el[0])}: ${typeof el[1] == 'number' ? stuff.format(el[1]) : el[1].toString()}`).join("\n")
+                value: Object.entries(itemData.extraData).map(el => `${stuff.thing(el[0])}: ${typeof el[1] == 'number' ? stuff.format(el[1]) : (el[1] + "")}`).join("\n")
             })
         }
 

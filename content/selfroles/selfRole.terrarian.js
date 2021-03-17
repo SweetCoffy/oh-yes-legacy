@@ -1,4 +1,4 @@
 module.exports = {
-    id: `736698133571960922`,
-    description: `A Terraria player`
+    id: `817047391156830260`,
+    description: `Terraria boi`,
 }

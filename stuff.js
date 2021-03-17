@@ -48,7 +48,8 @@ const Rarity = {
     blue: 0x3f75cc,
     red: 0xed2d1f, // it's actually not red but shut
     pink: 0xff78ff, // totally not copying terraria
-    purple: 0xf403fc // eggs
+    purple: 0xf403fc, // eggs
+    yellow: 0xfff947,
 }
 
 

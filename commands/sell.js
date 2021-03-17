@@ -33,7 +33,7 @@ module.exports = {
             if (!it) throw `you don't have an item at slot \`${slot}\``
             var price = s[it.id].price * stuff.stonks[it.id].mult || 0;
             stuff.addMoney(message.author.id, price, stuff.shopItems[it.id].currency || "ip");
-            stuff.removeItem(message.author.id, it.id)
+            stuff.db.data[message.author.id].inventory.splice(slot, 1)
             totalSold[it.currency || "ip"] += price;
         }, repeatAmount).then(([iter, err]) => {
             var a = Object.entries(totalSold).filter(el => el[1] > 0).map(el => `${stuff.currencies[el[0]].icon} ${stuff.format(el[1])}`)

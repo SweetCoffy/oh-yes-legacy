@@ -77,7 +77,7 @@ module.exports = {
                 stuff.repeat(i => {
                     var cantAfford = stuff.getMoney(message.author.id, curr || "ip") < price;
                     if (cantAfford) {
-                        throw `You can't afford this item`
+                        throw `You can't afford this item you pore`
                     } else {      
                         stuff.addItem(message.author.id, {name: it.name, onUse: it.onUse, icon: it.icon, id: item, extraData: {...it.extraData}, rarity: it.rarity})
                         stuff.addMoney(message.author.id, -price, curr)
@@ -88,7 +88,7 @@ module.exports = {
                     else if (repeat > 0) message.channel.send({embed: embed})
                 })
             } else {
-                throw `the item \`${item}\` doesn't exist`
+                throw `${item} doesn't exist`
             }
         }
     }
