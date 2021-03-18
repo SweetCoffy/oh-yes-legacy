@@ -3,7 +3,7 @@ const stuff = require("../../stuff")
 
 module.exports = {
     name: "Sebo2205 Marketable Plushie",
-    description: "Ha ha yes the bot's developer as an item",
+    description: "no",
     unlisted: true,
     currency: "sun",
     price: 0.01,
