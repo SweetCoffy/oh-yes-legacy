@@ -63,6 +63,7 @@ module.exports = {
                 }
             } else if (optionsVoted[u.id] == undefined) {
                 if (!canVote) return;
+                if (n.indexOf(r.emoji.name) > o.length - 1) return;
                 totalVotes++
                 console.log(r.emoji.name)
                 voted.push(u.id)
