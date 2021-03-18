@@ -58,7 +58,7 @@
     "stonksMinPercent": -0.9,
     "auditLog": 751179205315920000,
     "stonkUpdateInterval": 240000,
-    "massCraftLimit": 64,
+    "massCraftLimit": 96,
     "Peter.timeLeftTillHeartStops": 12200,
     "massUseLimit": 758,
     "ascendMinimum": 10000000000000000000,

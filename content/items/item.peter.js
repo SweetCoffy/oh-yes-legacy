@@ -1,4 +1,5 @@
 const { rarity } = require("../../stuff");
+const stuff = require("../../stuff");
 
 module.exports = {
     name: "Peter1905 Marketable Plushie",

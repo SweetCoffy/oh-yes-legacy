@@ -40,18 +40,16 @@ module.exports = {
             ]
         }
         var msg = await message.channel.send({embed: embed})
-        for (var i = 0; i < o.length; i++) {
-            votes[i] = 0;
-            await msg.react(n[i]);
-        }
-        await msg.react('🚫')
-        var col = msg.createReactionCollector((r, u) => (r.emoji.name != '🚫' && !voted.includes(u.id) && !u.bot && n.includes(r.emoji.name)) || (r.emoji.name == '🚫' && u.id == message.author.id), { time: 15000 * 60 })
+        var col = msg.createReactionCollector((r, u) => !u.bot && [...n, '🚫'].includes(r.emoji.name), { time: 15000 * 60 })
         col.on('collect', (r, u) => {
+            r.users.remove(u.id)
             if (r.emoji.name == '🚫') {
-                if (optionsVoted[u.id]) {
+                console.log(optionsVoted[u.id])
+                if (optionsVoted[u.id] != undefined) {
+                    console.log('yes')
                     votes[optionsVoted[u.id]]--;
                     totalVotes--;
-                    optionsVoted[u.id] = undefined;
+                    delete optionsVoted[u.id];
                     voted.splice(voted.indexOf(u.id), 1)
                     embed.fields[0] = {
                         name: "Options",
@@ -59,12 +57,11 @@ module.exports = {
                     }
                     embed.fields[1] = {
                         name: "Recent votes",
-                        value: `${voted.map(el => `<@${el}> ${n[optionsVoted[el]]}`).reverse().slice(0, 10).join('\n')}`,
+                        value: `${voted.map(el => `<@${el}> ${n[optionsVoted[el]]}`).reverse().slice(0, 10).join('\n')}` || `empty lol`,
                     }
-                    r.users.remove(u.id)
                     msg.edit({embed: embed})
                 }
-            } else {
+            } else if (optionsVoted[u.id] == undefined) {
                 if (!canVote) return;
                 totalVotes++
                 console.log(r.emoji.name)
@@ -82,11 +79,15 @@ module.exports = {
                 r.users.remove(u.id)
                 msg.edit({embed: embed})
             }
-            r.users.remove(u.id)
         }).on('end', () => {
             embed.footer = { text: `Vote ended` }
             msg.reactions.removeAll()
             msg.edit({embed: embed})
         })
+        for (var i = 0; i < o.length; i++) {
+            votes[i] = 0;
+            await msg.react(n[i]);
+        }
+        await msg.react('🚫')
     }
 }

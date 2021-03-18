@@ -1613,6 +1613,61 @@ module.exports = {
                 decimalPlaces: 2,
                 min: 10n ** 63n,
             },
+            {
+                suffix: ' UVg',
+                decimalPlaces: 2,
+                min: 10n ** 66n,
+            },
+            {
+                suffix: ' DVg',
+                decimalPlaces: 2,
+                min: 10n ** 69n,
+            },
+            {
+                suffix: ' TVg',
+                decimalPlaces: 2,
+                min: 10n ** 72n,
+            },
+            {
+                suffix: ' QdVg',
+                decimalPlaces: 2,
+                min: 10n ** 75n,
+            },
+            {
+                suffix: ' QnVg',
+                decimalPlaces: 2,
+                min: 10n ** 78n,
+            },
+            {
+                suffix: ' SxVg',
+                decimalPlaces: 2,
+                min: 10n ** 81n,
+            },
+            {
+                suffix: ' SpVg',
+                decimalPlaces: 2,
+                min: 10n ** 84n,
+            },
+            {
+                suffix: ' NVg',
+                decimalPlaces: 2,
+                min: 10n ** 87n,
+            },
+            {
+                suffix: ' OVg',
+                decimalPlaces: 2,
+                min: 10n ** 90n,
+            },
+            {
+                suffix: ' Tg',
+                decimalPlaces: 2,
+                min: 10n ** 93n,
+            },
+            {
+                suffix: ' Cn',
+                decimalPlaces: 2,
+                min: 10n ** 303n,
+            },
         ]
     },
     betterFormat(value, options) {
