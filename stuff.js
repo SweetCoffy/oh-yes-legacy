@@ -1,4 +1,4 @@
-const { Collection, Client, MessageAttachment } = require('discord.js');
+const { Collection, Client, MessageAttachment, User } = require('discord.js');
 const fs = require('fs');
 const { resolve } = require('path');
 const request = require('request');

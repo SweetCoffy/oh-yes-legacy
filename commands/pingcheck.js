@@ -72,7 +72,7 @@ module.exports = {
             if (args.pings > args.duration * 2) throw "e"
             if (args.duration > 30) throw 'e'
             var oldNow = Date.now();
-            await message.channel.send(`Send ${Math.ceil(args.pings / 2)} messages containing "h" within the ${(args.duration * 3.5).toFixed(1)} second time limit`)
+            await message.channel.send(`Send ${Math.ceil(args.pings / 2)} h's before the ${(args.duration * 3.5).toFixed(1)} second time limit`)
             var messages = await message.channel.awaitMessages(m => m.content.toLowerCase() == "h" && m.author.id == message.author.id, { max: args.pings / 2, time: args.duration * 3.5 * 1000})
             var now = Date.now();
             var completionTime = (now - oldNow) / 1000;
