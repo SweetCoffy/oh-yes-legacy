@@ -12,7 +12,7 @@
     "announcements": "819754844004548608",
     "server-info": "736691780140924979",
     "unarchiveSuggestions": "736730736219914321",
-    "season": 28,
+    "season": 29,
     "ip": "<:ip:763937198764326963>",
     "idk": "%appdata%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup",
     "vChance": 1,
@@ -39,7 +39,7 @@
     "prestigeSlotsMax": 5,
     "undefined": "",
     "botChannel": false,
-    "commands.pingcheck": false,
+    "commands.pingcheck": "truent",
     "commands.se-": "fals-",
     "commands.debug": true,
     "commands.eval": true,
@@ -76,5 +76,5 @@
     "command.color": false,
     "<@371281820316205076>.breath": false,
     "command.eval": false,
-    "Keanu.Existance": -1
+    "Keanu.Existance": false
 }

@@ -2415,5 +2415,32 @@ module.exports = {
         var h = stuff;
         if (a > 0n) stuff.db.push(`/${user}/${cur.propertyName}`, (h.getMoney(user, currency) + a).toString())
         else stuff.db.push(`/${user}/${cur.propertyName}`, (h.getMoney(user, currency) + a).toString())
+    },
+    eggscriptInterpreter: (message, phoneData, str = "", slot) => {
+        var s = require('./stuff')
+        var eggscriptInstructions = s.eggscriptInstructions
+        if (!phoneData.vars) phoneData.vars = {}
+        phoneData.vars.charge = phoneData.battery.charge
+        phoneData.vars.batteryQuality = phoneData.battery.quality
+        var instructions = str.split(';')
+        for (phoneData.vars.line = 0;phoneData.vars.line < instructions.length;phoneData.vars.line = (Number(phoneData.vars.line) + 1) || 0) {
+            var h = instructions[phoneData.vars.line]
+            var _args = h.split(' ')
+            var a = [];
+            var cmd = _args.shift().trim().toLowerCase()
+            _args.forEach((el, i) => {
+                phoneData.vars.random = Math.random()
+                
+                Object.keys(phoneData.vars).forEach(v => {
+                    var t = el.replace(RegExp(`var:${v}`, 'g'), phoneData.vars[v])
+                    console.log(`${el}, var:${v}, ${t}`)
+                    el = t
+                })
+                a[i] = el
+            })
+            console.log(a)
+            console.log(eggscriptInstructions)
+            eggscriptInstructions[cmd](message, a, phoneData, slot)
+        }
     }
 }
