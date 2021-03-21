@@ -85,9 +85,15 @@ module.exports = {
                 ]
             },
             {
-                name: "Egg Reactor",
+                name: "Egg Fusion Reactor",
                 id: `egg-reactor`,
                 eggCount: 7,
+                coolant: 0,
+                fuel: 1,
+                temp: 42069,
+                getMessage(_m, r) {
+                    return `\nFuel: ${(r.fuel * 100).toFixed(1)}%\nTemperature: ${r.temp.toFixed(1)}°C\nCoolant: ${(r.coolant * 100).toFixed(1)}%\n`
+                },
                 tasks: [
                     {
                         name: "Open door",
@@ -131,7 +137,7 @@ module.exports = {
             })
         }
         var selectTask = async function (msg) {
-            msg = await msg.edit(`**${curRoom.name}**:\n\nTasks:\n${curRoom.tasks.map(el => `${!el.done ? `${el.check() ? '' : '🚫'}❗${el.saveEggs ? `🥚x ${el.savedEggs}` : ''} **${el.name}**` : `❕ ${el.name}`}`).join('\n') || '<nothing>'}\n\nThis room has ${curRoom.eggCount} eggs to save\n\nSay 'leave' to leave this room`)
+            msg = await msg.edit(`**${curRoom.name}**:\n${curRoom.getMessage ? curRoom.getMessage(msg, curRoom) : ''}\nTasks:\n${curRoom.tasks.map(el => `${!el.done ? `${el.check() ? '' : '🚫'}❗${el.saveEggs ? `🥚x ${el.savedEggs}` : ''} **${el.name}**` : `❕ ${el.name}`}`).join('\n') || '<nothing>'}\n\nThis room has ${curRoom.eggCount} eggs to save\n\nSay 'leave' to leave this room`)
             var m = (await message.channel.awaitMessages(m => m.author.id == message.author.id, {max: 1, time: 1000 * 80})).first()
             await m.delete()
             if (m.content.toLowerCase() == 'leave') {
@@ -159,7 +165,10 @@ module.exports = {
                     tasksDone++
                     points += task.points;
                     tasks[`${curRoom.id}-${task.id}`] = true;
-                    msg = await msg.edit(`${task.message}`)
+                    if (task.onDone) {
+                        task.onDone(msg)
+                    }
+                    msg = await msg.edit(`${task.message || task.getMessage(msg, task, curRoom)}`)
                     await delay(2000)
                     await selectTask(msg)
                 }

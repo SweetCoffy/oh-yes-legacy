@@ -6,5 +6,6 @@ module.exports = {
         console.log(args)
         var content = stuff.readPhoneFile(message.author.id, slot, args[0])
         stuff.eggscriptInterpreter(message, phoneData, content, slot)
+        stuff.addMoney(message.author.id, 1, 'braincell')
     }
 }

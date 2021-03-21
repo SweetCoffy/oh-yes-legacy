@@ -41,42 +41,46 @@ module.exports = {
     usage: "eval <code>",
     requiredPermission: "commands.eval",
     removed: false,
-
     execute(message, args) {
-        var vm = new vm2.VM({
-            timeout: 2000,
-            sandbox: cloneContext
-        })
-        var code = args.join(" ");
-        if (!code) {
-            throw "e"
-        }            
-        var result = vm.run(code);
-        var embed = {
-            title: `Code executed succesfully`,
-            color: 0x4287f5,
-            fields: [
-                {
-                    name: "Input",
-                    value: `\`\`\`js\n${code}\n\`\`\``,
-                    inline: true,
-                },
-                {
-                    name: "Output",
-                    value: `\`\`\`js\n${(result ? result : `${result}`).toString().slice(0, 1000)}\n\`\`\``,
-                    inline: true,
-                },
-            ]
-        }
-        if (cloneContext.console.out.length > 0) {
-            embed.fields.unshift({
-                name: "Console",
-                value: `\`\`\`\n${cloneContext.console.out.join("\n").slice(0, 1000)}\n\`\`\``,
+        try {
+            var vm = new vm2.VM({
+                timeout: 500,
+                sandbox: cloneContext
             })
+            var code = args.join(" ");
+            if (!code) {
+                throw "e"
+            }            
+            var result = vm.run(code);
+            var embed = {
+                title: `Code executed succesfully`,
+                color: 0x4287f5,
+                fields: [
+                    {
+                        name: "Input",
+                        value: `\`\`\`js\n${code}\n\`\`\``,
+                        inline: true,
+                    },
+                    {
+                        name: "Output",
+                        value: `\`\`\`js\n${(result ? result : `${result}`).toString().slice(0, 1000)}\n\`\`\``,
+                        inline: true,
+                    },
+                ]
+            }
+            if (cloneContext.console.out.length > 0) {
+                embed.fields.unshift({
+                    name: "Console",
+                    value: `\`\`\`\n${cloneContext.console.out.join("\n").slice(0, 1000)}\n\`\`\``,
+                })
+            }
+            message.channel.send({embed: embed})
+        } catch (e) {
+            throw e
+        } finally {            
+            cloneContext.console.clear()
+            cloneContext = context
         }
-        message.channel.send({embed: embed})
-        cloneContext.console.clear()
-        cloneContext = context
     }
 }
 

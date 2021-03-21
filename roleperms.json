@@ -30,7 +30,6 @@
     },
     "728718708079460424": {
         "permissions": [
-            "commands.eval",
             "yes"
         ]
     },
@@ -48,7 +47,8 @@
     },
     "763131572689305612": {
         "permissions": [
-            "commands.poll"
+            "commands.poll",
+            "commands.eval"
         ]
     },
     "738887813419892747": {
@@ -235,7 +235,8 @@
     },
     "818628950510010398": {
         "permissions": [
-            "commands.announce"
+            "commands.announce",
+            "commands.eval"
         ]
     },
     "817047391156830260": {
@@ -278,6 +279,12 @@
         "permissions": []
     },
     "820437637507973202": {
+        "permissions": []
+    },
+    "822248504893898762": {
+        "permissions": []
+    },
+    "822919913290465290": {
         "permissions": []
     }
 }
