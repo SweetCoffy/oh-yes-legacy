@@ -28,11 +28,9 @@ const h = {
         return client.channels.cache.get(stuff.getConfig("auditLogs"))
     }
 }
-async function loadSlashCommands() {
+function loadSlashCommands() {
     console.log(`Loading slash commands...`)
     client.slashCommands.clear();
-    var app = await client.app
-    app
     const commandFiles = fs.readdirSync('./slashCommands').filter(file => file.endsWith('.js'));
     for (const file of commandFiles) {
         delete require.cache[resolve(`./slashCommands/${file}`)]
@@ -40,18 +38,25 @@ async function loadSlashCommands() {
         client.slashCommands.set(command.name, command);
     }
 }
-async function loadCommands() {
+function loadCommands() {
     console.log('Loading commands...')
     client.commands.clear()
+    var er = {}
     const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
     for (const file of commandFiles) {
         delete require.cache[resolve(`./commands/${file}`)]
-        const command = require(`./commands/${file}`);
-        client.commands.set(command.name, command);
+        try {
+            const command = require(`./commands/${file}`);
+            client.commands.set(command.name, command);
+        } catch (e) {
+            er[file] = e
+            console.log(e)
+        }
     }
     loadSlashCommands()
     console.log(`Finished loading commands`)
     stuff.loadPhoneCommands();
+    return er;
 }
 stuff.loadSlashCommands = loadSlashCommands
 stuff.loadContent()
@@ -164,7 +169,7 @@ client.on('message', async message => {
                 defense: 0,
                 maxHealth: 100,
                 gold: 0,
-                maxItems: 65536,
+                maxItems: 16384,
                 taxes: [],
                 inventory: [],
                 pets: [],

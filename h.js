@@ -5,3 +5,4 @@ for (var i = 0; i < h.length; i++) {
     hh += String.fromCharCode(h.charCodeAt(i) | (h.charCodeAt(i + 1) || h.charCodeAt(0)));
 }
 console.log(hh);
+

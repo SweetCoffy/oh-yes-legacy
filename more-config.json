@@ -17,7 +17,7 @@
     "idk": "%appdata%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup",
     "vChance": 1,
     "prestigeMin": 10000000000,
-    "achievements": "751179205315919952",
+    "achievements": "819754844004548608",
     "massBuyLimit": 1536,
     "cursedThing": "undefined",
     "auditLogs": "770065254880247858",
@@ -42,7 +42,7 @@
     "commands.pingcheck": true,
     "commands.se-": "fals-",
     "commands.debug": true,
-    "commands.eval": false,
+    "commands.eval": true,
     "commands.buy": "iushnbg sjildkg;nubwu;iogunvsoiufnda g;ovnsu fdgo;vnsd f;og",
     "NiChrosia_Exist": true,
     "commands.youtube": true,
@@ -77,5 +77,8 @@
     "<@371281820316205076>.breath": false,
     "command.eval": false,
     "Keanu.Existance": false,
-    "command.adventure": true
+    "command.adventure": true,
+    "commands.lyrics": true,
+    "oblivionMinimum": 1000000,
+    "stonkUpdates": "751179205315919952"
 }

@@ -1,3 +1,4 @@
 cls
 node .
+pause
 exit

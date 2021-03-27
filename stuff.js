@@ -279,6 +279,12 @@ module.exports = {
             id: "sun-stonks",
             icon: "<:thefukinsun:819716692602781696>",
             description: `You decided to ascend into the 69th dimension`
+        },
+        "galaxy-stonks": {
+            name: "Cheesy Way Stonks",
+            id: "galaxy-stonks",
+            icon: "🌌",
+            description: `You decided to do a thing in the 420th dimension`
         }
     },
 
@@ -779,6 +785,7 @@ module.exports = {
                 inStock: 100000,
                 name: "Fries",
                 addedMultiplier: 10,
+                veModeExclusive: true,
                 rarity: Rarity.green,
                 price: 150,
                 onUse(user) {
@@ -1347,57 +1354,6 @@ module.exports = {
                 onUse() {},
                 addedPackage: "sus",
             },
-            "computer": {
-                name: "Computer",
-                icon: ":computer:",
-                price: 10000,
-                inStock: 9999999999,
-                rarity: Rarity.red,
-                type: "Other",
-                unstackable: true,
-                description: "Remember to add that one package called `h`!",
-                extraInfo: "Better version of the phone",
-                extraData: {
-                    packages: [],
-                    os: "Egg OS (Computer)",
-                    ver: 2, // phone version number, will be used in the future for command compatibility
-                    verName: "2b",
-                    discs: []
-                },
-                onUse: function(user, message, args, slot) {
-                    
-                    const stuff = require('./stuff');
-                    
-                    var phoneData = stuff.getInventory(user)[slot].extraData || {};
-                    var installedPackages = phoneData.packages || [];
-                    
-                    var u = message.guild.members.cache.get(user).user;
-
-
-                    
-                    var cmdName = args[0];
-                    var _args = args.slice(1);
-
-                    var cmd = stuff.phoneCommands.get(cmdName);
-
-                    
-                        
-                    if (!cmd) {
-                        throw `The command \`<base>/author unknown/${args[0]}\` is not available`;
-                    } else {
-                        if (!installedPackages.includes(cmd.package) && cmd.package != undefined) throw `The command \`${cmd.package || "unknown"}/${cmd.author || "author unknown"}/${cmd.name || "invalid-command"}\` is not available, use \`add ${cmd.package}\` and try again`;
-                        if ((cmd.minVer || 1) < phoneData.ver) {
-                            cmd.execute(message, _args, phoneData, slot);
-                        } else {
-                            throw `the command \`${cmd.name}\` requires version ${(cmd.minVer || 1).toFixed(1)} or newer, run \`update\` and try again`
-                        }
-                        
-                    }
-                    
-                    
-                    return false;
-                }
-            }
     },
 
     emojis: {
@@ -2289,7 +2245,8 @@ module.exports = {
     updateStonks() {
         var self = this;
         Object.entries(self.shopItems).forEach(([k, v]) => {  
-            var percent = self.randomRange(self.getConfig('stonksMinPercent'), self.getConfig('stonksMaxPercent'))
+            var m = k.stonkMult ?? 1;
+            var percent = ((self.randomRange(self.getConfig('stonksMinPercent'), self.getConfig('stonksMaxPercent')) - 1) * m) + 1
             self.stonks[k] = { mult: 1 + percent, percent }
         })
         var i = self.shopItems;
@@ -2305,7 +2262,7 @@ module.exports = {
                 return `${i[el[0]].icon} **${i[el[0]].name}** — ${(diff >= 0) ? `+${self.format(diff)}` : `-${self.format(-diff)}`}`
             }).slice(0, 30).join(`\n`) || 'empty lol'}`
         }
-        self.client.channels.cache.get(self.getConfig("achievements")).send({embed: embed})
+        self.client.channels.cache.get(self.getConfig("stonkUpdates")).send({embed: embed})
     },
     selfRoles: {},
     _venezuelaMode: false,

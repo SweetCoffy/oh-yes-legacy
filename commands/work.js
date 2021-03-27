@@ -22,6 +22,10 @@ module.exports = {
                 message: "You gave eggs to the Sky Egg Lord and got Internet Points\™ in exchange",
                 amount: 100,
             },
+            {
+                message: "You deleted some random person that did the cat from existence",
+                amount: 3000,
+            }
         ]        
         var thing = stuff.randomArrayElement(things);
         var embed = {

@@ -4,14 +4,14 @@ module.exports = {
     icon: "🍎",
     inStock: 999999999,
     price: 20,
-    addedMultiplier: 15,
+    addedMultiplier: .1,
     rarity: stuff.rarity.white,
     extraInfo: `Does very minor improvements to stats but doesn't decrease defense unlike donuts`,
     onUse(user) {
-        stuff.addMultiplier(user, 15)
-        stuff.addAttack(user, 0.05)
-        stuff.userHealth[user] += 2;
-        stuff.addMaxHealth(user, 0.1)
+        stuff.addMultiplier(user, .1)
+        stuff.addAttack(user, 0.01)
+        stuff.userHealth[user] += .05;
+        stuff.addMaxHealth(user, 0.05)
         stuff.removeItem(user, "apple")
     }
 }

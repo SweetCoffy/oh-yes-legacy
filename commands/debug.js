@@ -12,20 +12,22 @@ module.exports = {
     execute(message, args) {
         var context = {
             message,
-            generateArray(length, dimensions = 1) {
-                var h = []; 
-                for (var i = 0; i < length; i++) { 
-                    var _h = []; 
-                    for (var _i = 0; _i < dimensions; _i++) { 
-                        if (dimensions > 1)_h.push(_i + (i * dimensions))
-                        else _h = _i + i;
-                    } 
-                    h.push(_h)
-                } 
-                return h;
-            },
+            process: process,
             h(test) {
-                var hh = (h, _h = "") => {var list = [];Object.getOwnPropertyNames(h).forEach(el => {if (typeof h[el] == 'object') {var o = h[el];var e = hh(o, _h ? `${_h}/${el}` : `${el}`);list.push(...e);return;};if (el == "token") return;list.push(`${_h ? `${_h}/` : ''}${el}: ${(typeof h[el] == "string") ? `"${h[el]}"` : `${h[el]}`} `)});return list;};
+                var hh = (h, _h = "") => {
+                    var list = [];
+                    Object.getOwnPropertyNames(h).forEach(el => {
+                        if (typeof h[el] == 'object') {
+                            var o = h[el];
+                            var e = hh(o, _h ? `${_h}/${el}` : `${el}`);
+                            list.push(...e);
+                            return;
+                        }
+                        if (el == "token") return;
+                        list.push(`${_h ? `${_h}/` : ''}${el}: ${(typeof h[el] == "string") ? `"${h[el]}"` : `${h[el]}`} `);
+                    })
+                    return list;
+                }
                 return hh(test).join('\n')
             },
             debug(...args) {
@@ -60,9 +62,6 @@ module.exports = {
             get client() {
                 if (stuff.getPermission(message.author.id, "commands.debug.client", message.guild.id)) return message.client;
                 else return undefined
-            },
-            get Base64() {
-                return require('../Base64')
             },
             get stuff() {
                 if (stuff.getPermission(message.author.id, "commands.debug.stuff", message.guild.id)) return stuff
