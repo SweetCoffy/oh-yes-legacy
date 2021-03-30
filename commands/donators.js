@@ -3,6 +3,7 @@ const stuff = require('../stuff')
 module.exports = {
     name: 'donators',
     description: "shows a top 10 users who donated the most points",
+    category: "economy",
     execute (message) {
         var client = message.client;
         var guild = message.guild;

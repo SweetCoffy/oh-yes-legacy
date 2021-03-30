@@ -4,6 +4,7 @@ module.exports = {
     description: `Announces something in the bot announcements channel`,
     requiredPermission: "commands.announce",
     supportsQuoteArgs: true,
+    category: "moderation",
     useArgsObject: true,
     arguments: [
         {

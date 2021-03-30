@@ -4,6 +4,7 @@ module.exports = {
     name: "adventure",
     description: 'ha ha yes bootleg bread adventures',
     requiredPermission: 'yes',
+    category: "wip",
     /**
      * 
      * @param {Discord.Message} message 

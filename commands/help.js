@@ -6,24 +6,36 @@ const stuff = require('../stuff');
 module.exports = {
     name: "help",
     description: "shows command info",
-    usage: "help [commandname:string]",
+    supportsQuoteArgs: true,
+    useArgsObject: true,
+    category: "help",
+    arguments: [{
+        name: "category",
+        type: "string",
+        optional: true,
+        default: "",
+    }, {
+        name: "command",
+        type: "string",
+        optional: true,
+        default: "",
+    }],
 
     async execute (message, args, _extraArgs, extraArgs) {
-        const commands = message.client.commands;
-        
+        const commands = message.client.commandCategories.get(args.category);
         
         // if the user specified a command, show info about it
-        if (args[0]) {
+        if (args.command && commands) {
 
-            if (commands.has(args[0]) ) {
+            if (commands.has(args.command) ) {
 
-                var cmd = commands.get(args[0]);
-                if (args[1]) {
+                var cmd = commands.get(args.command);
+                /*if (args[1]) {
                     if (!cmd.subcommands) throw `The command \`${cmd.name}\` doesn't have any subcommands`
                     var subcmd = cmd.subcommands.get(args[1].toLowerCase())
                     if (!subcmd) throw `Invalid subcommand`
                     cmd = subcmd;
-                }
+                }*/
                 var commandEnabled = stuff.getConfig("commands." + cmd.name.toLowerCase());
                 var en;
                 var commandRemoved = cmd.removed;
@@ -131,58 +143,25 @@ module.exports = {
 
 
             } else {
-                throw "Could not find command `" + args[0] + "`";
+                throw `Could not find command: ${args.category}/${args.command}`;
             }
 
 
         } 
         // otherwise show a list of commands
-        else {
-
+        else if (!args.category) {
             commandNames = [];
-
-
-
             var currSeparator = "\n";
             var showRemovedCommands = extraArgs.showRemoved;
-
-
-
-          
-            
-            
-            
-            commands.forEach(element => {
-                    var commandRemoved = element.removed;
-                    var commandEnabled = stuff.getConfig("commands." + element.name.toLowerCase());
-                    var en;
-    
-                    if (commandEnabled) {
-                        en = "🔹";
-                    } else {
-                        en = "🔸";
-                    }
-                    
-                    if (!commandRemoved || showRemovedCommands) {
-                        commandNames.push(`${en} **` + (element.name || "invalid command") + `**: ` + (element.description || "<eggs>"));
-                    }
-                
-            });
-
             var page = (extraArgs.page || 1) - 1;
             var startFrom = 0 + (20 * page);
-            // commandNames.slice(startFrom, startFrom + 20).join(currSeparator)
             var embed = {
-                title: "command list",
-                description: commandNames.slice(startFrom, startFrom + 20).join(currSeparator),
-                footer: {
-                    text: `Use ;help <command name> to see info about a command, page ${page + 1}`,
-                }
+                title: 'Command categories',
+                description: message.client.commandCategories.map((v, k) => `\`${k}\` (${v.size} commands)`).join("\n"),
+                footer: { text: `Use ;help <category name> to show the command list of that category` }
             }
-
-
-
             var m = await message.channel.send({embed: embed})
+            /*
             await m.react('⬅️')
             await m.react('➡️')
             await m.react('🚫')
@@ -201,7 +180,15 @@ module.exports = {
             }).on('end', () => {
                 m.delete()
             })
-
+            */
+        } else if (args.category) {
+            if (!commands) throw `Invalid category`
+            var embed = {
+                title: `Category command list: ${args.category}`,
+                description: commands.map(el => `\`${el.name}\``).join(", "),
+                footer: { text: `Use ;help ${args.category} <command name> to show info about a command in this category` }
+            }
+            await message.channel.send({embed: embed})
         }
     }
 }

@@ -4,6 +4,7 @@ module.exports = {
     name: "inv-item-info",
     description: "shows the data of an item in your inventory",
     useArgsObject: true,
+    category: "economy",
     arguments: [
         {
             name: "item",

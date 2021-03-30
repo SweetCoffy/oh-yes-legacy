@@ -54,4 +54,4 @@ module.exports = new RestrictedCommand("kick", execute, "KICK_MEMBERS", "kicks s
     description: 'The reason for the kick',
     optional: true,
     default: ''
-})
+}).setProperty("category", "moderation")

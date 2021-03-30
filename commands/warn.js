@@ -39,6 +39,7 @@ cmd.arguments = [
         description: "The reason of the warn"
     }
 ]
+cmd.category = "moderation"
 module.exports = cmd;
 
 

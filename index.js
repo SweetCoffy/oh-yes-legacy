@@ -6,6 +6,7 @@ var collecting = false;
 var result = "";
 stuff.client = client;
 client.commands = new Discord.Collection();
+client.commandCategories = new Discord.Collection();
 client.requiredVotes = 10;
 client.voteTimeout = 100;
 client.slashCommands = new Discord.Collection();
@@ -39,6 +40,7 @@ function loadSlashCommands() {
     }
 }
 function loadCommands() {
+    client.commandCategories = new Discord.Collection();
     console.log('Loading commands...')
     client.commands.clear()
     var er = {}
@@ -47,6 +49,8 @@ function loadCommands() {
         delete require.cache[resolve(`./commands/${file}`)]
         try {
             const command = require(`./commands/${file}`);
+            if (!client.commandCategories.get(command.category || "commands")) client.commandCategories.set(command.category || "commands", new Discord.Collection());
+            client.commandCategories.get(command.category || "commands").set(command.name, command)
             client.commands.set(command.name, command);
         } catch (e) {
             er[file] = e
@@ -327,7 +331,7 @@ client.on('message', async message => {
                 } else {
                     a = newArgs
                 }
-                command.execute(message, a, extraArgs, extraArgsObject);
+                await command.execute(message, a, extraArgs, extraArgsObject);
             } else{
                 throw `The command \`${command.name}\` is disabled, run \`;set commands.${command.name} true\` to re-enable it`;
             }

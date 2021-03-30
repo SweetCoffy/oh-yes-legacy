@@ -10,6 +10,7 @@ module.exports = {
     name: "inventory",
     description: "shows the items you currently have",
     useArgsObject: true,
+    category: "economy",
     arguments: [
         {
             name: "page",

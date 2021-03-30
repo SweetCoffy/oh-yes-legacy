@@ -4,6 +4,7 @@ const stuff = require("../stuff")
 
 module.exports = {
     name: "ascend",
+    category: "economy",
     description: "The second layer of prestige, makes you ascend into the 69th dimension to get The Fucking Suns™️ at the cost of most of your stuff being reset",
     /**
      * 

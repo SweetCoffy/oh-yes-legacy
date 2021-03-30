@@ -11,5 +11,5 @@ var execute = async function(message, _args, _e, flags) {
     }
 }
 var cmd = new RestrictedCommand("yeet", execute, "MANAGE_CHANNELS", "clones the current channel and archives the original one")
-
+cmd.category = "moderation"
 module.exports = cmd

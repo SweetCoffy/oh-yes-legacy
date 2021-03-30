@@ -4,6 +4,7 @@ module.exports = {
     name: 'baltop',
     description: "shows a top 10 users who have the most moni",
     aliases: ['leaderboard'],
+    category: "economy",
     execute (message) {
         var client = message.client;
         var guild = message.guild;

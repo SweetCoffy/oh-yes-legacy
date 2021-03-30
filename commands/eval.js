@@ -14,19 +14,23 @@ module.exports = {
         try {
             var id = Date.now()
             var l = (d) => {
-                if (d.id != id) return;
-                if (d.error) {
-                    stuff.sendError(message.channel, d.error)
-                    return;
+                try {
+                    if (d.id != id) return;
+                    if (d.error) {
+                        stuff.sendError(message.channel, d.error)
+                        return;
+                    }
+                    var embed = {
+                        title: `Code executed successfully`,
+                        fields: []
+                    }
+                    embed.fields.push({ name: "Output", value: `\`\`\`js\n${(d.out + "").slice(0, 1000)}\n\`\`\`` })
+                    if (d.console.length > 0) embed.fields.push({ name: "Console", value: `\`\`\`js\n${d.console.slice(0, 1000)}\n\`\`\`` })
+                    message.channel.send({embed: embed})
+                    stuff.evalWorker.removeListener('message', l)
+                } catch (er) {
+                    sendError(message.channel, er)
                 }
-                var embed = {
-                    title: `Code executed successfully`,
-                    fields: []
-                }
-                embed.fields.push({ name: "Output", value: `\`\`\`js\n${(d.out || "undefined").slice(0, 1000)}\n\`\`\`` })
-                if (d.console.length > 0) embed.fields.push({ name: "Console", value: `\`\`\`js\n${d.console.slice(0, 1000)}\n\`\`\`` })
-                message.channel.send({embed: embed})
-                stuff.evalWorker.removeListener('message', l)
             }
             stuff.evalWorker.postMessage({ id, code: args.join(" ") })
             stuff.evalWorker.on('message', l)

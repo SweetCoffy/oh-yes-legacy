@@ -3,6 +3,7 @@ const stuff = require("../stuff")
 module.exports = {
     name: "medal",
     useArgsObject: true,
+    category: "economy",
     arguments: [
         {
             name: "medal",

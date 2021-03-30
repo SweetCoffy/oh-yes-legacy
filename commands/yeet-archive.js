@@ -5,6 +5,7 @@ module.exports = {
     name: 'yeet-archive',
     description: "fully yeets the archived channels",
     requiredPermission: "commands.yeet-archive",
+    category: "moderation",
     async execute(message) {
         var guild = message.guild;
         var archived = guild.channels.cache.filter(value => {

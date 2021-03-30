@@ -119,7 +119,7 @@ module.exports = {
         if (!name) throw `File name must not be empty`
         content = (content + "")
         name = (name + "").slice(0, 32)
-        var size = content.length;
+        var size = content.length * 2;
         var data = this.db.getData(`/${user}/inventory[${slot}]/extraData/`)
         if (!data.files[name]) {
             if (data.used + size > data.capacity) {
@@ -140,7 +140,7 @@ module.exports = {
     deletePhoneFile(user, slot, name) {
         var data = this.db.getData(`/${user}/inventory[${slot}]/extraData/`)
         if (!data.files[name]) throw `File does not exist`
-        data.used -= data.files[name].length
+        data.used -= data.files[name].length * 2
         delete data.files[name]
         this.db.push(`/${user}/inventory[${slot}]/extraData/`, data)
     },
@@ -608,7 +608,7 @@ module.exports = {
      * @returns {Promise<Number, Error | CommandError, any[]>} Promise for the completion of the loop
      */
     repeat (callback, times) {
-        return new Promise(resolve => {
+        return Promise.resolve().then(() => {
             var iterations = 0;
             var data = [];
             try {
@@ -616,13 +616,12 @@ module.exports = {
                     data.push(callback(i));
                     iterations++;
                 }
-                return resolve([iterations, undefined, data]);
+                return [iterations, undefined, data];
             } catch (err) { 
-                return resolve([iterations, err, data]);
+                return [iterations, err, data];
             }
         })
     },
-
     sendError (channel, err) {
         var _err = err;
         

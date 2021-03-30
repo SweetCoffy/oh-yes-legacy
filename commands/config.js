@@ -4,6 +4,7 @@ module.exports = {
     name: "config",
     description: "shows a list of all settings",
     useArgsObject: true,
+    category: "bot",
     arguments: [
         {
             name: "page",

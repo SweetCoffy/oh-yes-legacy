@@ -4,6 +4,7 @@ module.exports = {
     name: "buy",
     description: "buys something from the shop",
     useArgsObject: true,
+    category: "economy",
     arguments: [
         {
             name: "item",

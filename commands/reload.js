@@ -4,6 +4,7 @@ module.exports = {
     name: "reload",
     description: "reloads all commands lol",
     requiredPermission: 'commands.reload',
+    category: "bot",
     execute(message) {
         console.clear()
         message.channel.send(`Reloading...`)

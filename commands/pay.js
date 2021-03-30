@@ -4,6 +4,7 @@ const stuff = require("../stuff")
 module.exports = {
     name: "pay",
     description: "Self explanatory",
+    category: "economy",
     arguments: [
         {
             name: "user",

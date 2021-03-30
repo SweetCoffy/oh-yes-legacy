@@ -5,6 +5,7 @@ module.exports = {
     name: "craft",
     description: "oh god this bot is turning into a mining simulator ripoff",
     useArgsObject: true,
+    category: "economy",
     arguments: [
         {
             name: "item",

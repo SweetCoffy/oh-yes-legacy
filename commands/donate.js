@@ -5,6 +5,7 @@ module.exports = {
     name: "donate",
     description: "donate money to everyone else lol",
     useArgsObject: true,
+    category: "economy",
     arguments: [
         {
             name: "amount",

@@ -38,4 +38,5 @@ var execute = async function(message, args) {
     
 }
 var cmd = new RestrictedCommand("archive", execute, "MANAGE_CHANNELS", "archives the channel where the command has been performed")
+cmd.category = "moderation"
 module.exports = cmd

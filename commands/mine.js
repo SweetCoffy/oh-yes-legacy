@@ -4,6 +4,7 @@ module.exports = {
     name: "mine",
     description: "totally not a mining simulator ripoff",
     cooldown: 1.5,
+    category: "economy",
     execute(message, args) {
         var slot = getInventory(message.author.id).map(el => shopItems[el.id].type).lastIndexOf("Pickaxe");
         if (slot < 0) throw "You don't have a pickaxe!"

@@ -17,4 +17,4 @@ module.exports = new RestrictedCommand('delet', async(message, args) => {
     optional: true,
     default: 100,
     description: "The amount of messages to delete, cannot be higher than 100",
-}).setProperty('aliases', [ 'delete', 'clear' ])
+}).setProperty('aliases', [ 'delete', 'clear' ]).setProperty("category", "moderation")

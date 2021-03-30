@@ -2,6 +2,7 @@ const stuff = require('../stuff');
 
 module.exports = {
     name: "use",
+    category: "economy",
     description: "use an item ~~what did you expect lol~~",
     useArgsObject: true,
     arguments: [

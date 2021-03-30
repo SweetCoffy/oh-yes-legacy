@@ -2,6 +2,7 @@ var stuff = require('../stuff')
 module.exports = {
     name: "hunt",
     description: `shadowdude's hunt command, but better`,
+    category: "economy",
     cooldown: 10,
     async execute(message) {
         if (stuff.userHealth[message.author.id] <= 0) return message.channel.send(`You are dead, stop it`)

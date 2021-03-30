@@ -4,6 +4,7 @@ module.exports = {
     name: "work",
     description: "do work and earn moni!!11!1",
     cooldown: 7.5,
+    category: "economy",
     execute (message) {
         var things = [
             {

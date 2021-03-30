@@ -3,6 +3,7 @@ const stuff = require("../stuff")
 module.exports = {
     name: "heal",
     description: 'ha ha yes',
+    category: "economy",
     cooldown: 10,
     async execute(message) {
         var healCount = stuff.db.getData(`/${message.author.id}/`).healCount || 0;

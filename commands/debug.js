@@ -1,17 +1,32 @@
 var vm2 = require('vm2')
 const stuff = require('../stuff')
 var Discord = require('discord.js')
+var { inspect } = require('util')
+var stream = require('stream')
+const { Console } = require('console')
 module.exports = {
     name: "debug",
     description: "Basically an eval command but it can access more stuff",
     requiredPermission: "commands.debug",
+    category: "bot",
     arguments: [
         { name: "code", type: "string" }
     ],
     useArgsObject: true,
     execute(message, args) {
+        var str = ""
+        class DebugConsoleOutput extends stream.Writable {
+            write(...args) {
+                str += args[0];
+                process.stdout.write(args[0])
+                WritableStream.prototype?.write?.call?.(this, ...args);
+            }
+        }
+        var stdout = new DebugConsoleOutput()
+        var stderr = new DebugConsoleOutput()
         var context = {
             message,
+            console: new Console({ colorMode: false, stdout, stderr, }),
             process: process,
             h(test) {
                 var hh = (h, _h = "") => {
@@ -49,9 +64,7 @@ module.exports = {
                 }
                 return r
             },
-            require(module) {
-                return require(module)
-            },
+            require: require,
             hhnt(str, key = "") {
                 var r = ""
                 for (var i = 0; i < str.length; i++) {
@@ -72,10 +85,14 @@ module.exports = {
                 else return undefined
             },
         }
+        
         var vm = new vm2.VM({ sandbox: context, timeout: 2000, })
         var o = vm.run(args.code)
-        if (typeof o == 'string' && o.includes(require('../../config.json').token)) throw `image trying to leak the bot token`
+        if (typeof o != 'string') o = inspect(o)
         if (message.client.token != require('../../config.json').token) message.client.token = require('../../config.json').token
-        message.channel.send({content: `${o}`, split: true, code: "js"})
+        o = o.replace(new RegExp(`${message.client.token}`, 'g'), "*".repeat(message.client.token.length))
+        str = str.replace(new RegExp(`${message.client.token}`, 'g'), "*".repeat(message.client.token.length))
+        if (str) message.channel.send({content: `Console output:\n${str}`, split: true, code: "js"});
+        message.channel.send({content: `${o}`, split: true, code: "js"});
     }
 }

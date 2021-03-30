@@ -5,6 +5,7 @@ module.exports = {
     name: "item-info",
     description: "shows info about an item lololool",
     usage: "item-info <itemName>",
+    category: "economy",
     aliases: ["item", "iteminfo"],
     execute(message, args, _, extraArgs) {
         var itemData = stuff.shopItems[args[0]];

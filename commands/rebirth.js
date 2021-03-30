@@ -4,6 +4,7 @@ const stuff = require("../stuff")
 
 module.exports = {
     name: "rebirth",
+    category: "economy",
     description: "The first layer of prestige, resets quite a lot of your stuff for gold, you will also keep your The Fucking Suns™️ if you have ascended before",
     aliases: ['self-perish'],
     /**

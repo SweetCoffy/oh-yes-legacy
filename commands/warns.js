@@ -3,6 +3,7 @@ const stuff = require("../stuff");
 
 module.exports = {
     name: "warns",
+    category: "moderation",
     description: "shows a list of warns h",
     useArgsObject: true,
     arguments: [

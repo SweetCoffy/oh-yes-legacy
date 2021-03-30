@@ -2,6 +2,7 @@ const stuff = require("../stuff")
 
 module.exports = {
     name: "backup",
+    category: "bot",
     requiredPermission: "commands.backup",
     execute(message) {
         stuff.backup();
