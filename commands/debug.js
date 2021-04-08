@@ -31,16 +31,24 @@ module.exports = {
             h(test) {
                 var hh = (h, _h = "") => {
                     var list = [];
-                    Object.getOwnPropertyNames(h).forEach(el => {
-                        if (typeof h[el] == 'object') {
-                            var o = h[el];
-                            var e = hh(o, _h ? `${_h}/${el}` : `${el}`);
-                            list.push(...e);
-                            return;
-                        }
-                        if (el == "token") return;
-                        list.push(`${_h ? `${_h}/` : ''}${el}: ${(typeof h[el] == "string") ? `"${h[el]}"` : `${h[el]}`} `);
-                    })
+                    try {
+                        Object.getOwnPropertyNames(h).forEach(el => {
+                            try {
+                                if (typeof h[el] == 'object') {
+                                    var o = h[el];
+                                    var e = hh(o, _h ? `${_h}/${el}` : `${el}`);
+                                    list.push(...e);
+                                    return;
+                                }
+                                if (el == "token") return;
+                                list.push(`${_h ? `${_h}/` : ''}${el}: ${(typeof h[el] == "string") ? `"${h[el]}"` : `${h[el]}`} `);
+                            } catch (_er) {
+                                console.log(_er)
+                            }
+                        })
+                    } catch (er) {
+                        return list
+                    }
                     return list;
                 }
                 return hh(test).join('\n')

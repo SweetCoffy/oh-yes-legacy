@@ -94,6 +94,39 @@ client.once('ready', async () => {
         client.stonksTimeout = setTimeout(stonksThing, stuff.getConfig('stonkUpdateInterval'))
     }
     stonksThing()
+    client.ws.on('INTERACTION_CREATE', async interaction => { 
+        var c = client.slashCommands.get(interaction.data.name)
+        var obj = {}
+        function makeArgsObject(args, obj) {
+            for (var p of args) {
+                if (p.options?.length > 0) {
+                    obj[p.name] = {};
+                    makeArgsObject(p.options, obj[p.name]);
+                } else {
+                    obj[p.name] = p.value;
+                }
+            }
+        }
+        if (interaction.data.options?.length > 0) makeArgsObject(interaction.data.options, obj)
+        console.log(obj)
+        var r;
+        try {
+            r = await c.execute(client.api.interactions[interaction.id][interaction.token], interaction, obj, client)
+        } catch (er) {
+            console.log(er)
+            var data = {
+                embeds: [{
+                    title: `${er?.name || "Get error'd but slash command lol"}`,
+                    color: 0xff0000,
+                    description: `${er?.message || er || "Message existn't"}`
+                }]
+            }
+            client.api.interactions[interaction.id][interaction.token].callback.post({data: {
+                type: 4,
+                data: data,
+            }})
+        }
+    })
 });
 client.on('messageReactionAdd', (reaction, user) => {
     try {

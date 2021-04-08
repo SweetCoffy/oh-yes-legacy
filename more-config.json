@@ -81,5 +81,7 @@
     "commands.lyrics": true,
     "oblivionMinimum": 1000000,
     "stonkUpdates": "751179205315919952",
-    "massSellLimit": 4096
+    "massSellLimit": 4096,
+    "commands.donate": false,
+    "commands.urban": false
 }
