@@ -2,6 +2,7 @@ const vm2 = require('../node_modules/vm2');
 const stuff = require('../stuff')
 const { Worker } = require('worker_threads');
 const { sendError } = require('../stuff');
+const fetch = require('node-fetch')
 stuff.evalWorker = new Worker('./eval-worker.js')
 module.exports = {
     name: "eval",
@@ -10,8 +11,18 @@ module.exports = {
     requiredPermission: "commands.eval",
     removed: false,
     cooldown: 3,
-    execute(message, args) {
+    async execute(message, args) {
         try {
+            var code = args.join(" ");
+            var a = message.attachments.first();
+            if (a) {
+                if (a.size > 1024 * 5) throw `lol no`
+                var r = await fetch(a.url);
+                if (r.ok) {
+                    var t = await r.text();
+                    code = t;
+                }
+            }
             var id = Date.now()
             var l = (d) => {
                 try {
@@ -32,7 +43,7 @@ module.exports = {
                     sendError(message.channel, er)
                 }
             }
-            stuff.evalWorker.postMessage({ id, code: args.join(" ") })
+            stuff.evalWorker.postMessage({ id, code: code })
             stuff.evalWorker.on('message', l)
         } catch (e) {
             sendError(message.channel, e)

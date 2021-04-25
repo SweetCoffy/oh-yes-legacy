@@ -26,7 +26,7 @@ module.exports = {
         var user = args.user;
         var warns = stuff.db.getData(`/${user.id}/`).warns || [];
         var warnList = [];
-        var page = stuff.clamp(args.page - 1, 0, stuff.clamp(Math.ceil(warnList.length / 5), 1, Infinity));
+        var page = args.page - 1;
         var startFrom = 5 * page;
         if (warns.length < 1) throw new CommandError("No warns found", `The user ${user} doesn't have any warns`)
         warns.forEach(el => {
@@ -35,7 +35,7 @@ module.exports = {
         })
         var embed = {
             title: `${user.username}'s warn list`,
-            description: warnList.slice(startFrom, startFrom + 5).join("\n"),
+            description: (warnList.reverse()).slice(startFrom, startFrom + 5).join("\n"),
             color: 0x03bafc,
             footer: {
                 text: `page ${page + 1}/${stuff.clamp(Math.ceil(warnList.length / 5), 1, Infinity)}`

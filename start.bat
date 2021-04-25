@@ -1,4 +1,4 @@
 cls
-node .
+node --inspect .
 pause
 exit

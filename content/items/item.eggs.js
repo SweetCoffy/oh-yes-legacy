@@ -1,7 +1,7 @@
 var stuff = require('../../stuff')
 module.exports = {
     name: `Eggs`,
-    icon: "<:eggs:744607071244124230>",
+    icon: "<:eggs:830838662136201227>",
     price: 1000000000,
     inStock: 999999999,
     addedMultiplier: 750000000,

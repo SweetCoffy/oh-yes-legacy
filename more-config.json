@@ -32,7 +32,7 @@
     "brazil": "789301170694782977",
     "commands.yeet": true,
     "commands.meme": true,
-    "commands.clear": false,
+    "commands.clear": 0,
     "commands.set": true,
     "h": "h",
     "life": false,
@@ -83,5 +83,8 @@
     "stonkUpdates": "751179205315919952",
     "massSellLimit": 4096,
     "commands.donate": false,
-    "commands.urban": false
+    "commands.urban": true,
+    "commands.delete": 0,
+    "commands.delet": true,
+    "commands": "pingcheck"
 }

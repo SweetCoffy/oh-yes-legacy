@@ -8,18 +8,19 @@ module.exports = {
             description: "The user to lifecheck"
         }
     ],
-    cooldown: 60,
     async execute(message, args) {
         var msg = await message.channel.send(`${args.user} Lifecheck`);
-        var reactions = await msg.awaitReactions((r, u) => u.id == args.user.id, { time: 30000, max: 5 });
+        console.log('message sent')
+        var reactions = await msg.awaitReactions((r, u) => u.id == args.user.id, { time: 5000, max: 5 });
+        console.log(reactions)
         if (reactions.size > 0) {            
             var embed = {
                 title: `${args.user.username} got through Lifecheck`,
                 description: `${reactions.map(el => `${el.emoji}`).join(" ")}`,
             }
-            message.channel.send({embed: embed})
+            await message.channel.send({embed: embed})
         } else {
-            message.channel.send(`${args.user} Failed the Lifecheck`)
+            await message.channel.send(`${args.user} Failed the Lifecheck`)
         }
     }
 }
