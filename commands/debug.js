@@ -4,6 +4,7 @@ var Discord = require('discord.js')
 var { inspect } = require('util')
 var stream = require('stream')
 const { Console } = require('console')
+const { sendError } = require('../stuff')
 module.exports = {
     name: "debug",
     description: "Basically an eval command but it can access more stuff",
@@ -96,11 +97,37 @@ module.exports = {
         
         var vm = new vm2.VM({ sandbox: context, timeout: 2000, })
         var o = vm.run(args.code)
-        if (typeof o != 'string') o = inspect(o)
-        if (message.client.token != require('../../config.json').token) message.client.token = require('../../config.json').token
-        o = o.replace(new RegExp(`${message.client.token}`, 'g'), "*".repeat(message.client.token.length))
         str = str.replace(new RegExp(`${message.client.token}`, 'g'), "*".repeat(message.client.token.length))
-        if (str) message.channel.send({content: `Console output:\n${str}`, split: true, code: "js"});
+        if (!o?.then) {
+            if (str) {
+                if (str.length > 1024 * 4) {
+                    message.channel.send({ content: "Console output", files: [new Discord.MessageAttachment(Buffer.from(str), "output.txt")] })
+                    return;
+                }
+                message.channel.send({content: `Console output:\n${str}`, split: true, code: "js"})
+            }
+        } else {
+            o.then(result => {
+                if (str) {
+                    if (str.length > 1024 * 4) {
+                        message.channel.send({ content: "Console output (Promise)", files: [new Discord.MessageAttachment(Buffer.from(str), "output.txt")] })
+                    } else message.channel.send({content: `Console output:\n${str}`, split: true, code: "js"})
+                }
+                var r = inspect(result);
+                if (r.length > 1024 * 4) {
+                    message.channel.send({ content: "Output (Promise)", files: [new Discord.MessageAttachment(Buffer.from(r), "output.txt")] })
+                } else message.channel.send({content: `${r}`, split: true, code: "js"});
+            }).catch?.(err => {
+                sendError(message.channel, err)
+            })
+        }
+        if (message.client.token != require('../../config.json').token) message.client.token = require('../../config.json').token
+        if (typeof o != 'string') o = inspect(o)
+        o = o.replace(new RegExp(`${message.client.token}`, 'g'), "*".repeat(message.client.token.length))
+        if (o.length > 1024 * 4) {
+            message.channel.send({ content: "Output", files: [new Discord.MessageAttachment(Buffer.from(o), "output.txt")] })
+            return;
+        }
         message.channel.send({content: `${o}`, split: true, code: "js"});
     }
 }

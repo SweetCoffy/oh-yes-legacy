@@ -12,7 +12,7 @@
     "announcements": "819754844004548608",
     "server-info": "736691780140924979",
     "unarchiveSuggestions": "736730736219914321",
-    "season": 30,
+    "season": 31,
     "ip": "<:ip:763937198764326963>",
     "idk": "%appdata%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup",
     "vChance": 1,
@@ -86,5 +86,6 @@
     "commands.urban": true,
     "commands.delete": 0,
     "commands.delet": true,
-    "commands": "pingcheck"
+    "commands": "pingcheck",
+    "commands.eggscript": true
 }

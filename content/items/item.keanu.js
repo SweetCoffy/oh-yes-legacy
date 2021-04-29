@@ -3,7 +3,7 @@ const { rarity } = require("../../stuff");
 
 module.exports = {
     name: "Keanu™️ Marketable Plushie",
-    icon: "<:keanunt:769710477944291338>",
+    icon: "<:kanu:836691660384632833>",
     unlisted: true,
     price: 0.001,
     rarity: rarity.yellow,

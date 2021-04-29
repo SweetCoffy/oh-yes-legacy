@@ -9,9 +9,9 @@ module.exports = {
     type: "Other",
     extraData: {
         battery: undefined,
-        files: {'files.txt': `How 2 files:\nuse 'text-editor read <file name>' to read a file, 'text-editor write <file name> <contents>' to write to an existing file or create one\n\nHow 2 Eggscript:\neggscript is the bootleg 'programming language' you can use in phones, it's more like a .bat kind of thing and it can run any phone command\nthe syntax is kinda simple, spaces are argument separators and semicolons are instruction separators`},
+        files: {},
         capacity: 65536,
-        used: 408,
+        used: 0,
     },
     onUse: function(user, message, args, slot) {
         var phoneData = stuff.getInventory(user)[slot].extraData || {}; 
@@ -25,13 +25,24 @@ module.exports = {
         var cmdName = args[0];
         var _args = args.slice(1);
         var cmd = stuff.phoneCommands.get(cmdName);
+        var eggscriptContext = {
+            writeFile(filename, data) {
+                stuff.writePhoneFile(user, slot, filename, data + "")
+            },
+            readFile(filename) {
+                return stuff.readPhoneFile(user, slot, filename)
+            },
+            deleteFile(filename) {
+                stuff.deletePhoneFile(user, slot, filename)
+            }
+        }
         var b = stuff.readItemData(user, slot).battery
         b.charge -= (Math.random() * 6) / (b.quality ?? 1);
         stuff.writeItemData(user, slot, { battery: b })  
         if (!cmd) {
             throw `The command \`${args[0]}\` is not available`;
         } else {
-            return cmd.execute(message, _args, phoneData, slot);
+            return cmd.execute(message, _args, phoneData, slot, eggscriptContext);
         }
         return false;
     }

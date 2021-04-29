@@ -11,7 +11,7 @@ module.exports = {
     excludeFromGifts: true,
     addedMultiplier: 10000000000000000000000000000,
     multiplierMultiplier: 1000000000000000000000000000000000,
-    icon: "<:sebo2205:820060806774521948>",
+    icon: "<:sebo2205_but_updated:836691037887922216>",
     onEquip(user) {
         stuff.addMultiplier(user, 10000000000000000000000000000)
         stuff.addMaxHealth(user, 1000000000000)

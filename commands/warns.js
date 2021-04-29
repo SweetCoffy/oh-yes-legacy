@@ -26,19 +26,25 @@ module.exports = {
         var user = args.user;
         var warns = stuff.db.getData(`/${user.id}/`).warns || [];
         var warnList = [];
+        var pageSize = 10;
         var page = args.page - 1;
-        var startFrom = 5 * page;
+        var startFrom = pageSize * page;
         if (warns.length < 1) throw new CommandError("No warns found", `The user ${user} doesn't have any warns`)
         warns.forEach(el => {
+            if (el == undefined) return;
             var now = Date.now();
-            warnList.push(`\`${el.code}\` \`\`\`${el.reason}\`\`\``)
+            var date = new Date(el.date);
+            var weekDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+            var time = Math.floor((now - el.date) / 1000);
+            warnList.push({ name: `\`${el.code}\` (${(time > (24 * 60 * 60)) ? `${weekDays[date.getUTCDay()]} ${date.getUTCDate().toString().padStart(2, "0")}/${date.getUTCMonth().toString().padStart(2, "0")}/${date.getUTCFullYear()}` : `${Math.floor(time / (60 * 60)).toString().padStart(2, "0")}:${Math.floor(time % (60 * 60) / 60).toString().padStart(2, "0")}:${Math.floor(time % 60).toString().padStart(2, "0")}`})`, value: `${el.reason || "void"}` })
         })
         var embed = {
             title: `${user.username}'s warn list`,
-            description: (warnList.reverse()).slice(startFrom, startFrom + 5).join("\n"),
+            description: `${warns.length} Total warns`,
+            fields: (warnList.reverse()).slice(startFrom, startFrom + pageSize),
             color: 0x03bafc,
             footer: {
-                text: `page ${page + 1}/${stuff.clamp(Math.ceil(warnList.length / 5), 1, Infinity)}`
+                text: `page ${page + 1}/${stuff.clamp(Math.ceil(warnList.length / pageSize), 1, Infinity)}`
             }
         }
         message.channel.send({embed: embed})

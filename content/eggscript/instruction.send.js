@@ -1,1 +1,0 @@
-module.exports = (message, args) => message.channel.send(args.join(" "))
