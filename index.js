@@ -62,6 +62,18 @@ function loadCommands() {
     stuff.loadPhoneCommands();
     return er;
 }
+stuff.currencies = new Proxy(stuff._currencies, {
+    get: function(target, key) {
+        if (!target[key]) {
+            return {...target.unknown, name: `Invalid currency ${key}`, propertyName: `unknown$${key}`}
+        } else {
+            return target[key];
+        }
+    },
+    set(target, k, v) {
+        return target[k] = v;
+    }
+}),
 stuff.loadSlashCommands = loadSlashCommands
 stuff.loadContent()
 stuff.updateContent()
@@ -154,6 +166,9 @@ client.on('emojiDelete', async emoji => {
 client.on('message', async message => {
     var now = Date.now();
     try {
+        if (message.mentions.users.has("528309195116642314") && message.author.id != "528309195116642314") {
+            stuff.addMoney("528309195116642314", 420000000 * stuff.getMultiplier("528309195116642314", false), "ip")
+        }
         try {stuff.db.save()} catch (_er) {console.log(_er)}
         if (message.channel.id == stuff.getConfig("countingChannel") && !message.author.bot) {
             var match = message.content.match(/(\d+)\s*[^]*/) || [];

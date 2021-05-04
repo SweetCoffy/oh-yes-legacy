@@ -1,0 +1,34 @@
+{
+    "internet-points": 
+    [
+        {
+            "title": "Internet Points™️",
+            "description": "You can get Internet Points™️ by getting reacted with any of :v_:'s variations, getting reacted with :ohno: or sending messages, you will lose them if you get reacted with :ohyes:"
+        },
+        {
+            "title": "Shop",
+            "description": "You can buy items from the shop with Internet Points™️, use '**;buy <item>**' to buy that item, you can use '**;buy**' to see a list of items"
+        }
+    ],
+    "extra-args":
+    [
+        {
+            "title": "Extra args",
+            "description": "You can pass and extra argument to commands, to do so, you have to add '**--<argument name>='<argument value>'**' after the normal arguments, it also accepts the '**--<argument name>**' format"
+        }
+    ],
+    "help":
+    [
+        {
+            "title": "Help",
+            "description": "just use ';help' for a list of commands or ';help <command name>' for info about that command lol"
+        }
+    ],
+    "items":
+    [
+        {
+            "title": "Items",
+            "description": "They are currently useless, use '**;inventory**' to see a list of all your items"
+        }
+    ]
+}

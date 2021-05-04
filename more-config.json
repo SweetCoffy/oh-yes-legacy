@@ -82,10 +82,11 @@
     "oblivionMinimum": 1000000,
     "stonkUpdates": "751179205315919952",
     "massSellLimit": 4096,
-    "commands.donate": false,
+    "commands.donate": true,
     "commands.urban": true,
     "commands.delete": 0,
     "commands.delet": true,
     "commands": "pingcheck",
-    "commands.eggscript": true
+    "commands.eggscript": true,
+    "commands.waiting": false
 }

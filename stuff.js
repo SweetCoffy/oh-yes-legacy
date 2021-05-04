@@ -369,7 +369,7 @@ module.exports = {
     getRankValue: user => {
         var stuff = require('./stuff')
         if (typeof user != 'object') user = stuff.db.getData(`/${user}/`)  
-        return BigInt(stuff.clamp(Math.floor(Number(user.points) + ((user.gold || 0) * 100) + (user.multiplierMultiplier || 1)), 0, Number.MAX_VALUE))
+        return BigInt(stuff.clamp(Math.floor((Number(user.points) || 0) + ((Number(user.gold) || 0) * 100) + (user.multiplierMultiplier || 1)), 0, Number.MAX_VALUE) || 0)
     },
     /**
      * 
@@ -2533,7 +2533,7 @@ module.exports = {
             throw new CommandError("<:v_:755546914715336765>", `How are you supposed to mine with \`${inv[slot].id}\`?`);
         }
     },
-    currencies: {
+    _currencies: {
         "ip": {
             name: "Internet Points™️",
             propertyName: "points",
@@ -2570,7 +2570,14 @@ module.exports = {
             icon: "🧠",
             value: 1000,
         },
+        "unknown": {
+            name: "Invalid currency",
+            propertyName: "no",
+            icon: "<:ohno:737474912666648688>",
+            value: 0,
+        }
     },
+    currencies: {},
     getMoney(user, currency = "ip") {
         var h = this
         var cur = h.currencies[currency] || h.currencies.ip;

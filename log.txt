@@ -1,3 +1,0 @@
-{"functionIndex":0,"times":2048}
-0
-undefined
