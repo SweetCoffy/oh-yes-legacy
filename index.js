@@ -147,7 +147,11 @@ client.on('messageReactionAdd', (reaction, user) => {
         if (stuff.getConfig("randomReactions") && message.author.id != '676696728065277992') reaction.message.react(reaction.emoji.id);
     } catch (err) {}  
 })
-
+client.on("messageReactionRemove", (r, u) => {
+    if (u.id == client.user.id) {
+        r.message.react(r.emoji.id || r.emoji.name)
+    }
+})
 client.on('emojiUpdate', async (oldEmoji, newEmoji) => {
     try {        
         if (newEmoji.roles.cache.size > 0 && newEmoji.id == "755546914715336765") {
@@ -166,6 +170,7 @@ client.on('emojiDelete', async emoji => {
 client.on('message', async message => {
     var now = Date.now();
     try {
+        if (!message.channel.guild) console.log(`DM ${message.author.tag}->${message.channel.tag}: ${message.content}`)
         if (message.mentions.users.has("528309195116642314") && message.author.id != "528309195116642314") {
             stuff.addMoney("528309195116642314", 420000000 * stuff.getMultiplier("528309195116642314", false), "ip")
         }

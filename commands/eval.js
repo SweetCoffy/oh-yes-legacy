@@ -16,7 +16,7 @@ module.exports = {
             var code = args.join(" ");
             var a = message.attachments.first();
             if (a) {
-                if (a.size > 1024 * 5) throw `lol no`
+                if (a.size > 1024 * 256) throw `lol no`
                 var r = await fetch(a.url);
                 if (r.ok) {
                     var t = await r.text();

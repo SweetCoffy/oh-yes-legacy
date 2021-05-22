@@ -4,15 +4,25 @@ const { MessageEmbed } = require('discord.js')
 
 module.exports = {
     name: "color",
-    usage: "color <color:rrggbb>",
     aliases: ['colour', 'kolor', 'kolour'],
+    useArgsObject: true,
+    arguments: [
+        {
+            name: "color",
+            type: "string",
+        }
+    ],
     cooldown: 5,
     async execute(message, args) {
-        var c = stuff.clamp(parseInt(args[0], 16), 0, 16777215)
+        var c = parseInt(args.color, 16);
+        // 11 22 33 FF
+        var r = c >> (2 * 8); 
+        var g = (c >> (1 * 8)) & 0x0000FF;
+        var b = (c >> 8) & 0x0000FF;
         
         var msg = await message.channel.send(`doing the magik...`)
 
-        new Jimp(128, 128, stuff.clamp(parseInt(`${args[0]}ff`, 16), 0, 4294967295), async(err, image) => {
+        new Jimp(128, 128, stuff.clamp( ((c << 8) | 0x000000FF), 0, 4294967295), async(err, image) => {
             if (err) {
                 msg.edit("something went wrong <:v_:755546914715336765>");
                 
@@ -24,6 +34,7 @@ module.exports = {
                     var embed = new MessageEmbed()
                     .setColor(c)
                     .setTitle(`There you go`)
+                    .setDescription(`RGB: ${r}, ${g}, ${b}`)
                     .attachFiles(['eggs.png'])
                     .setImage('attachment://eggs.png')
                     await msg.channel.send({embed: embed})

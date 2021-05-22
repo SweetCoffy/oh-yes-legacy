@@ -30,7 +30,7 @@ module.exports = class RestrictedCommand extends Command {
         if (hasPermissions) {
             this.onExecute(message, args, extraArgs, extraArgsObject)
         } else {
-            throw new CommandError("Missing permissions", `You need the ${stuff.thing(stuff.snakeToCamel(this.requiredPermission))} permission to use this command`)
+            throw new CommandError("Missing permissions", `You need the ${stuff.thing(stuff.snakeToCamel(this.requiredRolePermissions.toLowerCase()))} permission to use this command`)
         }
     }
 }

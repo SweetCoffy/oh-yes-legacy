@@ -60,7 +60,7 @@
     "stonkUpdateInterval": 240000,
     "massCraftLimit": 512,
     "Peter.timeLeftTillHeartStops": 12200,
-    "massUseLimit": 2048,
+    "massUseLimit": 4096,
     "ascendMinimum": 10000000000000000000,
     "massEquipLimit": 128,
     "inventoryDisplayedItemLimit": 500000,
@@ -88,5 +88,6 @@
     "commands.delet": true,
     "commands": "pingcheck",
     "commands.eggscript": true,
-    "commands.waiting": false
+    "commands.waiting": false,
+    "warn.command": false
 }
