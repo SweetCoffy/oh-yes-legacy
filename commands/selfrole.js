@@ -2,10 +2,40 @@ const stuff = require("../stuff")
 
 module.exports = {
     name: 'selfrole',
+    aliases: ['role'],
     description: `Shows the self role selector`,
-    cooldown: 30,
-    async execute(message) {
+    arguments: [
+        {
+            name: "roles",
+            type: "stringArray",
+            optional: true,
+            default: [],
+        }
+    ],
+    useArgsObject: true,
+    cooldown: 1,
+    async execute(message, args) {
         var roles = Object.values(stuff.selfRoles)
+        console.log(args.roles)
+        if (args.roles?.length > 0) {
+            var member = await message.member.fetch();
+            var added = []
+            var removed = []
+            for (var i = 0; i < args.roles.length; i++) {
+                var r = message.guild.roles.cache.get(roles.find(el => message.guild.roles.cache.get(el.id)?.name.toLowerCase().includes(args.roles[i].toLowerCase())).id)
+                if (r) {
+                    if (member.roles.cache.has(r.id)) {
+                        removed.push(r);
+                        await member.roles.remove(r);
+                    } else {
+                        added.push(r);
+                        await member.roles.add(r);
+                    }
+                }
+            }
+            await message.channel.send(`Added ${added.length} and removed ${removed.length} roles`);
+            return;
+        }
         var selected = 0;
         var selectedRoles = message.member.roles.cache.map(el => el.id).filter(el => roles.map(el => el.id).includes(el))
         var e = ['🔼', '🔽', '🇦', '✅']

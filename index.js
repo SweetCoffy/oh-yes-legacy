@@ -142,9 +142,24 @@ client.once('ready', async () => {
 });
 client.on('messageReactionAdd', (reaction, user) => {
     try {
+        if (stuff.db.data[user.id]) {
+            if (reaction.emoji.name == ("v_1")) {
+                stuff.db.data[user.id].v_1 = (stuff.db.data[user.id].v_1 + 1) || 1;
+            } else if (reaction.emoji.name == ("voidv_")) {
+                stuff.db.data[user.id].voidv_ = (stuff.db.data[user.id].voidv_ + 1) || 1;
+            } else if (reaction.emoji.name == ("painv_")) {
+                stuff.db.data[user.id].painv_ = (stuff.db.data[user.id].painv_ + 1) || 1;
+            } else if (reaction.emoji.name == ("oblivionv_")) {
+                stuff.db.data[user.id].coalv_ = (stuff.db.data[user.id].coalv_ + 1) || 1;
+            } else if (reaction.emoji.name == "v_") {
+                stuff.db.data[user.id].vCounter = (stuff.db.data[user.id].vCounter + 1) || 1;
+            }
+        }
         var message = reaction.message    
         if (stuff.db.getData(`/banned`).includes(user.id)) return;
         if (stuff.getConfig("randomReactions") && message.author.id != '676696728065277992') reaction.message.react(reaction.emoji.id);
+        // <:v_1:750501468385050624> <:voidv_:803753907456180294> <:painv_:831661689715818516> <:coalv_:845046408947040256>
+        // <:oblivionv_:845046408947040256>
     } catch (err) {}  
 })
 client.on("messageReactionRemove", (r, u) => {
@@ -166,15 +181,31 @@ client.on('emojiDelete', async emoji => {
         await channel.send(`<@&768569677001523220> Emoji Yeet Alert: ${emoji.name} was yeeted!`)
     } catch (e) {}
 })
-
+var num = 0;
 client.on('message', async message => {
     var now = Date.now();
     try {
+        num++;
+        if (num >= 10) {
+            try {stuff.db.save()} catch (_er) {console.log(_er)}
+            num = 0;
+        }
         if (!message.channel.guild) console.log(`DM ${message.author.tag}->${message.channel.tag}: ${message.content}`)
         if (message.mentions.users.has("528309195116642314") && message.author.id != "528309195116642314") {
             stuff.addMoney("528309195116642314", 420000000 * stuff.getMultiplier("528309195116642314", false), "ip")
         }
-        try {stuff.db.save()} catch (_er) {console.log(_er)}
+        // <:v_1:750501468385050624> <:voidv_:803753907456180294> <:painv_:831661689715818516> <:coalv_:845046408947040256>
+        if (stuff.db.data[message.author.id]) {
+            if (message.content.includes("750501468385050624")) {
+                stuff.db.data[message.author.id].v_1 = (stuff.db.data[message.author.id].v_1 + 1) || 1;
+            } else if (message.content.includes("803753907456180294")) {
+                stuff.db.data[message.author.id].voidv_ = (stuff.db.data[message.author.id].voidv_ + 1) || 1;
+            } else if (message.content.includes("831661689715818516")) {
+                stuff.db.data[message.author.id].painv_ = (stuff.db.data[message.author.id].painv_ + 1) || 1;
+            } else if (message.content.includes("845046408947040256")) {
+                stuff.db.data[message.author.id].coalv_ = (stuff.db.data[message.author.id].coalv_ + 1) || 1;
+            }
+        }
         if (message.channel.id == stuff.getConfig("countingChannel") && !message.author.bot) {
             var match = message.content.match(/(\d+)\s*[^]*/) || [];
             if (match[1] == stuff.counter + 1) {

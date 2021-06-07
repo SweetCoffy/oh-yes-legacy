@@ -8,7 +8,6 @@ module.exports = {
     name: "eval",
     description: "h",
     usage: "eval <code>",
-    requiredPermission: "commands.eval",
     removed: false,
     cooldown: 3,
     async execute(message, args) {

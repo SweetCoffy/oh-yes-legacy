@@ -2377,7 +2377,8 @@ module.exports = {
         },
         stringArray: (str, message) => {
             var regex = /\[([^\[\]]+)\]/
-            var match = str.match(regex) || [];
+            console.log(str)
+            var match = regex.exec(str) || [];
             var elements = (match[1] || "").split(",").map(el => el.trim())
             return elements;
         },
