@@ -3,6 +3,8 @@ var jimp = require('jimp')
 module.exports = {
     name: "bar",
     async execute(i, _interaction, args, client) {
+        if (Math.max(args.value, args.max) > 4096) throw `fuck you`
+        if (Math.min(args.value, args.max) < 0) throw `no`
         await i.callback.post({data: { type: 5, data: { content: "*intense waiting*" } }})
         var j = await jimp.create(Number(args.max), 1, 0x111111ff)
         var h = client.api.webhooks[client.user.id][_interaction.token].messages['@original'];

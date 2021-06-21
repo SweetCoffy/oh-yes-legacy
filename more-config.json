@@ -45,7 +45,7 @@
     "commands.eval": true,
     "commands.buy": "iushnbg sjildkg;nubwu;iogunvsoiufnda g;ovnsu fdgo;vnsd f;og",
     "NiChrosia_Exist": true,
-    "commands.youtube": 1,
+    "commands.youtube": false,
     "F-22.existing": false,
     "explosions": true,
     "commands.help": "thdmhyrsntatsjmdh,gyjtheryasndyjr",
@@ -90,5 +90,6 @@
     "commands.eggscript": true,
     "commands.waiting": false,
     "warn.command": false,
-    "countingChannel": "850855777731084319"
+    "countingChannel": "850855777731084319",
+    "quotes": "762482449175150640"
 }

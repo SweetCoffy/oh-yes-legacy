@@ -17,7 +17,7 @@ module.exports = {
     async execute(message, args) {
         var roles = Object.values(stuff.selfRoles)
         console.log(args.roles)
-        if (args.roles?.length > 0) {
+        if (args.roles?.length > 0 && args.roles?.[0]) {
             var member = await message.member.fetch();
             var added = []
             var removed = []

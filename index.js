@@ -10,6 +10,7 @@ client.commandCategories = new Discord.Collection();
 client.requiredVotes = 10;
 client.voteTimeout = 100;
 client.slashCommands = new Discord.Collection();
+client.snipe = [];
 const chalk = require('chalk')
 if (!stuff.dataStuff.exists(`/banned`)) {
     stuff.dataStuff.push(`/banned`, [])
@@ -39,6 +40,28 @@ function loadSlashCommands() {
         client.slashCommands.set(command.name, command);
     }
 }
+function addSnipe(m) {
+    client.snipe.unshift({
+        content: m.content,
+        embeds: {...m.embeds},
+        author: m.author,
+        member: m.member,
+        message: m,
+    })
+    if (client.snipe.length > 20) client.snipe.pop();
+}
+client.on("messageDelete", (m) => {
+    addSnipe(m);
+})
+client.on("messageUpdate", (msg) => {
+    addSnipe(msg);
+})
+process.on("uncaughtException", (er) => {
+    console.log(er)
+})
+process.on("unhandledRejection", (r) => {
+    console.log(r)
+})
 function loadCommands() {
     client.commandCategories = new Discord.Collection();
     console.log('Loading commands...')

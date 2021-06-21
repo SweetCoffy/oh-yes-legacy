@@ -3,7 +3,7 @@ const stuff = require('../stuff')
 module.exports = {
     name: "lyrics",
     useArgsObject: true,
-    cooldown: 5,
+    cooldown: 15,
     arguments: [{ name: "song", type: "string" }],
     async execute(message, args) {
         try {

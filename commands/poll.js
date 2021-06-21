@@ -80,7 +80,7 @@ module.exports = {
                     totalVotes--;
                     delete optionsVoted[u.id];
                     voted.splice(voted.indexOf(u.id), 1)
-                    embed.description = `${args.name}\n${no(w, h, n.map((el, i) => `${el.repeat(Math.floor((votes[i] || 0) / totalVotes * s))}`).join(""))}`
+                    embed.description = `${args.name}\n\`\`\`\n${no(w, h, n.map((el, i) => `${el.repeat(Math.floor((votes[i] || 0) / totalVotes * s))}`).join(""))}\n\`\`\``
                     embed.fields[0] = {
                         name: "Options",
                         value: `${o.map((el, i) => `${n[i]} ${el} ─ ${votes[i]} Votes (${(votes[i] / totalVotes * 100).toFixed(1)}%)`).join("\n")}\nTotal votes: ${totalVotes}`,
@@ -99,7 +99,7 @@ module.exports = {
                 voted.push(u.id)
                 optionsVoted[u.id] = n.indexOf(r.emoji.name);
                 votes[n.indexOf(r.emoji.name)]++
-                embed.description = `${args.name}\n${no(w, h, n.map((el, i) => `${el.repeat(Math.floor((votes[i] || 0) / totalVotes * s))}`).join(""))}`
+                embed.description = `${args.name}\n\`\`\`\n${no(w, h, n.map((el, i) => `${el.repeat(Math.floor((votes[i] || 0) / totalVotes * s))}`).join(""))}\n\`\`\``
                 embed.fields[0] = {
                     name: "Options",
                     value: `${o.map((el, i) => `${n[i]} ${el} ─ ${votes[i]} Votes (${(votes[i] / totalVotes * 100).toFixed(1)}%)`).join("\n")}\nTotal votes: ${totalVotes}`,
