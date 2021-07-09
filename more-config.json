@@ -86,10 +86,22 @@
     "commands.urban": true,
     "commands.delete": 0,
     "commands.delet": true,
-    "commands": "pingcheck",
+    "commands": {
+        "delet": false,
+        "youtube": true,
+        "lyrics": false,
+        "yeet": false
+    },
     "commands.eggscript": true,
     "commands.waiting": false,
     "warn.command": false,
     "countingChannel": "850855777731084319",
-    "quotes": "762482449175150640"
+    "quotes": "762482449175150640",
+    "commands.snipe": true,
+    "sebosSanity": "",
+    "commands.yt": true,
+    "eggs": {
+        "gud": true
+    },
+    "massFeedLimit": 96
 }

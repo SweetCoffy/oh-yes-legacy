@@ -2,14 +2,15 @@ const stuff = require('../stuff');
 module.exports = {
     name: "get",
     description: "returns the value of a setting",
-    usage: "get <setting:string>",
-
-    execute (message, args) {
-        var value = stuff.getConfig(args[0]);
-        var embed = {
-            description: `\`${args[0]}\`: \`${value}\``
+    useArgsObject: true,
+    arguments: [
+        {
+            name: "setting",
+            type: "string",
         }
-
-        message.channel.send({embed: embed});
+    ],
+    execute (message, args) {
+        var value = stuff.getConfig(args.setting, undefined);
+        message.channel.send({content: require('util').inspect(value), code: "js", split: true});
     }
 }

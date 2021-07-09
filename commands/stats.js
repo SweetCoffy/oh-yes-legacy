@@ -21,7 +21,40 @@ module.exports = {
         var multiplier = stuff.getMultiplier(user.id);
         var totalMultiplier = stuff.getMultiplier(user.id, false);
         var userObject = stuff.db.getData(`/${user.id}/`)
-
+        var medals = ``
+        var achievements = ``
+        var m = Object.entries(stuff.medals)
+        var a = Object.entries(stuff.achievements)
+        var counter = 0
+        for (var medal of m) {
+            if (counter > 2) {
+                counter = 0
+                medals += "\n"
+            }
+            var h = (userObject.medals || [])
+            var med = h.find(el => el.id == medal[0])
+            if (med) {
+                medals += med.icon
+            } else {
+                medals += "⚫"
+            }
+            counter++
+        }
+        counter = 0
+        for (var achievement of a) {
+            if (counter > 2) {
+                counter = 0
+                achievements += "\n"
+            }
+            var h = (userObject.achievements || [])
+            var med = h.find(el => el.id == achievement[0])
+            if (med) {
+                achievements += achievement[1].icon
+            } else {
+                achievements += achievement[1].placeholder || "⚫"
+            }
+            counter++
+        }
         var embed = {
             author: {
                 name: user.username,
@@ -52,7 +85,7 @@ module.exports = {
                 },
                 {
                     name: `Other`,
-                    value: `:heart: ${stuff.format(stuff.userHealth[user.id])}/${stuff.format(userObject.maxHealth || 100)}\n:shield: ${stuff.format(userObject.defense || 0)}\n🗡️ ${stuff.format(userObject.attack || 1)}\nPowah level: ${stuff.format(stuff.getMaxHealth(user.id) + stuff.getAttack(user.id) + stuff.getDefense(user.id))}\n**${stuff.format(stuff.getRankValue(userObject))}** Rank Value\n${(stuff.db.getData(`/${user.id}/`).medals || []).map(el => el.icon).join(" ")}`,
+                    value: `:heart: ${stuff.format(stuff.userHealth[user.id])}/${stuff.format(userObject.maxHealth || 100)}\n:shield: ${stuff.format(userObject.defense || 0)}\n🗡️ ${stuff.format(userObject.attack || 1)}\nPowah level: ${stuff.format(stuff.getMaxHealth(user.id) + stuff.getAttack(user.id) + stuff.getDefense(user.id))}\n**${stuff.format(stuff.getRankValue(userObject))}** Rank Value\n${(medals)}\n\n${achievements}`,
                     inline: true,
                 },
                 {
@@ -80,7 +113,9 @@ ${stuff.getTaxes(user.id).map(el => `**${el.name}** ─ ${stuff.format(el.amount
 **Powah level**: ${stuff.format(stuff.getMaxHealth(user.id) + stuff.getAttack(user.id) + stuff.getDefense(user.id))}
 
 **Equipment** (${stuff.getEquipment(user.id).length}/${stuff.getEquipmentSlots(user.id)}): ${stuff.getEquipment(user.id).map(el => el.icon).slice(0, 25).join(" ") || "doesn't exist"}
-**Medals**: ${(stuff.db.getData(`/${user.id}/`).medals || []).map(el => el.icon).join(" ") || 'no'}
+${medals || "void"}
+
+${achievements || "also void"}
 `
         }
 

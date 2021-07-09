@@ -4,11 +4,14 @@ stuff.db.load()
 const client = new Discord.Client();
 var collecting = false;
 var result = "";
+var snipeStream = require('fs').createWriteStream("F:/snipe-log.txt")
+var snipeLog = new ((require('console')).Console)(snipeStream, snipeStream)
 stuff.client = client;
 client.commands = new Discord.Collection();
 client.commandCategories = new Discord.Collection();
 client.requiredVotes = 10;
 client.voteTimeout = 100;
+client.snipeLimit = 500;
 client.slashCommands = new Discord.Collection();
 client.snipe = [];
 const chalk = require('chalk')
@@ -48,7 +51,8 @@ function addSnipe(m) {
         member: m.member,
         message: m,
     })
-    if (client.snipe.length > 20) client.snipe.pop();
+    if (client.snipe.length > client.snipeLimit) client.snipe.pop();
+    snipeLog.log(`(snipe) ${m.guild.name}>${m.channel.name}>${m.author.tag}: ${m.content || "N/A"}`)
 }
 client.on("messageDelete", (m) => {
     addSnipe(m);
@@ -208,6 +212,8 @@ var num = 0;
 client.on('message', async message => {
     var now = Date.now();
     try {
+        if (!message.guild) return;
+        if (message.author.id != client.user.id) snipeLog.log(`${message.guild?.name || "DM"}>${message.channel.name}>${message.author.tag}: ${message.content || "N/A"}`)
         num++;
         if (num >= 10) {
             try {stuff.db.save()} catch (_er) {console.log(_er)}

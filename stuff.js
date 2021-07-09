@@ -77,6 +77,7 @@ module.exports = {
         }
         return res.split("").reverse().join("").trim();
     },
+    pets: {},
     eggscript(str, context = {}) {
             var variables = { define(name, value) { variables[name] = value }, 
             concat(...args) { return args.reduce((prev, cur) => prev + cur) }, 
@@ -277,10 +278,10 @@ module.exports = {
         return parser(str);
     },
     rarity: Rarity,
-    db: new jsonDb.JsonDB("F:/userdata.json", false, false, "/"),
-    dataStuff: new jsonDb.JsonDB("F:/datastuff.json", true, true, "/"),
-    roles: new jsonDb.JsonDB('F:/roleperms.json', true, true, "/"),
-    facts: new jsonDb.JsonDB('F:/funfacts.json', true, true, "/"),
+    db: new jsonDb.JsonDB("userdata.json", false, false, "/"),
+    dataStuff: new jsonDb.JsonDB("datastuff.json", true, true, "/"),
+    roles: new jsonDb.JsonDB('roleperms.json', true, true, "/"),
+    facts: new jsonDb.JsonDB('funfacts.json', true, true, "/"),
     phoneCommands: new Collection(),
     originalPrices: {},
     cheats: {},
@@ -1332,7 +1333,7 @@ module.exports = {
                         icon: "<:oO:749319330503852084>", 
                         id: "oo", 
                         food: "cookie",
-                        happiness: stuff.clamp(1 * Math.random(), 0.2, 1),
+                        chonk: stuff.clamp(1 * Math.random(), 0.2, 1),
                         baseMultiplierAdd: 25
                     })
                     return true;
@@ -1361,7 +1362,7 @@ module.exports = {
                         name: "Router", 
                         icon: "<:router:739890062820638751>", 
                         id: "router", 
-                        happiness: stuff.clamp(0.6 * Math.random(), 0.25, 0.7),
+                        chonk: stuff.clamp(0.6 * Math.random(), 0.25, 0.7),
                         food: "bread"
                     })
                     return true;
@@ -1391,7 +1392,7 @@ module.exports = {
                         name: "Spider", 
                         icon: ":spider:", 
                         id: "spider", 
-                        happiness: stuff.clamp(0.6 * Math.random(), 0.25, 1.2),
+                        chonk: stuff.clamp(0.6 * Math.random(), 0.25, 1.2),
                         damage: 50,
                         baseMultiplierAdd: 350,
                         food: "spaghet"
@@ -1921,8 +1922,8 @@ module.exports = {
         var s = require('./stuff')
         var u = s.db.data[user]
         if (u.inventory.length + 1 > u.maxItems) throw `Inventory limit reached`
-        s.addItem(user, item);
         var item = s.getEquipment(user)[slot]
+        s.addItem(user, item);
         if (!item) throw `no`
         s.db.delete(`/${user}/equipment[${slot}]`);
         s.shopItems[item.id].onUnequip(user, slot)
@@ -2169,13 +2170,23 @@ module.exports = {
     getConfig(setting, fallback = true) {
         var config = JSON.parse(fs.readFileSync("more-config.json").toString().replace("}}", "}"));
         
+        var val = setting.split(".").reduce((prev, cur) => prev?.[cur], config)
 
-        return config[setting] ?? fallback;
+        return val ?? config[setting] ?? fallback;
     },
 
     set(setting, value) {
         var config = JSON.parse(fs.readFileSync("more-config.json").toString().replace("}}", "}"));
-        config[setting] = value;
+
+        setting.split(".").reduce((prev, cur, i, a) => {
+            if (i < a.length - 1) {
+                if (!prev[cur]) prev[cur] = {}
+                if (typeof prev[cur] != "object") prev[cur] = {}
+                return prev[cur]
+            } else {
+                prev[cur] = value;
+            }
+        }, config)
 
         fs.writeFileSync("more-config.json", JSON.stringify(config, undefined, 4).toString().replace("}}", "}"));
     },
