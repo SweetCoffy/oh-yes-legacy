@@ -17,11 +17,13 @@
     "jimp": "^0.16.1",
     "json-bigint": "^1.0.0",
     "lua-interpreter": "0.0.3",
+    "minimist": "^1.2.5",
     "node-fetch": "^2.6.1",
     "node-json-db": "^1.1.0",
     "numeral": "^2.0.6",
     "request": "^2.88.2",
     "safe-eval": "^0.4.1",
+    "shlex": "^2.1.0",
     "vm2": "^3.9.2",
     "youtube-search-api": "^1.0.7"
   }

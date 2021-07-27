@@ -16,10 +16,14 @@ module.exports = {
         stuff.addMultiplier(user, 10000000000000000000000000000)
         stuff.addMaxHealth(user, 1000000000000)
         stuff.addMultiplierMultiplier(user, 1000000000000000000000000000000000)
+        stuff.addAttack(user, 30000000000  )
+        stuff.addDefense(user, 25000000000 )
     },
     onUnequip(user) {
         stuff.addMultiplier(user, -10000000000000000000000000000)
         stuff.addMaxHealth(user, -1000000000000)
         stuff.addMultiplierMultiplier(user, -1000000000000000000000000000000000)
+        stuff.addAttack(user, -30000000000  )
+        stuff.addDefense(user, -25000000000 )
     }
 }

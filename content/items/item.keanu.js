@@ -12,8 +12,12 @@ module.exports = {
     multiplierMultiplier: 750000000000000000n,
     onEquip(user) {
         stuff.addMultiplierMultiplier(user, 750000000000000000)
+        stuff.addAttack(user, 3000000  )
+        stuff.addDefense(user, 2500000 )
     },
     onUnequip(user) {
         stuff.addMultiplierMultiplier(user, -750000000000000000)
+        stuff.addAttack(user, 32000000 )
+        stuff.addDefense(user, -5000000)
     }
 }

@@ -80,7 +80,7 @@ module.exports = {
                 },
                 {
                     name: `Equipment (${stuff.format(stuff.getEquipment(user.id).length)}/${stuff.format(stuff.getEquipmentSlots(user.id))})`,
-                    value: `${stuff.getEquipment(user.id).map(el => el.icon).slice(0, 25).join(" ") || '*<nothing>*'}`,
+                    value: `${stuff.getEquipment(user.id).map(el => el.icon).slice(0, 30).join(" ") || '*<nothing>*'}`,
                     inline: true,
                 },
                 {
@@ -112,7 +112,7 @@ ${stuff.getTaxes(user.id).map(el => `**${el.name}** ─ ${stuff.format(el.amount
 :dagger: ${stuff.format(userObject.attack || 1)}
 **Powah level**: ${stuff.format(stuff.getMaxHealth(user.id) + stuff.getAttack(user.id) + stuff.getDefense(user.id))}
 
-**Equipment** (${stuff.getEquipment(user.id).length}/${stuff.getEquipmentSlots(user.id)}): ${stuff.getEquipment(user.id).map(el => el.icon).slice(0, 25).join(" ") || "doesn't exist"}
+**Equipment** (${stuff.getEquipment(user.id).length}/${stuff.getEquipmentSlots(user.id)}): ${stuff.getEquipment(user.id).map(el => el.icon).slice(0, 30).join(" ") || "doesn't exist"}
 ${medals || "void"}
 
 ${achievements || "also void"}

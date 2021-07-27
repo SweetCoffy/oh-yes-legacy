@@ -7,12 +7,21 @@ stuff.evalWorker = new Worker('./eval-worker.js')
 module.exports = {
     name: "eval",
     description: "h",
-    usage: "eval <code>",
     removed: false,
     cooldown: 3,
+    arguments: [
+        {
+            name: "code",
+            type: "string"
+        }
+    ],
+    useArgsObject: true,
     async execute(message, args) {
         try {
-            var code = args.join(" ");
+            if (args.code.startsWith("\`\`\`")) {
+                args.code = args.code.replace(/```\w*/, "").slice(0, -3)
+            }
+            var code = args.code;
             var a = message.attachments.first();
             if (a) {
                 if (a.size > 1024 * 256) throw `lol no`

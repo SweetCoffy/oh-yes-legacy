@@ -81,6 +81,28 @@ module.exports = {
                 }
                 return r
             },
+            recursiv(o) {
+                function h(o, d = 0) {
+                    var s = ""
+                    try {
+                        var keys = Object.getOwnPropertyNames(o)
+                        for (var k of keys) {
+                            var v = o[k]
+                            if (typeof v == "object") {
+                                s += `${'\t'.repeat(d)}${k}:\n`
+                                s += h(v, d + 1) || "<nothing>"
+                            } else {
+                                s += `${'\t'.repeat(d)}${k}: ${(v + "") || "<nothing>"}\n`
+                            }
+                        }
+                    } catch (er) {
+                        console.log(er)
+                    } finally {
+                        return s
+                    }
+                }
+                return h(o)
+            },
             get client() {
                 if (stuff.getPermission(message.author.id, "commands.debug.client", message.guild.id)) return message.client;
                 else return undefined
@@ -94,7 +116,10 @@ module.exports = {
                 else return undefined
             },
         }
-        
+        if (args.code.startsWith("\`\`\`")) {
+            args.code = args.code.replace(/```\w*/, "").slice(0, -3)
+        }
+        console.log(args.code)
         var vm = new vm2.VM({ sandbox: context, timeout: 2000, })
         var o = vm.run(args.code)
         str = str.replace(new RegExp(`${message.client.token}`, 'g'), "*".repeat(message.client.token.length))

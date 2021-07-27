@@ -12,10 +12,45 @@ parentPort.on('message', d => {
                 WritableStream.prototype?.write?.call?.(this, ...args);
             }
         }
+        class BadBuffer{
+            constructor() {
+                throw new Error(`Lol no`)
+            }
+            static alloc() {
+                throw new Error(`Lol no`)
+            }
+            static of() {
+                throw new Error(`Lol no`)
+            }
+            static from() {
+                throw new Error(`Lol no`)
+            }
+        }
+        class BadProxy {
+            constructor(o, c) {
+                throw new Error(`ha ha you tried`)
+            }
+        }
         var stdout = new EvalConsoleOutput()
         var stderr = new EvalConsoleOutput()
+        var h = new Proxy({}, {
+            get(t, k) {
+                if (Math.random() > 0.5) {
+                    return t[k]
+                } else throw new Error('me when random chance')
+            },
+            set(t, k, v) {
+                t[k] = v
+            },
+            ownKeys(t) {
+                return Object.getOwnPropertyNames(t)
+            }
+        })
         var context = {
-            console: new Console({ stdout, stderr, colorMode: false })
+            console: new Console({ stdout, stderr, colorMode: false }),
+            Buffer: h,
+            Proxy: h,
+            Reflect: h
         }
         var vm = new vm2.VM({ timeout: 2500, sandbox: context })
         var r = vm.run(d.code)

@@ -108,9 +108,16 @@ loadCommands();
 stuff.loadCommands = loadCommands;
 client.once('ready', async () => {
     console.log('oh yes');
-    Object.entries(stuff.shopItems).forEach(([k, v]) => {
-        stuff.originalPrices[k] = v.price || 0;
-    })
+    try {
+        var c = fs.readFileSync("prev-channel.txt", "utf8")
+        client.channels.fetch(c).then(c => {
+            c.send(`Restart'd`)
+            fs.unlinkSync("prev-channel.txt")
+        }).catch(er => console.log(er))
+        Object.entries(stuff.shopItems).forEach(([k, v]) => {
+            stuff.originalPrices[k] = v.price || 0;
+        })
+    } catch (er) {}
     client.taxInterval = setInterval(() => {
         try {
             stuff.forEachUser((id, data) => {
@@ -282,7 +289,7 @@ client.on('message', async message => {
             stuff.db.push(`/${message.author.id}`, {
                 permissions: {},
                 multiplier: 1,
-                points: 3000,
+                points: 0,
                 defense: 0,
                 maxHealth: 100,
                 gold: 0,
@@ -340,10 +347,6 @@ client.on('message', async message => {
         stuff.addTax(message.author.id, 'omegaStonks')
         stuff.addMedal(message.author.id, stuff.medals['omega-stonks']);
     }
-    if (stuff.getMaxHealth(u) > 100000000) {
-        stuff.db.push(`/${u}/maxHealth`, 100000000);
-        stuff.userHealth[u] = 100000000;
-    }
     var eastereggs = Object.values(stuff.eastereggs)
     for (const e of eastereggs) {
         if (e.triggerCheck(message)) e.onTrigger(message)
@@ -370,7 +373,10 @@ client.on('message', async message => {
    }
     var prefix = (message.channel.id == stuff.getConfig("noPrefixChannel")) ? "" : stuff.getConfig('prefix', ';');
     if (!message.content.startsWith(prefix)) return;
-    var args = message.content.slice(prefix.length).split(" ");
+    var shlex = require('shlex')
+    var minimist = require('minimist')
+    var flags = minimist(shlex.split(message.content.slice(prefix.length)))
+    var args = flags._;
     const commandName = args.shift();
     const command = client.commands.get(commandName) ?? client.commands.filter(v => {
         if (!v.aliases) return
@@ -400,30 +406,12 @@ client.on('message', async message => {
                     timestamps.set(message.author.id, now);
                     setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
                 }
-                var joinedArgs = args.join(" ");
-                var regex = /--(\w+) ?("([^-]*)")?/gm
-                var extraArgsObject = {};
-                var _matches = joinedArgs.matchAll(regex);
-                for (const match of _matches) {
-                    extraArgsObject[match[1]] = match[3] || true;
-                } 
-                var matches = (regex.exec(joinedArgs) || []).filter(function(el) {
-                    return el != "" && el != null && el != undefined;
-                });     
-                var extraArgs = (matches || []).slice(1, 3) || [];
-                joinedArgs = joinedArgs.replace(regex, "");
-                var newArgs = joinedArgs.split(" ").filter(function(el) {
-                    return el != "" && el != null && el != undefined;
-                }) || [];
-                var r = /"([^"]+?)"|([^ ]+)/g
-                if (command.supportsQuoteArgs) {
-                    newArgs = [...newArgs.join(" ").matchAll(r)].map(el => el[1] || el[2])
-                }
+                var newArgs = args
                 var a = [];
                 if (command.arguments) {
                     a = stuff.argsThing(command, newArgs, message)
                     var required = command.arguments.filter(el => !el.optional)
-                    Object.entries(extraArgsObject).forEach(([k, v]) => {
+                    Object.entries(flags).forEach(([k, v]) => {
                         var arg = command.arguments[command.arguments.map(el => el.name).indexOf(k)]
                         console.log(arg)
                         if (arg) {
@@ -444,7 +432,7 @@ client.on('message', async message => {
                 } else {
                     a = newArgs
                 }
-                await command.execute(message, a, extraArgs, extraArgsObject);
+                await command.execute(message, a, ["no"], flags);
             } else{
                 throw `The command \`${command.name}\` is disabled, run \`;set commands.${command.name} true\` to re-enable it`;
             }

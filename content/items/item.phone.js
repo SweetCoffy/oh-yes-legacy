@@ -14,6 +14,7 @@ module.exports = {
         used: 0,
     },
     onUse: function(user, message, args, slot) {
+        if (stuff.getMoney(user, "braincell") < 100) throw `You need at least 100 braincells in order to use this phone`
         var phoneData = stuff.getInventory(user)[slot].extraData || {}; 
         var u = message.guild.members.cache.get(user).user;
         if (!phoneData.battery) throw "You need a battery!!!1!1!!1!!"

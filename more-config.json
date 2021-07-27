@@ -21,7 +21,7 @@
     "massBuyLimit": 8192,
     "cursedThing": "undefined",
     "auditLogs": "770065254880247858",
-    "randomReactions": false,
+    "randomReactions": 0,
     "noPrefixChannel": "774413155173793833",
     "prefix": ";",
     "crimes": 751179205315920000,
@@ -29,7 +29,7 @@
     "commands.kick": true,
     "<@460774900479819778>.exist": false,
     "premission": "",
-    "brazil": "789301170694782977",
+    "brazil": 868988170707013600,
     "commands.yeet": true,
     "commands.meme": true,
     "commands.clear": 0,
@@ -87,10 +87,11 @@
     "commands.delete": 0,
     "commands.delet": true,
     "commands": {
-        "delet": false,
+        "delet": true,
         "youtube": true,
         "lyrics": false,
-        "yeet": false
+        "yeet": true,
+        "waiting": 0
     },
     "commands.eggscript": true,
     "commands.waiting": false,

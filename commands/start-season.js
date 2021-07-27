@@ -15,7 +15,7 @@ module.exports = {
                     message.channel.send("Okay then, resetting data and starting a new season");
                     var entries = Object.entries(stuff.db.getData("/"));
                     entries.forEach(el => {
-                        stuff.db.push(`/${el[0]}/points`, 6000)
+                        stuff.db.push(`/${el[0]}/points`, 0)
                         stuff.db.push(`/${el[0]}/multiplier`, 1)
                         stuff.db.push(`/${el[0]}/maxHealth`, 100)
                         stuff.db.push(`/${el[0]}/multiplierMultiplier`, 1)

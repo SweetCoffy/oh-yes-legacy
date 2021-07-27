@@ -18,7 +18,7 @@ module.exports = {
             default: 1,
         }
     ],
-    cooldown: 5,
+    cooldown: 1,
     execute(message, args) {
         var craftable = stuff.craftables[args.item];
         if (!craftable) {

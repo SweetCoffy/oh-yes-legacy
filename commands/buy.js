@@ -22,7 +22,7 @@ module.exports = {
         }
     ],
     aliases: ['shop'],
-    cooldown: 5,
+    cooldown: 1,
     execute(message, args, _extraArgs, _extraArgsObject, discount = 1) {
         var item = args.item;
         var amount = args.amount;
@@ -33,7 +33,7 @@ module.exports = {
                 return (b[1].price * stuff.currencies[b[1].currency || "ip"].value * (b[1].unlisted ? 0 : 1)) - (a[1].price * stuff.currencies[a[1].currency || "ip"].value * (a[1].unlisted ? 0 : 1));
             }).filter(el => {
                 if (showHidden) return true;
-                else return (!el[1].unlisted && el[1].price) 
+                else return (!el[1].unlisted && !isNaN(el[1].price)) 
             }).filter(el => {
                 if (el[1].veModeExclusive && !stuff.venezuelaMode) return false;
                 return true;
@@ -45,8 +45,8 @@ module.exports = {
             var startFrom = 0 + (itemsPerPage * page);
 
             entries.forEach(entry => {
-                if (!useOldShop) itemNames.push(`${entry[1].icon} \`${entry[0]}\` **${entry[1].name}**${entry[1].unlisted ? ' (Unlisted)' : ''}${entry[1].price ? ` ─ ${(stuff.currencies[entry[1].currency || "ip"]).icon} __${stuff.format(entry[1].price * stuff.stonks[entry[0]].mult)}__ ` : ''}${(entry[1].type) ? ` ─ ${entry[1].type}` : ``}${(entry[1].extraInfo) ? `\n${entry[1].extraInfo}` : ``}`);
-                if (useOldShop) itemNames.push(`${entry[1].icon} \`${entry[0]}\` **${entry[1].name}**${entry[1].unlisted ? ' (Unlisted)' : ''}${entry[1].price ? `, ${stuff.format(entry[1].price * stuff.stonks[entry[0]].mult)} ${(stuff.currencies[entry[1].currency || "ip"]).name}` : ``}`);
+                if (!useOldShop) itemNames.push(`${entry[1].icon} \`${entry[0]}\` **${entry[1].name}**${entry[1].unlisted ? ' (Unlisted)' : ''}${(!isNaN(entry[1].price)) ? ` ─ ${(stuff.currencies[entry[1].currency || "ip"]).icon} __${stuff.format(entry[1].price * stuff.stonks[entry[0]].mult)}__ ` : ''}${(entry[1].type) ? ` ─ ${entry[1].type}` : ``}${(entry[1].extraInfo) ? `\n${entry[1].extraInfo}` : ``}`);
+                if (useOldShop) itemNames.push(`${entry[1].icon} \`${entry[0]}\` **${entry[1].name}**${entry[1].unlisted ? ' (Unlisted)' : ''}${(!isNaN(entry[1].price)) ? `, ${stuff.format(entry[1].price * stuff.stonks[entry[0]].mult)} ${(stuff.currencies[entry[1].currency || "ip"]).name}` : ``}`);
             })
 
             var embed = {
