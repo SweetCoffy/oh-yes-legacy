@@ -7,6 +7,11 @@ module.exports = {
     inStock: 9999999999,
     rarity: stuff.rarity.blue,
     type: "Other",
+    stackable: false,
+    getInvInfo(item) {
+        var d = item.extraData;
+        return `(${stuff.betterFormat(d.used, stuff.formatOptions.filesize)}/${stuff.betterFormat(d.capacity, stuff.formatOptions.filesize)}, ${d.battery?.charge ? `${d.battery.charge}` : "no battery"})`
+    },
     extraData: {
         battery: undefined,
         files: {},
@@ -14,7 +19,7 @@ module.exports = {
         used: 0,
     },
     onUse: function(user, message, args, slot) {
-        if (stuff.getMoney(user, "braincell") < 100) throw `You need at least 100 braincells in order to use this phone`
+        //if (stuff.getMoney(user, "braincell") < 100) throw `You need at least 100 braincells in order to use this phone`
         var phoneData = stuff.getInventory(user)[slot].extraData || {}; 
         var u = message.guild.members.cache.get(user).user;
         if (!phoneData.battery) throw "You need a battery!!!1!1!!1!!"

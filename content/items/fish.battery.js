@@ -1,1 +1,1 @@
-module.exports = { id: "battery", extraData: { charge: 64, quality: 0.7 } }
+module.exports = { id: "battery", extraData: { charge: 64, quality: 0.7 }, chance: 0.05 }

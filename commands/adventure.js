@@ -3,7 +3,6 @@ var stuff = require('../stuff')
 module.exports = {
     name: "adventure",
     description: 'ha ha yes bootleg bread adventures',
-    requiredPermission: 'yes',
     category: "wip",
     /**
      * 
@@ -124,7 +123,7 @@ module.exports = {
                         check: () => tasks['egg-reactor-kill-reactor']
                     }
                 ]
-            }
+            },
         ]
         var rooms = possibleRooms.map(el => Object.create(el))
         for (const r of rooms) {
@@ -167,7 +166,7 @@ module.exports = {
                     points += task.points;
                     tasks[`${curRoom.id}-${task.id}`] = true;
                     if (task.onDone) {
-                        task.onDone(msg)
+                        task.onDone(msg, curRoom, task)
                     }
                     msg = await msg.edit(`${task.message || task.getMessage(msg, task, curRoom)}`)
                     await delay(2000)

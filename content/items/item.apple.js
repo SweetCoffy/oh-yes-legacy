@@ -9,9 +9,6 @@ module.exports = {
     extraInfo: `Does very minor improvements to stats but doesn't decrease defense unlike donuts`,
     onUse(user) {
         stuff.addMultiplier(user, .1)
-        stuff.addAttack(user, 0.01)
-        stuff.userHealth[user] += .05;
-        stuff.addMaxHealth(user, 0.05)
         stuff.removeItem(user, "apple")
     }
 }

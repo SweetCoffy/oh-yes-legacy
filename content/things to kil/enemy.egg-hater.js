@@ -9,4 +9,9 @@ module.exports = {
     maxAttack: 3,
     moneyDrop: 750,
     minLevel: 0,
+    xpReward: 101,
+    drops: [
+        { min: 5, max: 25, item: "v_", chance: 0.75 },
+        { min: 1, max: 1, item: "titanium-pickaxe", chance: 0.01 }
+    ]
 }

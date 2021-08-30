@@ -6,6 +6,8 @@ module.exports = {
     category: "economy",
     cooldown: 10,
     async execute(message) {
+        var p = stuff.pvp[message.author.id]
+        if (p) throw `You can't heal while in a pvp match!`
         var healCount = stuff.db.getData(`/${message.author.id}/`).healCount || 0;
         var heal = stuff.getMaxHealth(message.author.id) - stuff.userHealth[message.author.id]
         var halfHealPrice = (heal / 2) * 1.9 * (1 + (0.37 * healCount));

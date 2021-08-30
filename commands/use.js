@@ -26,7 +26,9 @@ module.exports = {
     cooldown: 4,
 
     execute(message, args, _extraArgs, extraArgs) {
+        var p = stuff.pvp[message.author.id]
         if (args.length < 1) throw "e"; 
+        if (p) throw `You can't use items while in a pvp match!`
         var author = message.author.id;
         var itName = args._item;
         var repeatAmount = stuff.clamp(args.repeat, 1, stuff.getConfig("massUseLimit"));

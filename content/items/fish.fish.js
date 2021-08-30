@@ -1,1 +1,1 @@
-module.exports = { id: "fish" }
+module.exports = { id: "fish", chance: 0.75 }

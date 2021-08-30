@@ -3,10 +3,11 @@ module.exports = {
     id: "shadow-realm-creature",
     minHealth: 100,
     maxHealth: 250,
-    minDefense: 3,
-    maxDefense: 7,
+    minDefense: 30,
+    maxDefense: 70,
     minAttack: 50,
     maxAttack: 150,
     moneyDrop: 12500,
     minLevel: 200,
+    xpReward: 352,
 }

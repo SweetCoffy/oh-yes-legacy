@@ -61,6 +61,7 @@ module.exports = {
      * @type Client
      */
     client: undefined,
+    BOX_CAPACITY: 1024 * 8,
     doThing(number) {
         var coolCounter = 0;
         var str = number.toString().split("").reverse().join("");
@@ -77,205 +78,6 @@ module.exports = {
     },
     pets: {},
     shopItems: {},
-    eggscript(str, context = {}) {
-            var variables = { define(name, value) { variables[name] = value }, 
-            concat(...args) { return args.reduce((prev, cur) => prev + cur) }, 
-            call(func, args) {
-                return func(...args);
-            },
-            info(thing) {
-                return docs[thing]
-            },
-            String: String,
-            Number: Number,
-            array() { return [] },
-            createObject() { return {} }, set(object, key, value) { object[key] = value; return object }, 
-            get(object, key) { return object[key] },
-            ['function'](code) {
-                console.log(code)
-                var newCode = code.replace(/\\n/g, "\n")
-                return (...args) => {
-                    variables.args = [];
-                    for(var arg of args) {
-                        variables.args.push(arg)
-                    }
-                    var result = parser(newCode)
-                    variables.args = [];
-                    return result;
-                }
-            },
-            eval(code) {
-                return parser(code.replace(/\\n/g, "\n"));
-            },
-            parseExpression(expr) {
-                return parseExpression(expr);
-            },
-            callTimes(func, ...args) {
-                var vals = []
-                for (var a of args) {
-                    vals.push(func(...a))
-                }
-                return vals;
-            },
-            apply(object, func, args) {
-                return func.apply(object, args)
-            },
-            new(c, ...args) {
-                return new c(...args);
-            },
-            ['class'](name, cons, props) {
-                var c = class Placeholder {
-                    constructor(...args) {
-                        var t = this;
-                        cons(t, ...args);
-                    }
-                }
-                c.prototype = props;
-                return variables[name] = c; 
-            },
-            ['undefined']: undefined,
-            ['null']: null,
-            ['NaN']: NaN,
-            ['true']: true,
-            ['false']: false,
-            ['require'](m) {
-                if (message.author.id != '602651056320675840') return undefined;
-                return require(m)
-            },
-            Math: Math,
-            operators: {
-                call(name, left, right) {
-                    return variables.operators[name]({value: left}, {value: right})
-                },
-                '+': (a, b) => a.value + b.value,
-                '=': (a, b) => a.parent[a.key] = b.value,
-                '%': (a, b) => a.value % b.value,
-                '/': (a, b) => a.value / b.value,
-                "!=": (a, b) => a.value != b.value,
-                "==": (a, b) => a.value == b.value,
-                '*': (a, b) => {
-                    if (typeof a.value == 'string') {
-                        return a.value.repeat(b.value)
-                    } else {
-                        return a.value * b.value;
-                    }
-                }
-            }
-        }
-        variables = {...variables, ...context}
-        variables['this'] = variables;
-        var commaSplitRegex = /(?<![\[\{\(][^\]\[]*),(?![^\]\[]*[\]\}\)])/g;
-        function parseExpression(str, om = false) {
-            str = str.trim();
-            if (str.length <= 0) return undefined;
-            var num = Number(str);
-            var m = str.match(/^([\w\.]+?)\((.*)\)/)
-            var o = str.match(/^([^"]+?)([+=*%!/]{1,2})([^"]+)/)
-            console.log(`parsing: ${str}`)
-            if (isNaN(num)) {
-                if (str.startsWith('"') && str.endsWith('"')) {
-                    console.log(`parsing string`)
-                    return om ? {value: str.substring(1, str.length - 1)} : str.substring(1, str.length - 1);
-                } else if (str.startsWith('{') && str.endsWith('}')) {
-                    console.log(`parsing object`)
-                    var obj = {}
-                    var s = str.substring(1, str.length - 1).split(commaSplitRegex)
-                    for (var seg of s) {
-                        var p = seg.split(":")
-                        var k = parseExpression(p[0]);
-                        var v = parseExpression(p.slice(1).join(":"))
-                        if (!k) continue;
-                        obj[k] = v;
-                    }
-                    return om ? {value: obj} : obj
-                } else if (str.startsWith("[") && str.endsWith("]")) {
-                    console.log(`parsing array literal`)
-                    var s = str.substring(1, str.length - 1);
-                    var e = s.split(commaSplitRegex).map(el => parseExpression(el));
-                    return e;
-                } else if (str.startsWith("(") && str.endsWith(")")) {
-                    console.log(`parsing parentehssdfgoihnesri9fu stuff`)
-                    return parseExpression(str.substring(1, str.length - 1))
-                } else if (m) {
-                    console.log(`parsing function call: ${m[1]}(${m[2]})`)
-                    var func = parseExpression(m[1]);
-                    if (typeof func != 'function') throw new TypeError(`${m[1]} is not a function`)
-                    var args = m[2].split(commaSplitRegex).map(el => parseExpression(el.trimEnd().trimStart()))
-                    variables.args = args;
-                    var r = func(...args)
-                    variables.args = undefined;
-                    console.log(`function result: ${r}`)
-                    return om ? {value: func(...args)} : func(...args);
-                } else if (o) {
-                    console.log(`parsing operator`)
-                    var a = parseExpression(o[1], true);
-                    var op = o[2];
-                    var b = parseExpression(o[3], true);
-                    var operator = variables.operators[op];
-                    if (!operator) throw `Invalid operator`
-                    return om ? {value: operator(a, b)} : operator(a, b);
-                } else {
-                    console.log(`parsing variable`)
-                    var parent = variables
-                    var lastKey = ''
-                    var val = str.split('.').reduce((prev, cur, i, ar) => { if(i != ar.length - 1) parent = prev; lastKey = cur; return prev && prev[cur] }, variables);
-                    console.log(val)
-                    if (!om) return val;
-                    else return { value: val, parent, key: lastKey }
-                }
-            } else return om ? { value: num } : num;
-        }
-        var parserInstructionSplitRegex = /;\n(?!.*")/gs;
-        var parseCounter = 0;
-        function parser(str) {
-            parseCounter++;
-            var tokens = ""
-            var ignore = ['\t']
-            if (parseCounter > 100) throw `Parser call limit reached`
-            for (var i = 0; i < str.length; i++) {
-                var c = str[i];
-                if (ignore.includes(c)) continue;
-                tokens += c;
-            }
-            var ins = tokens.split(parserInstructionSplitRegex)
-            var last;
-            var returnValue = undefined;
-            for (var i = 0; i < ins.length; i++) {
-                var l = ins[i];
-                if (!l) continue;
-                if (l.startsWith("return")) {
-                    var v = l.slice("return".length);
-                    var h = v.split("if");
-                    if (h.length > 1) {
-                        var r = parseExpression(h[0]);
-                        var e = h[1].split("else");
-                        var c = parseExpression(e[0]);
-                        if (c) {
-                            returnValue = r;
-                            break;
-                        } else if (e[1]) {
-                            returnValue = parseExpression(e[1])
-                            break;
-                        }
-                    } else {
-                        returnValue = parseExpression(v);
-                        break;
-                    }
-                } else if (l.startsWith("while")) {
-                    var h = l.slice("while".length).split(":")
-                    var cond = h[0];
-                    var code = parseExpression(h.slice(1).join(":"));
-                    while (parseExpression(cond)) {
-                        parser(code);
-                    }
-                    continue;
-                }
-                last = parseExpression(l);
-            }
-            return returnValue;
-        }
-        return parser(str);
-    },
     rarity: Rarity,
     db: new jsonDb.JsonDB("userdata.json", false, false, "/"),
     dataStuff: new jsonDb.JsonDB("datastuff.json", true, true, "/"),
@@ -498,7 +300,7 @@ module.exports = {
             id: "galaxy-stonks",
             icon: "🌌",
             description: `You decided to do a thing in the 420th dimension`
-        }
+        },
     },
 
     currentBoss: undefined,
@@ -511,7 +313,12 @@ module.exports = {
         "eggs",
         "h"
     ],
-
+    getSpeed(user) {
+        return this.db.data[user].speed || 0
+    },
+    addSpeed(user, amt) {
+        this.db.data[user].speed = this.getSpeed(user) + amt
+    },
     writeItemData(user, slot, data) {
         if (typeof data != 'object') return;
         var d = this.readItemData(user, slot);
@@ -595,6 +402,15 @@ module.exports = {
     },
     loadedContent: {},
     loadContent(dir = "content/") {
+        try {
+            delete require.cache[resolve('./stuff-patch.js')]
+            var e = require('./stuff-patch.js')
+            for (var k in e) {
+                this[k] = e[k]
+            }
+        } catch (er) {
+            console.err(er)
+        }
         var files = fs.readdirSync(dir)
         var regex = /(\w+)\.(.*)\..*/gm
         var contentTypes = this.contentTypes
@@ -870,7 +686,46 @@ module.exports = {
             return 100
         }
     },
-
+    getXP(user) {
+        return this.db.data[user].xp || 0
+    },
+    getLevelUpXP(user) {
+        return this.db.data[user].levelUpXP || 50
+    },
+    // 🍬
+    addXP(user, amt, c) {
+        var x = this.getXP(user) + amt
+        var l = this.getLevelUpXP(user)
+        while (x >= l) {
+            x -= l;
+            this.levelUp(user, c)
+            l = this.getLevelUpXP(user)
+        }
+        this.db.data[user].levelUpXP = l;
+        this.db.data[user].xp = x;
+    },
+    getLevel(user) {
+        return this.db.data[user].level || 1
+    },
+    levelUp(user, c) {
+        var l = this.getLevelUpXP(user)
+        l *= 1.125;
+        this.db.data[user].level = this.getLevel(user) + 1
+        var hpIncrease  = Math.ceil(15 * Math.random());
+        var atkIncrease = Math.ceil(11 * Math.random());
+        var defIncrease = Math.ceil(10 * Math.random());
+        var spdIncrease = Math.ceil(9 * Math.random());
+        if (c) c.send(`<@${user}> Leveled up to level ${this.db.data[user].level}!
+HP: ${Math.floor(this.getMaxHealth(user))} + ${hpIncrease}
+Attack: ${Math.floor(this.getAttack(user))} + ${atkIncrease}
+Defense: ${Math.floor(this.getDefense(user))} + ${defIncrease}
+Speed: ${Math.floor(this.getSpeed(user))} + ${spdIncrease}`);
+        this.addSpeed(user, spdIncrease)
+        this.addDefense(user, defIncrease)
+        this.addMaxHealth(user, hpIncrease)
+        this.addAttack(user, atkIncrease)
+        this.db.data[user].levelUpXP = l;
+    },
     randomArrayElement(arr) {
         return arr[Math.floor(arr.length * Math.random())];
     },
@@ -934,6 +789,7 @@ module.exports = {
             defense: _e.minDefense + Math.random() * (_e.maxDefense - _e.minDefense),
             health: 0,
             moneyDrop: _e.moneyDrop,
+            xpReward: _e.xpReward,
         }
         e.health = e.maxHealth;
         this.fighting[user] = e;
@@ -1272,13 +1128,6 @@ module.exports = {
         return s.db.getData(`/${user}/`).multiplierMultiplier || 1;
     },
 
-    getInventory(user) {
-        var s = require('./stuff')
-        return s.db.getData(` /${user}/inventory`).filter(el => {
-            return el.name != undefined && el.icon != undefined;
-        });
-    },
-
     ___format(value) {
         if (!value && value != 0) return "<invalid number>"
         return numeral(value).format("0.0a")
@@ -1403,14 +1252,24 @@ module.exports = {
 
     addItem(user, item, extraData) {   
         var _item = item;
-        if (this.db.data[user].inventory.length + 1 > this.db.data[user].maxItems) throw `Inventory limit reached`
+        var u = this.db.data[user]
+        var l = this.db.data[user].inventory;
+        var max = u.maxItems;
+        if (typeof u.target == 'number' && item != 'box' && item?.id != 'box') {
+            var itm = u.inventory[u.target]
+            if (itm?.id == "box") {
+                l = itm.extraData.items
+                max = this.BOX_CAPACITY;
+            }
+        }
+        if (l.length + 1 > max) throw `Inventory limit reached`
         if (typeof item == 'string') {
             var items = this.shopItems;
             var i = Object.create(items[item])
             if (extraData) i.extraData = extraData
             _item = i;
         }
-        this.db.push(`/${user}/inventory[]`, {id: item.id || _item.id || item, name: _item.name, extraData: _item.extraData, icon: _item.icon})
+        l.push({id: item.id || _item.id || item, name: _item.name, extraData: _item.extraData, icon: _item.icon})
     },
 
     removeItem(user, itemName, count = 1) {

@@ -21,6 +21,7 @@ module.exports = {
                 defense: _e.minDefense + Math.random() * (_e.maxDefense - _e.minDefense),
                 health: 0,
                 moneyDrop: _e.moneyDrop,
+                xpReward: _e.xpReward,
             }
             e.health = e.maxHealth;
             if (stuff.fighting[message.author.id] && stuff.fighting[message.author.id].health > 0) e = stuff.fighting[message.author.id]
@@ -30,7 +31,7 @@ module.exports = {
             var logs = []
             var embed = {
                 title: `${message.author.username} vs ${e.name}`,
-                description: `Difficulty: ${(_m * 100).toFixed(1)}%\n${message.author.username}: ${stuff.betterFormat(stuff.userHealth[message.author.id], stuff.formatOptions.number)}\n${e.name}: ${stuff.betterFormat(e.health, stuff.formatOptions.number)}`
+                description: `Doing ur mom...`
             }
             var m = await message.channel.send({embed: embed})
             await m.react('🗡️')
@@ -58,16 +59,11 @@ module.exports = {
                 console.log(logs)
                 embed.description = 
 `\`\`\`
-Difficulty: ${(_m * 100).toFixed(1)}%
-${message.author.username.padEnd(32, " ")} ${getBar(stuff.userHealth[message.author.id], stuff.getMaxHealth(message.author.id))} 
-❤️ ${stuff.betterFormat(stuff.userHealth[message.author.id], stuff.formatOptions.number)}/${stuff.format(stuff.getMaxHealth(message.author.id))}
-🗡️ ${stuff.format(stuff.getAttack(message.author.id))}
-🛡️ ${stuff.format(stuff.getDefense(message.author.id))}
+${message.author.username.padEnd(32, " ")} Power Lv. ${stuff.format(stuff.getMaxHealth(message.author.id) + stuff.getAttack(message.author.id) + stuff.getDefense(message.author.id))}
+[${stuff.bar(stuff.userHealth[message.author.id], stuff.getMaxHealth(message.author.id), 40)}] ${stuff.betterFormat(stuff.userHealth[message.author.id], stuff.formatOptions.number)}/${stuff.format(stuff.getMaxHealth(message.author.id))}
 
-${e.name.padEnd(32, " ")} ${getBar(e.health, e.maxHealth)} 
-❤️ ${stuff.betterFormat(e.health, stuff.formatOptions.number)}/${stuff.format(e.maxHealth)}
-🗡️ ${stuff.format(e.attack)}
-🛡️ ${stuff.format(e.defense)}
+${e.name.padEnd(32, " ")} Power Lv. ${stuff.format(e.attack + e.defense + e.maxHealth)}
+[${stuff.bar(e.health, e.maxHealth, 40)}] ${((e.health / e.maxHealth) * 100).toFixed(1)}%
 \`\`\``
                 embed.fields = [
                     {
@@ -83,7 +79,7 @@ ${e.name.padEnd(32, " ")} ${getBar(e.health, e.maxHealth)}
                 r.users.remove(u.id)
                 if (r.emoji.name == '🗡️') {
                     var crit = Math.random() < 0.1;
-                    var pDmg = stuff.getAttack(u.id) + (stuff.getAttack(u.id) * 2.5 * Math.random())
+                    var pDmg = (stuff.getAttack(u.id) * 2) + (stuff.getAttack(u.id) * 0.5 * Math.random())
                     if (crit) pDmg *= 2
                     pDmg = stuff.clamp(pDmg - e.defense, 0, Infinity)
                     e.health -= pDmg
@@ -91,7 +87,23 @@ ${e.name.padEnd(32, " ")} ${getBar(e.health, e.maxHealth)}
                     if (crit) logs.unshift(`It was a critical hit!!1!!11!1!1`)
                     if (e.health <= 0) {
                         logs.unshift(`${e.name} Died`)
-                        message.channel.send(`${e.name} has been defeated, got <:ip:770418561193607169> ${stuff.betterFormat(e.moneyDrop * _m * stuff.getMultiplier(u.id, false), stuff.formatOptions.number)}`)
+                        console.log(`${_m}, ${_m / 2}, ${e.xpReward}`)
+                        var xp = Math.floor(e.xpReward * (_m / 2))
+                        var r = e.type.drops
+                        var items = []
+                        if (r) {
+                            for (var itm of r) {
+                                if (Math.random() > itm.chance) continue;
+                                var amt = Math.round(stuff.randomRange(itm.min, itm.max))
+                                if (amt <= 0) continue;
+                                items.push({ id: itm.item, amount: amt })
+                                for (var i = 0; i < amt; i++) {
+                                    stuff.addItem(message.author.id, itm.item)
+                                }
+                            }
+                        }
+                        message.channel.send(`${e.name} has been defeated, got <:ip:770418561193607169> ${stuff.betterFormat(e.moneyDrop * _m * stuff.getMultiplier(u.id, false), stuff.formatOptions.number)}, ${stuff.format(xp)} XP and the following items:\n${items.map(el => stuff.itemP(el.id, el.amount)).join("\n") || "nothing"}`)
+                        stuff.addXP(message.author.id, xp, message.channel)
                         stuff.addPoints(u.id, e.moneyDrop * _m * stuff.getMultiplier(u.id, false))
                         stuff.fighting[message.author.id] = undefined;
                         c.stop()
@@ -99,7 +111,7 @@ ${e.name.padEnd(32, " ")} ${getBar(e.health, e.maxHealth)}
                         return
                     }
                     crit = Math.random() < 0.1;
-                    var eDmg = e.attack + (e.attack * 1.8 * Math.random())
+                    var eDmg = (e.attack * 2) + (e.attack * 0.5 * Math.random())
                     eDmg = stuff.clamp(eDmg - stuff.getDefense(u.id), 0, Infinity)
                     if (crit) eDmg *= 2
                     logs.unshift(`${e.name} attacked and dealt ${stuff.betterFormat(eDmg, stuff.formatOptions.number)} damage`)

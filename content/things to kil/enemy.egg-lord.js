@@ -1,12 +1,17 @@
 module.exports = {
     name: "Egg Lord",
     id: "egg-lord",
-    minHealth: 500,
-    maxHealth: 500,
-    minDefense: 2,
-    maxDefense: 2,
-    minAttack: 50,
-    maxAttack: 50,
+    minHealth: 5000,
+    maxHealth: 5000,
+    minDefense: 90,
+    maxDefense: 90,
+    minAttack: 100,
+    maxAttack: 100,
     moneyDrop: 10000,
     hidden: true,
+    xpReward: 1254,
+    drops: [
+        { min: 1, max: 2, item: "ice-cube", chance: 0.5 },
+        { min: 2, max: 15, item: "voidv_", chance: 0.75 }
+    ]
 }

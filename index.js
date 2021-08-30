@@ -122,9 +122,8 @@ client.once('ready', async () => {
         try {
             stuff.forEachUser((id, data) => {
                 data.taxes.forEach(el => {
-                    var hasReverseCard = stuff.getInventory(id).map(el => el.id).includes('reverse-card');
-                    var a = -el.amount * (data.multiplier * el.multiplierEffect) / 60
-                    stuff.addPoints(id, hasReverseCard ? -a : a, `${el.name}`)
+                    var a = (el.amount * (data.multiplier * el.multiplierEffect)) / 60
+                    stuff.addPoints(id, -a, `${el.name}`)
                 })
             })
         } catch (e) {console.log(e)}
@@ -373,15 +372,16 @@ client.on('message', async message => {
    }
     var prefix = (message.channel.id == stuff.getConfig("noPrefixChannel")) ? "" : stuff.getConfig('prefix', ';');
     if (!message.content.startsWith(prefix)) return;
-    var shlex = require('shlex')
-    var minimist = require('minimist')
-    var flags = minimist(shlex.split(message.content.slice(prefix.length)))
-    var args = flags._;
+    var args = message.content.slice(prefix.length).split(" ")
     const commandName = args.shift();
     const command = client.commands.get(commandName) ?? client.commands.filter(v => {
         if (!v.aliases) return
         if (v.aliases.includes(commandName)) return true
     }).first();
+    var shlex = require('shlex')
+    var minimist = require('minimist')
+    var flags = minimist(shlex.split(args.join(" ")))
+    args = flags._;
     if (!command) return;
     try {
         if (!command.usableAnywhere && stuff.getConfig('botChannel', undefined)) {

@@ -11,10 +11,6 @@ module.exports = {
     type: "Consumable & Boss summon",
     onUse: function(user, message) {
         stuff.addMultiplier(user, 750000)
-        stuff.addAttack(user, 7.5)
-        stuff.userHealth[user] += 20;
-        stuff.addDefense(user, 5)
-        stuff.addMaxHealth(user, 20)
         stuff.removeItem(user, "egg");
         setTimeout(() => {
             if (!stuff.fighting[user]) {

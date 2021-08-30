@@ -14,14 +14,14 @@ module.exports = {
     icon: "<:sebo2205_but_updated:836691037887922216>",
     onEquip(user) {
         stuff.addMultiplier(user, 10000000000000000000000000000)
-        stuff.addMaxHealth(user, 1000000000000)
+        stuff.addMaxHealth(user, 10000000000000)
         stuff.addMultiplierMultiplier(user, 1000000000000000000000000000000000)
         stuff.addAttack(user, 30000000000  )
         stuff.addDefense(user, 25000000000 )
     },
     onUnequip(user) {
         stuff.addMultiplier(user, -10000000000000000000000000000)
-        stuff.addMaxHealth(user, -1000000000000)
+        stuff.addMaxHealth(user, -10000000000000)
         stuff.addMultiplierMultiplier(user, -1000000000000000000000000000000000)
         stuff.addAttack(user, -30000000000  )
         stuff.addDefense(user, -25000000000 )

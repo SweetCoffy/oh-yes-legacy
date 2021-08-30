@@ -12,7 +12,7 @@
     "announcements": "819754844004548608",
     "server-info": "736691780140924979",
     "unarchiveSuggestions": "736730736219914321",
-    "season": 31,
+    "season": 32,
     "ip": "<:ip:763937198764326963>",
     "idk": "%appdata%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup",
     "vChance": 1,
@@ -91,7 +91,8 @@
         "youtube": true,
         "lyrics": false,
         "yeet": true,
-        "waiting": 0
+        "waiting": false,
+        "timer": true
     },
     "commands.eggscript": true,
     "commands.waiting": false,
@@ -104,5 +105,6 @@
     "eggs": {
         "gud": true
     },
-    "massFeedLimit": 96
+    "massFeedLimit": 96,
+    "massGiftLimit": 512
 }

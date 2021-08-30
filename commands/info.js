@@ -26,10 +26,10 @@ module.exports = {
     },
     {
         name: "System Info",
-        value: `**Platform**: ${os.platform()} (${os.release()})
+        value: `**Platform**: ${os.platform()} (Kernel: ${os.version()}, Release: ${os.release()}, Arch: ${os.arch()})
 **CPUs**: 
 ${os.cpus().map((el, i) => `**CPU ${i}**: **${el.model}**\nSpeed: **${el.speed / 1000}**GHz\nnot accurate usage: **${(((el.times.sys + el.times.user) / 1000) / el.speed).toFixed(1)}**%`).join("\n\n")}
-**RAM**: ${stuff.betterFormat(os.freemem(), stuff.formatOptions.filesize)}/${stuff.betterFormat(os.totalmem(), stuff.formatOptions.filesize)} Free
+**RAM**: ${stuff.betterFormat(os.totalmem(), stuff.formatOptions.filesize)} Total (also fuc you, now ram usage for you)
 
 `
     }

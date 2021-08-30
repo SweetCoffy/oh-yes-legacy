@@ -26,6 +26,7 @@ module.exports = {
         var m = Object.entries(stuff.medals)
         var a = Object.entries(stuff.achievements)
         var counter = 0
+        var xpBar = stuff.bar(stuff.getXP(user.id), stuff.getLevelUpXP(user.id), 25)
         for (var medal of m) {
             if (counter > 2) {
                 counter = 0
@@ -80,12 +81,12 @@ module.exports = {
                 },
                 {
                     name: `Equipment (${stuff.format(stuff.getEquipment(user.id).length)}/${stuff.format(stuff.getEquipmentSlots(user.id))})`,
-                    value: `${stuff.getEquipment(user.id).map(el => el.icon).slice(0, 30).join(" ") || '*<nothing>*'}`,
+                    value: `${stuff.getEquipment(user.id).map(el => el.icon).slice(0, 20).join(" ") || '*<nothing>*'}`,
                     inline: true,
                 },
                 {
                     name: `Other`,
-                    value: `:heart: ${stuff.format(stuff.userHealth[user.id])}/${stuff.format(userObject.maxHealth || 100)}\n:shield: ${stuff.format(userObject.defense || 0)}\n🗡️ ${stuff.format(userObject.attack || 1)}\nPowah level: ${stuff.format(stuff.getMaxHealth(user.id) + stuff.getAttack(user.id) + stuff.getDefense(user.id))}\n**${stuff.format(stuff.getRankValue(userObject))}** Rank Value\n${(medals)}\n\n${achievements}`,
+                    value: `Level: ${userObject.level || 1}\n\`${xpBar}\`\nTo next level: ${stuff.format(stuff.getLevelUpXP(user.id) - stuff.getXP(user.id))}\n:heart: ${stuff.format(stuff.userHealth[user.id])}/${stuff.format(userObject.maxHealth || 100)}\n:shield: ${stuff.format(userObject.defense || 0)}\n🗡️ ${stuff.format(userObject.attack || 1)}\n<:drip_sneakers:831930943588663297> ${stuff.format(userObject.speed || 0)}\nPowah level: ${stuff.format(stuff.getMaxHealth(user.id) + stuff.getAttack(user.id) + stuff.getDefense(user.id))}\n**${stuff.format(stuff.getRankValue(userObject))}** Rank Value\n${(medals)}\n\n${achievements}`,
                     inline: true,
                 },
                 {
@@ -107,12 +108,16 @@ ${stuff.getTaxes(user.id).map(el => `**${el.name}** ─ ${stuff.format(el.amount
 **Multiplier**: ${stuff.format(multiplier)}
 **Exponent**: ${stuff.format(stuff.getMultiplierMultiplier(user.id))}
 
+Level: ${userObject.level || 1}
+\`${xpBar}\`
+Next level: ${stuff.format(stuff.getLevelUpXP(user.id) - stuff.getXP(user.id))}
 :heart: ${stuff.format(stuff.userHealth[user.id])}/${stuff.format(userObject.maxHealth || 100)}
 :shield: ${stuff.format(userObject.defense || 0)}
 :dagger: ${stuff.format(userObject.attack || 1)}
+<:drip_sneakers:831930943588663297> ${stuff.format(userObject.speed)}
 **Powah level**: ${stuff.format(stuff.getMaxHealth(user.id) + stuff.getAttack(user.id) + stuff.getDefense(user.id))}
 
-**Equipment** (${stuff.getEquipment(user.id).length}/${stuff.getEquipmentSlots(user.id)}): ${stuff.getEquipment(user.id).map(el => el.icon).slice(0, 30).join(" ") || "doesn't exist"}
+**Equipment** (${stuff.getEquipment(user.id).length}/${stuff.getEquipmentSlots(user.id)}): ${stuff.getEquipment(user.id).map(el => el.icon).slice(0, 20).join(" ") || "doesn't exist"}
 ${medals || "void"}
 
 ${achievements || "also void"}
