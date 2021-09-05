@@ -89,7 +89,7 @@
     "commands": {
         "delet": true,
         "youtube": true,
-        "lyrics": false,
+        "lyrics": 1,
         "yeet": true,
         "waiting": false,
         "timer": true
@@ -105,6 +105,6 @@
     "eggs": {
         "gud": true
     },
-    "massFeedLimit": 96,
+    "massFeedLimit": 512,
     "massGiftLimit": 512
 }

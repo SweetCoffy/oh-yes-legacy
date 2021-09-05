@@ -9,6 +9,6 @@ module.exports = {
         var m = await message.channel.send({ embed: embed })
         var ping = m.createdTimestamp - message.createdTimestamp;
         embed.description += `\nClient ping: ${ping}ms`
-        m.edit({embed: embed, content: ""});
+        m.edit({embed: embed});
     }
 }

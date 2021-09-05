@@ -11,6 +11,7 @@ module.exports = {
     description: "shows the items you currently have",
     useArgsObject: true,
     category: "economy",
+    aliases: ["items", "where-are-my-fucking-items", "inv"],
     arguments: [
         {
             name: "page",
@@ -48,36 +49,6 @@ module.exports = {
             throw "you don't have any items in your inventory!"
         } else {
             var itemNames = [];
-            /**
-             * 
-             * @param {object[]} acc 
-             * @param {object} curr 
-             * @param {number} i 
-             */
-            var reducer = (acc, _curr, i) => {
-                var curr = Object.create(_inv[i]) || Object.create(_curr);
-                
-                if (!stuff.shopItems[curr.id].unstackable && curr.id == (acc[(acc.length || 0) - 1] || {}).id) {
-                    var h = Object.create(acc[acc.length - 1]);
-                      if (!h.amount) h.amount = 1;
-                      h.amount += curr.amount || 1
-                      var index = acc.map(el => el.id).lastIndexOf(curr.id);
-                      var includes = acc.map(el => el.id).includes(curr.id)
-                      if (!includes) {
-                          return [...((acc.push != undefined) ? acc : []), h];
-                      } else {
-                          var a = acc
-                          a[index] = h;
-                          return a;
-                      }
-                      
-                } else {
-                    var h = Object.create(_curr);
-                    curr.i = i;
-                    return [...((acc.push != undefined) ? acc : []), h];
-                }
-                
-            }
             var h = arr => {
                 var obj = {};
                 var iter = 0;
@@ -108,7 +79,6 @@ module.exports = {
             }
            
             var inv = useCompact ? h(_inv) : _inv;
-            if (extraArgs.oldStacking) inv = _inv.reduce(reducer);
             
             if (!inv.forEach) {
                 var oldInv = Object.create(inv);
@@ -131,7 +101,7 @@ module.exports = {
                 color: colors[0],
                 description: itemNames.join("\n"),
                 footer: {
-                    text: `Page ${page + 1}/${Math.floor(inv.length / 20) + 1}, You currently have ${stuff.format(_inv.length)} / ${stuff.format(max)} items`
+                    text: `Page ${page + 1}/${Math.floor(inv.length / 20) + 1}, Items: [${stuff.bar(_inv.length, max, 20, {padding: "　"})}] ${stuff.format(_inv.length)}/${stuff.format(max)}`
                 }
             }
 

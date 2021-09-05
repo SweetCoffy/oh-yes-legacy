@@ -7,7 +7,7 @@ module.exports = {
     arguments: [
         {
             name: "item",
-            type: "inventoryItem"
+            type: "int"
         },
         {
             name: "repeat",
@@ -25,11 +25,8 @@ module.exports = {
         Object.keys(stuff.currencies).forEach(el => totalSold[el] = 0)
         var repeatAmount = stuff.clamp(args.repeat, 1, stuff.getConfig("massBuyLimit"));
         var inv = stuff.getInventory(author);
+        var slot = args.item
         stuff.repeat(() => {
-            var slot = args.item
-            if (isNaN(args._item)) {
-                slot = inv.findIndex(el => el.id == args._item)
-            }
             var it = inv[slot];
             if (!it) throw `you don't have an item at slot \`${slot}\``
             var price = s[it.id].price * stuff.stonks[it.id].mult || 0;

@@ -6,9 +6,10 @@ module.exports = {
     price: 20,
     addedMultiplier: .1,
     rarity: stuff.rarity.white,
-    extraInfo: `Does very minor improvements to stats but doesn't decrease defense unlike donuts`,
+    extraInfo: `Increases max HP by a very small amount`,
     onUse(user) {
         stuff.addMultiplier(user, .1)
+        stuff.addMaxHealth(user, 0.001);
         stuff.removeItem(user, "apple")
     }
 }

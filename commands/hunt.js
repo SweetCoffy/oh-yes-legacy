@@ -1,10 +1,21 @@
 var stuff = require('../stuff')
+var { Message, MessageActionRow, MessageButton } = require('discord.js')
 module.exports = {
     name: "hunt",
     description: `shadowdude's hunt command, but better`,
     category: "economy",
     cooldown: 1,
+    /**
+     * 
+     * @param { Message } message 
+     * @param {*} _h 
+     * @param {*} _hh 
+     * @param {*} param3 
+     * @returns 
+     */
     async execute(message, _h, _hh, { debug }) {
+        if (stuff.fighting[message.author.id] && stuff.fighting[message.author.id].message) return
+        if (stuff.fighting[message.author.id] && !stuff.fighting[message.author.id].message) stuff.fighting[message.author.id].message = message;
         if (stuff.userHealth[message.author.id] <= 0) return message.channel.send(`You are dead, stop it`)
             var _e = Object.values(stuff.enemies).filter(e => !e.hidden && ((stuff.getMaxHealth(message.author.id) + stuff.getAttack(message.author.id) + stuff.getDefense(message.author.id)) >= (e.minLevel || -1000000)))
             if (debug && message.author.id == "602651056320675840") {
@@ -34,8 +45,6 @@ module.exports = {
                 description: `Doing ur mom...`
             }
             var m = await message.channel.send({embed: embed})
-            await m.react('🗡️')
-            await m.react('868635955370786858')
             function repeat(char, times) {
                 var str = ""
                 for (var i = 0; i < times; i++) {
@@ -55,7 +64,7 @@ module.exports = {
                 var a = stuff.clamp(Math.floor(p * w), 0, w)
                 return `${repeat(fl, a) + repeat(bg, w - a)}`
             }
-            var updateEmbed = async() => {
+            var updateEmbed = async(h = true) => {
                 console.log(logs)
                 embed.description = 
 `\`\`\`
@@ -71,73 +80,84 @@ ${e.name.padEnd(32, " ")} Power Lv. ${stuff.format(e.attack + e.defense + e.maxH
                         value: "```\n" + (logs.slice(0, 5).reverse().join("\n") || "empty, just like ur mom before i arriv-") + "\n```"
                     }
                 ]
-                await m.edit({embed: embed})
-            }
-            await updateEmbed();
-            var c = m.createReactionCollector((r, u) => ['🗡️', 'immaheadout'].includes(r.emoji.name) && u.id == message.author.id, { time: 1000 * 120 })
-            c.on('collect', (r, u) => {
-                r.users.remove(u.id)
-                if (r.emoji.name == '🗡️') {
-                    var crit = Math.random() < 0.1;
-                    var pDmg = (stuff.getAttack(u.id) * 2) + (stuff.getAttack(u.id) * 0.5 * Math.random())
-                    if (crit) pDmg *= 2
-                    pDmg = stuff.clamp(pDmg - e.defense, 0, Infinity)
-                    e.health -= pDmg
-                    logs.unshift(`${u.username} attacked and dealt ${stuff.betterFormat(pDmg, stuff.formatOptions.number)} damage`)
-                    if (crit) logs.unshift(`It was a critical hit!!1!!11!1!1`)
-                    if (e.health <= 0) {
-                        logs.unshift(`${e.name} Died`)
-                        console.log(`${_m}, ${_m / 2}, ${e.xpReward}`)
-                        var xp = Math.floor(e.xpReward * (_m / 2))
-                        var r = e.type.drops
-                        var items = []
-                        if (r) {
-                            for (var itm of r) {
-                                if (Math.random() > itm.chance) continue;
-                                var amt = Math.round(stuff.randomRange(itm.min, itm.max))
-                                if (amt <= 0) continue;
-                                items.push({ id: itm.item, amount: amt })
-                                for (var i = 0; i < amt; i++) {
-                                    stuff.addItem(message.author.id, itm.item)
+                console.log(embed)
+                m = await m.edit({embed: embed, components: [new MessageActionRow({ components: [
+                    new MessageButton({type: "BUTTON", style: "PRIMARY", label: "Attack", customId: "attack", emoji: "🗡️"}),
+                    new MessageButton({type: "BUTTON", style: "SECONDARY", label: "Run", customId: 'run', emoji: "868635955370786858"})
+                ] })]})
+                if (!h) {
+                    console.log("funni end")
+                    return
+                }
+                var u = message.author
+                try {
+                    var c = await m.awaitMessageComponent({ time: 60000, componentType: "BUTTON", filter: (i) => i.user.id == message.author.id })
+                    await c.deferUpdate()
+                    console.log(c)
+                    if (c.customId == "attack") {
+                        console.log("atac")
+                        var crit = Math.random() < 0.1;
+                        var pDmg = (stuff.getAttack(u.id) * 2) + (stuff.getAttack(u.id) * 0.5 * Math.random())
+                        if (crit) pDmg *= 2
+                        pDmg = stuff.clamp(pDmg - e.defense, 0, Infinity)
+                        e.health -= pDmg
+                        logs.unshift(`${u.username} attacked and dealt ${stuff.betterFormat(pDmg, stuff.formatOptions.number)} damage`)
+                        if (crit) logs.unshift(`It was a critical hit!!1!!11!1!1`)
+                        if (e.health <= 0) {
+                            logs.unshift(`${e.name} Died`)
+                            console.log(`${_m}, ${_m / 2}, ${e.xpReward}`)
+                            var xp = Math.floor(e.xpReward * (_m / 2))
+                            var r = e.type.drops
+                            var items = []
+                            if (r) {
+                                for (var itm of r) {
+                                    if (Math.random() > itm.chance) continue;
+                                    var amt = Math.round(stuff.randomRange(itm.min, itm.max))
+                                    if (amt <= 0) continue;
+                                    items.push({ id: itm.item, amount: amt })
+                                    for (var i = 0; i < amt; i++) {
+                                        stuff.addItem(message.author.id, itm.item)
+                                    }
                                 }
                             }
+                            message.channel.send(`${e.name} has been defeated, got <:ip:770418561193607169> ${stuff.betterFormat(e.moneyDrop * _m * stuff.getMultiplier(u.id, false), stuff.formatOptions.number)}, ${stuff.format(xp)} XP and the following items:\n${items.map(el => stuff.itemP(el.id, el.amount)).join("\n") || "nothing"}`)
+                            stuff.addXP(message.author.id, xp, message.channel)
+                            stuff.addPoints(u.id, e.moneyDrop * _m * stuff.getMultiplier(u.id, false))
+                            stuff.fighting[message.author.id] = undefined;
+                            await updateEmbed(false)
+                            return
                         }
-                        message.channel.send(`${e.name} has been defeated, got <:ip:770418561193607169> ${stuff.betterFormat(e.moneyDrop * _m * stuff.getMultiplier(u.id, false), stuff.formatOptions.number)}, ${stuff.format(xp)} XP and the following items:\n${items.map(el => stuff.itemP(el.id, el.amount)).join("\n") || "nothing"}`)
-                        stuff.addXP(message.author.id, xp, message.channel)
-                        stuff.addPoints(u.id, e.moneyDrop * _m * stuff.getMultiplier(u.id, false))
-                        stuff.fighting[message.author.id] = undefined;
-                        c.stop()
-                        updateEmbed()
+                        crit = Math.random() < 0.1;
+                        var eDmg = (e.attack * 2) + (e.attack * 0.5 * Math.random())
+                        eDmg = stuff.clamp(eDmg - stuff.getDefense(u.id), 0, Infinity)
+                        if (crit) eDmg *= 2
+                        logs.unshift(`${e.name} attacked and dealt ${stuff.betterFormat(eDmg, stuff.formatOptions.number)} damage`)
+                        if (crit) logs.unshift(`It was a critical hit!!1!!11!1!1`)
+                        stuff.userHealth[u.id] -= eDmg
+                        if (stuff.userHealth[u.id] <= 0) {
+                            logs.unshift(`${u.username} Died`)
+                            var lost = Math.floor((e.moneyDrop * _m) / 1000);
+                            stuff.addMoney(message.author.id, -lost)
+                            logs.unshift(`${u.username} Just lost ${stuff.format(lost)} Internet Points, what a loser lol`)
+                            message.reply(`You died`)
+                            stuff.fighting[message.author.id] = undefined;
+                            await updateEmbed(false)
+                            return
+                        }
+                        await updateEmbed()
+                        return
+                    } else if (c.customId == "run") {
+                        console.log("run")
+                        logs.unshift(`${u.username} Ran away`)
+                        await updateEmbed(false);
+                        stuff.fighting[message.author.id] = undefined
                         return
                     }
-                    crit = Math.random() < 0.1;
-                    var eDmg = (e.attack * 2) + (e.attack * 0.5 * Math.random())
-                    eDmg = stuff.clamp(eDmg - stuff.getDefense(u.id), 0, Infinity)
-                    if (crit) eDmg *= 2
-                    logs.unshift(`${e.name} attacked and dealt ${stuff.betterFormat(eDmg, stuff.formatOptions.number)} damage`)
-                    if (crit) logs.unshift(`It was a critical hit!!1!!11!1!1`)
-                    stuff.userHealth[u.id] -= eDmg
-                    if (stuff.userHealth[u.id] <= 0) {
-                        logs.unshift(`${u.username} Died`)
-                        var lost = Math.floor((e.moneyDrop * _m) / 1000);
-                        stuff.addMoney(message.author.id, -lost)
-                        logs.unshift(`${u.username} Just lost ${stuff.format(lost)} Internet Points, what a loser lol`)
-                        message.reply(`You died`)
-                        stuff.fighting[message.author.id] = undefined;
-                        c.stop()
-                        updateEmbed()
-                        return
-                    }
-                    updateEmbed()
-                } else if (r.emoji.name == "immaheadout") {
-                    logs.unshift(`${u.username} Fled`)
-                    updateEmbed();
-                    stuff.fighting[message.author.id] = undefined
+                } catch (er) {
+                    console.log(er)
+                    stuff.fighting[message.author.id] = null;
                 }
-            }).on('end', async () => {
-                stuff.fighting[message.author.id] = undefined
-                m.reactions.removeAll()
-            })
-        
+            }
+            await updateEmbed();
     }
 }

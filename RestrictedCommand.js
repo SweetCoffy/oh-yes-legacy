@@ -26,7 +26,7 @@ module.exports = class RestrictedCommand extends Command {
     execute(message, args, extraArgs, extraArgsObject) {
         var guild = message.guild;
         var member = message.member;
-        var hasPermissions = member.hasPermission(this.requiredRolePermissions, {checkAdmin: true});
+        var hasPermissions = member.permissions.has(this.requiredRolePermissions, {checkAdmin: true});
         if (hasPermissions) {
             this.onExecute(message, args, extraArgs, extraArgsObject)
         } else {

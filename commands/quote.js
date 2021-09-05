@@ -21,15 +21,16 @@ module.exports = {
         if (match) {
             var c = await message.client.channels.fetch(match[2])
             var m = await c.messages.fetch(match[3])
-            
             var embed = {
                 author: {
                     name: m.author.username,
                     icon_url: m.author.displayAvatarURL(),
+                    url: m.url,
                 },
+                title: flags.title,
                 color: kolor,
                 description: m.content,
-                footer: { text: `Quote provided by ${message.author.username}`, url: m.url }
+                footer: { text: `Quoted by ${message.author.username}`, url: m.url }
             }
             var a = m.attachments.first();
             if (a) {

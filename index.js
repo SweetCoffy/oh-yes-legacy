@@ -1,7 +1,8 @@
 const Discord = require('discord.js');
+const fs = require('fs');
 const stuff = require('./stuff');
 stuff.db.load()
-const client = new Discord.Client();
+const client = new Discord.Client({ intents: 32767 });
 var collecting = false;
 var result = "";
 var snipeStream = require('fs').createWriteStream("F:/snipe-log.txt")
@@ -14,12 +15,14 @@ client.voteTimeout = 100;
 client.snipeLimit = 500;
 client.slashCommands = new Discord.Collection();
 client.snipe = [];
+var u = JSON.parse(fs.readFileSync("command-usage.json", 'utf8'))
+stuff.commandUsage = u;
+const DEBUG_GUILDS = ["758128084632600596", "728718708079460424"]
 const chalk = require('chalk')
 if (!stuff.dataStuff.exists(`/banned`)) {
     stuff.dataStuff.push(`/banned`, [])
 }
 const config = require('../config.json');
-const fs = require('fs');
 const CommandError = require('./CommandError');
 function messageThing(message) {
 
@@ -33,15 +36,19 @@ const h = {
         return client.channels.cache.get(stuff.getConfig("auditLogs"))
     }
 }
-function loadSlashCommands() {
+async function loadSlashCommands() {
     console.log(`Loading slash commands...`)
     client.slashCommands.clear();
     const commandFiles = fs.readdirSync('./slashCommands').filter(file => file.endsWith('.js'));
+    var p = []
+    var g = await Promise.all(DEBUG_GUILDS.map(el => client.guilds.fetch(el)))
     for (const file of commandFiles) {
         delete require.cache[resolve(`./slashCommands/${file}`)]
         const command = require(`./slashCommands/${file}`);
         client.slashCommands.set(command.name, command);
+        p.push(...g.map(g => g.commands.create(command)))
     }
+    return Promise.all(p)
 }
 function addSnipe(m) {
     client.snipe.unshift({
@@ -84,7 +91,6 @@ function loadCommands() {
             console.log(e)
         }
     }
-    loadSlashCommands()
     console.log(`Finished loading commands`)
     stuff.loadPhoneCommands();
     return er;
@@ -108,6 +114,7 @@ loadCommands();
 stuff.loadCommands = loadCommands;
 client.once('ready', async () => {
     console.log('oh yes');
+    loadSlashCommands()
     try {
         var c = fs.readFileSync("prev-channel.txt", "utf8")
         client.channels.fetch(c).then(c => {
@@ -139,40 +146,34 @@ client.once('ready', async () => {
         client.stonksTimeout = setTimeout(stonksThing, stuff.getConfig('stonkUpdateInterval'))
     }
     stonksThing()
-    client.ws.on('INTERACTION_CREATE', async interaction => { 
-        var c = client.slashCommands.get(interaction.data.name)
-        var obj = {}
-        function makeArgsObject(args, obj) {
-            for (var p of args) {
-                if (p.options?.length > 0) {
-                    obj[p.name] = {};
-                    makeArgsObject(p.options, obj[p.name]);
-                } else {
-                    obj[p.name] = p.value;
-                }
-            }
-        }
-        if (interaction.data.options?.length > 0) makeArgsObject(interaction.data.options, obj)
-        console.log(obj)
-        var r;
-        try {
-            r = await c.execute(client.api.interactions[interaction.id][interaction.token], interaction, obj, client)
-        } catch (er) {
-            console.log(er)
-            var data = {
-                embeds: [{
-                    title: `${er?.name || "Get error'd but slash command lol"}`,
-                    color: 0xff0000,
-                    description: `${er?.message || er || "Message existn't"}`
-                }]
-            }
-            client.api.interactions[interaction.id][interaction.token].callback.post({data: {
-                type: 4,
-                data: data,
-            }})
-        }
-    })
 });
+var usage = u;
+client.on('channelCreate', (c) => {
+    if (c.isThread()) {
+        c.join()
+    }
+})
+function inccmd(type, cmd) {
+    if (!u[type].TOTAL) u[type].TOTAL = 0;
+    if (!u[type][cmd]) u[type][cmd] = 0;
+    u[type][cmd]++
+    u[type].TOTAL++
+    u.total++
+}
+client.on('interactionCreate', async(i) => {
+    console.log(`Interaction: ${i.user.tag} ${i.constructor.name} ${i.commandName} ${i.type}`)
+    if (!i.isCommand() && !i.isContextMenu()) return;
+    var c = client.slashCommands.get(i.commandName)
+    try {
+        inccmd("slash_commands", i.commandName)
+        await c.run(i)
+    } catch (er) {
+        if (i.replied) {
+            await i.followUp(((er.stack || er) + "") || "error moment")
+        } else await i.reply(((er.stack || er) + "") || "error moment")
+        u.errors++
+    }
+})
 client.on('messageReactionAdd', (reaction, user) => {
     try {
         if (stuff.db.data[user.id]) {
@@ -215,8 +216,9 @@ client.on('emojiDelete', async emoji => {
     } catch (e) {}
 })
 var num = 0;
-client.on('message', async message => {
+client.on('messageCreate', async message => {
     var now = Date.now();
+    usage.messages++;
     try {
         if (!message.guild) return;
         if (message.author.id != client.user.id) snipeLog.log(`${message.guild?.name || "DM"}>${message.channel.name}>${message.author.tag}: ${message.content || "N/A"}`)
@@ -292,7 +294,7 @@ client.on('message', async message => {
                 defense: 0,
                 maxHealth: 100,
                 gold: 0,
-                maxItems: 16384,
+                maxItems: 262144,
                 taxes: [],
                 inventory: [],
                 pets: [],
@@ -432,6 +434,7 @@ client.on('message', async message => {
                 } else {
                     a = newArgs
                 }
+                inccmd("commands", command.name)
                 await command.execute(message, a, ["no"], flags);
             } else{
                 throw `The command \`${command.name}\` is disabled, run \`;set commands.${command.name} true\` to re-enable it`;
@@ -440,10 +443,14 @@ client.on('message', async message => {
         var actualNow = Date.now();
         console.log(`Took ${actualNow - now}ms to process a command`);
     } catch (error) {
+        usage.errors++
         sendError(message.channel, error);
         message.react("755546914715336765")
     }
 });
+setInterval(() => {
+    require('fs').writeFileSync("command-usage.json", JSON.stringify(usage, null, 4))
+}, 15000)
 function sendError (channel, err) {
     var _err = err;
     console.log(err)

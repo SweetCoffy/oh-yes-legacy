@@ -12,6 +12,6 @@ module.exports = {
     xpReward: 1254,
     drops: [
         { min: 1, max: 2, item: "ice-cube", chance: 0.5 },
-        { min: 2, max: 15, item: "voidv_", chance: 0.75 }
+        { min: 15, max: 50, item: "voidv_", chance: 0.75 }
     ]
 }

@@ -6,9 +6,10 @@ module.exports = {
     price: 10,
     addedMultiplier: 5,
     rarity: stuff.rarity.white,
-    extraInfo: `Does permanent minor improvements to stats at the cost of defense`,
+    extraInfo: `Donut made out of pure sugar, increases speed by a very small amount`,
     onUse(user) {
         stuff.addMultiplier(user, 5)
+        stuff.addSpeed(user, 0.001);
         stuff.removeItem(user, "donut")
     }
 }

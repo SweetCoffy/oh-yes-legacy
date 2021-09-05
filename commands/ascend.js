@@ -25,9 +25,9 @@ Are you sure to do prestige? (react with ✅ to confirm)
             `,
         }
 
-        message.channel.send({embed: embed}).then(msg => {
-            msg.react('✅');
-            msg.awaitReactions((reaction, user) => user.id == message.author.id && reaction.emoji.name == "✅", {max: 1, time: 15000, errors: ['time']}).then(() => {
+        message.channel.send({embed: embed}).then(async msg => {
+            await msg.react('✅');
+            msg.awaitReactions({max: 1, time: 15000, errors: ['time'], filter: (reaction, user) => user.id == message.author.id && reaction.emoji.name == "✅"}).then(() => {
                 stuff.db.push(`/${message.author.id}/points`, 0)
                 stuff.db.push(`/${message.author.id}/gold`, 0)
                 stuff.db.push(`/${message.author.id}/multiplier`, 1)
@@ -36,6 +36,11 @@ Are you sure to do prestige? (react with ✅ to confirm)
                 stuff.db.push(`/${message.author.id}/pets`, [])
                 stuff.db.push(`/${message.author.id}/defense`, 1)
                 stuff.db.push(`/${message.author.id}/attack`, 1)
+
+                stuff.db.push(`/${message.author.id}/level`, 1)
+                stuff.db.push(`/${message.author.id}/levelUpXP`, 25)
+                stuff.db.push(`/${message.author.id}/xp`, 0)
+
                 stuff.db.push(`/${message.author.id}/equipment`, [])
                 stuff.db.push(`/${message.author.id}/equipmentSlots`, 6)
                 stuff.addMoney(message.author.id, Number(total.toString()), 'sun')

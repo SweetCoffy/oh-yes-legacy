@@ -4,14 +4,14 @@ module.exports = {
     name: "heal",
     description: 'ha ha yes',
     category: "economy",
-    cooldown: 10,
+    cooldown: 1,
     async execute(message) {
         var p = stuff.pvp[message.author.id]
         if (p) throw `You can't heal while in a pvp match!`
         var healCount = stuff.db.getData(`/${message.author.id}/`).healCount || 0;
         var heal = stuff.getMaxHealth(message.author.id) - stuff.userHealth[message.author.id]
-        var halfHealPrice = (heal / 2) * 1.9 * (1 + (0.37 * healCount));
-        var fullHealPrice = heal * 2 * (1 + (0.5 * healCount));
+        var halfHealPrice = (heal / 2) * 1.9 * (1 + healCount);
+        var fullHealPrice = heal * 2 * (1 + healCount);
         if (heal <= 0) return message.channel.send(`You don't need healing, you're already at max health`)
         if (stuff.getPoints(message.author.id) < halfHealPrice) return message.channel.send(`You can't afford any of the healing options, how american`)
         var embed = {
@@ -22,8 +22,13 @@ module.exports = {
         var m = await message.channel.send({embed: embed})
         await m.react('1️⃣')
         await m.react('2️⃣')
-        var c = m.createReactionCollector((r, u) => ['1️⃣', '2️⃣'].includes(r.emoji.name), { limit: 1, time: 15 * 1000 })
+        var c = m.createReactionCollector((r, u) => ['1️⃣', '2️⃣'].includes(r.emoji.name) && u.id == message.author.id, { limit: 1, time: 15 * 1000 })
         c.on('collect', (r, u) => {
+            if (u.id != message.author.id) return
+            var healCount = stuff.db.getData(`/${message.author.id}/`).healCount || 0;
+            var heal = stuff.getMaxHealth(message.author.id) - stuff.userHealth[message.author.id]
+            var halfHealPrice = (heal / 2) * 1.9 * (1 + healCount);
+            var fullHealPrice = heal * 2 * (1 + healCount);
             if (r.emoji.name == '1️⃣') {
                 if (stuff.getPoints(u.id) < fullHealPrice) {
                     message.channel.send(`You can't afford a full heal`)

@@ -1,26 +1,40 @@
-var { exec } = require('child_process')
+var { spawn } = require('child_process')
 const stuff = require('../stuff')
 module.exports = {
     name: "exec",
     requiredPermission: "commands.exec",
-    useArgsObject: true,
-    arguments: [
-        {
-            name: "command",
-            type: "string"
-        }
-    ],
-    async execute(message, args) {
-        await message.channel.send(`Running \`${args.command}\``)
-        exec(`${args.command}`, (err, out, er) => {
-            if (err) {
-                if (typeof er == "object") er = JSON.stringify(er, null, 4)
-                stuff.sendError(message.channel, { name: `${err}`.slice(0, 255), message: `${er}`.slice(0, 2047) })
-                return
+    async execute(message, args, _e, e) {
+        await message.channel.send(`Running j`)
+        var child = spawn(args.shift(), args, { cwd: process.cwd(), shell: true })
+        var c = ``;
+        var m = [];
+        var updating = false;
+        async function updat() {
+            updating = true;
+            var i = 0 ;
+            var s = c || "doing ur mom..."
+            while (s.length > 0) {
+                var maxChars = (2000 - 8) - 1
+                var e = s.slice(0, maxChars)
+                var str = `\`\`\`\n${e}\n\`\`\``
+                if (!m[i]) m[i] = await message.channel.send(str)
+                else await m[i].edit(str)
+                s = s.slice(maxChars)
+                i++;
             }
-            var codeType = true;
-            if (typeof out == "object") {out = JSON.stringify(out, null, 4); codeType = "JSON"}
-            message.channel.send({ content: `${out}`, split: true, code: codeType })
+            updating = false;
+        }
+        child.stdout.on('data', (chunk) => {
+            c += chunk
+            if (!updating) updat()
+        })
+        child.stderr.on('data', (chunk) => {
+            c += chunk
+            if (!updating) updat()
+        })
+        child.on('exit', (code, sig) => {
+            updat()
+            message.channel.send(`Exited with code ${code} and signal ${sig}`)
         })
     }
 }

@@ -1,5 +1,6 @@
 
 // help command
+const { MessageActionRow, MessageButton, Message } = require('discord.js');
 const CommandError = require('../CommandError');
 const stuff = require('../stuff');
 
@@ -10,26 +11,33 @@ module.exports = {
     useArgsObject: true,
     category: "help",
     arguments: [{
-        name: "category",
-        type: "string",
-        optional: true,
-        default: "",
-    }, {
-        name: "command",
+        name: "command_or_category",
         type: "string",
         optional: true,
         default: "",
     }],
-
+    /**
+     * 
+     * @param {Message} message 
+     * @param {*} args 
+     * @param {*} _extraArgs 
+     * @param {*} extraArgs 
+     */
     async execute (message, args, _extraArgs, extraArgs) {
-        const commands = message.client.commandCategories.get(args.category);
-        
+        var cmd = args.command_or_category
+        var forceCat = false;
+        if (cmd.startsWith("!")) {
+            forceCat = true;
+            cmd = cmd.slice(1)
+        }
+        var commands = message.client.commandCategories.get(cmd);
+        if (cmd == "ALL") commands = message.client.commands
         // if the user specified a command, show info about it
-        if (args.command && commands) {
+        if (message.client.commands.has(cmd) && !forceCat) {
 
-            if (commands.has(args.command) ) {
+            if (message.client.commands.has(cmd) ) {
 
-                var cmd = commands.get(args.command);
+                var cmd = message.client.commands.get(cmd);
                 /*if (args[1]) {
                     if (!cmd.subcommands) throw `The command \`${cmd.name}\` doesn't have any subcommands`
                     var subcmd = cmd.subcommands.get(args[1].toLowerCase())
@@ -143,13 +151,13 @@ module.exports = {
 
 
             } else {
-                throw `Could not find command: ${args.category}/${args.command}`;
+                throw `Could not find command: ${cmd}`;
             }
 
 
         } 
         // otherwise show a list of commands
-        else if (!args.category) {
+        else if (!cmd) {
             commandNames = [];
             var currSeparator = "\n";
             var showRemovedCommands = extraArgs.showRemoved;
@@ -181,14 +189,55 @@ module.exports = {
                 m.delete()
             })
             */
-        } else if (args.category) {
+        } else if (cmd) {
             if (!commands) throw `Invalid category`
-            var embed = {
-                title: `Category command list: ${args.category}`,
-                description: commands.map(el => `\`${el.name}\``).join(", "),
-                footer: { text: `Use ;help ${args.category} <command name> to show info about a command in this category` }
+            var page = 0;
+            var pageSize = 20
+            var m = await message.reply({embeds: [{ description: "Doing ur mom..." }]})
+            async function update() {
+                var max = Math.ceil(commands.size / pageSize)
+                if (page >= max) {
+                    page = 0;
+                }
+                if (page < 0) page = max - 1;
+                var startFrom = page * pageSize;
+                var endAt = startFrom + pageSize;
+                var embed = {
+                    title: `Category command list: ${cmd}`,
+                    description: commands.map(el => 
+                        `\`${el.name}${el.arguments ? ` ${el.arguments.map(el => el.optional ? `[${el.name}]` : `<${el.name}>`).join(" ")}` : ""}\`: ${el.description}`)
+                        .slice(startFrom, endAt)
+                        .join("\n"),
+                    footer: { text: `Page: ${page + 1}/${max}` }
+                }
+                await m.edit({embed: embed, components: [new MessageActionRow(
+                    { components: [
+                        new MessageButton({ emoji: "◀️", customId: "prev", style: "PRIMARY" }),
+                        new MessageButton({ emoji: "▶️", customId: "next", style: "PRIMARY" }),
+                        new MessageButton({ emoji: "❌", customId: "close", style: "DANGER" }),
+                    ] }
+                )]})
+                var i = await m.awaitMessageComponent({ filter: (i) => {
+                    if (i.user.id != message.author.id) {
+                        i.reply({ content: "no", ephemeral: true })
+                        return false
+                    }
+                    return true;
+                } })
+                if (i.customId == "prev") {
+                    page--;
+                } else if (i.customId == "next") {
+                    page++;
+                } else if (i.customId == "close") {
+                    await m.delete()
+                    await i.reply({content: "delete moment", ephemeral: true})
+                    await message.delete()
+                    return;
+                }
+                await i.deferUpdate()
+                await update()
             }
-            await message.channel.send({embed: embed})
+            await update()
         }
     }
 }

@@ -86,7 +86,7 @@ module.exports = {
                 },
                 {
                     name: `Other`,
-                    value: `Level: ${userObject.level || 1}\n\`${xpBar}\`\nTo next level: ${stuff.format(stuff.getLevelUpXP(user.id) - stuff.getXP(user.id))}\n:heart: ${stuff.format(stuff.userHealth[user.id])}/${stuff.format(userObject.maxHealth || 100)}\n:shield: ${stuff.format(userObject.defense || 0)}\n🗡️ ${stuff.format(userObject.attack || 1)}\n<:drip_sneakers:831930943588663297> ${stuff.format(userObject.speed || 0)}\nPowah level: ${stuff.format(stuff.getMaxHealth(user.id) + stuff.getAttack(user.id) + stuff.getDefense(user.id))}\n**${stuff.format(stuff.getRankValue(userObject))}** Rank Value\n${(medals)}\n\n${achievements}`,
+                    value: `Level: ${userObject.level || 1}\n\`${xpBar}\`\nTo next level: ${stuff.format(stuff.getLevelUpXP(user.id) - stuff.getXP(user.id))}\n:heart: ${stuff.format(stuff.userHealth[user.id])}/${stuff.format(userObject.maxHealth || 100)}\n:shield: ${stuff.format(userObject.defense || 0)}\n🗡️ ${stuff.format(userObject.attack || 1)}\n<:drip_sneakers:831930943588663297> ${stuff.format(userObject.speed || 0)}\nPowah level: ${stuff.format(stuff.getMaxHealth(user.id) + stuff.getAttack(user.id) + stuff.getDefense(user.id))}\n**${stuff.format(stuff.getRankValue(userObject))}** Rank Value\n${(medals)}`,
                     inline: true,
                 },
                 {

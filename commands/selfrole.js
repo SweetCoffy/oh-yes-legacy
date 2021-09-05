@@ -51,6 +51,7 @@ module.exports = {
         }
         var c = msg.createReactionCollector((r, u) => e.includes(r.emoji.name) && message.author.id == u.id, {time: 1000 * 60})
         c.on('collect', async (r, u) => {
+            if (u.id != message.author.id) return
             r.users.remove(u.id)
             if (r.emoji.name == '🔼') selected--
             if (r.emoji.name == '🔽') selected++

@@ -401,6 +401,10 @@ module.exports = {
         "enemy": "enemies",
     },
     loadedContent: {},
+    addTetrative(user, amt) {
+        var t = this.getTetrative(user)
+        this.db.data[user].tetrative = t + amt;
+    },
     loadContent(dir = "content/") {
         try {
             delete require.cache[resolve('./stuff-patch.js')]
@@ -409,15 +413,15 @@ module.exports = {
                 this[k] = e[k]
             }
         } catch (er) {
-            console.err(er)
+            console.error(er)
         }
         var files = fs.readdirSync(dir)
         var regex = /(\w+)\.(.*)\..*/gm
         var contentTypes = this.contentTypes
         for (const file of files) {
-            console.log(`Trying to load ${file}`)
+            //console.log(`Trying to load ${file}`)
             if (fs.statSync(dir + file).isDirectory()) {
-                console.log(`Loading ${file} as a folder`)
+                //console.log(`Loading ${file} as a folder`)
                 this.loadContent(dir + file + "/")
                 continue
             }
@@ -428,7 +432,7 @@ module.exports = {
             delete require.cache[resolve(dir + match[0])]
             var content = require("./" + dir + match[0])
             this.loadedContent[match[0]] = { id: match[2], type: match[1], fullName: match[0], content, enabled: true }
-            console.log(`Loaded ${file} as '${match[1]}' with id of '${match[2]}'`)
+            console.log(`Loaded ${dir + file} as '${match[1]}' with id of '${match[2]}'`)
         }
     },
     updateContent() {
@@ -651,6 +655,9 @@ module.exports = {
             }
         })
     },
+    getTetrative(user) {
+        return this.db.data[user].tetrative || 1;
+    },
     sendError (channel, err) {
         var _err = err;
         
@@ -711,10 +718,10 @@ module.exports = {
         var l = this.getLevelUpXP(user)
         l *= 1.125;
         this.db.data[user].level = this.getLevel(user) + 1
-        var hpIncrease  = Math.ceil(15 * Math.random());
-        var atkIncrease = Math.ceil(11 * Math.random());
-        var defIncrease = Math.ceil(10 * Math.random());
-        var spdIncrease = Math.ceil(9 * Math.random());
+        var hpIncrease  = Math.ceil(7 * Math.random());
+        var atkIncrease = Math.ceil(5 * Math.random());
+        var defIncrease = Math.ceil(4.5 * Math.random());
+        var spdIncrease = Math.ceil(4 * Math.random());
         if (c) c.send(`<@${user}> Leveled up to level ${this.db.data[user].level}!
 HP: ${Math.floor(this.getMaxHealth(user))} + ${hpIncrease}
 Attack: ${Math.floor(this.getAttack(user))} + ${atkIncrease}
@@ -729,7 +736,118 @@ Speed: ${Math.floor(this.getSpeed(user))} + ${spdIncrease}`);
     randomArrayElement(arr) {
         return arr[Math.floor(arr.length * Math.random())];
     },
-
+    getUserData(user) {
+        var s = this;
+        var o = {
+            /**
+             * @type {[key: string]: BigInt}
+             */
+            money: {},
+            /**
+             * @type {number}
+             */
+            get attack() {
+                return s.getAttack(user)
+            },
+            set attack(v) {
+                return s.db.data[user].attack = v;
+            },
+            /**
+             * @type {number}
+             */
+            get totalMultiplier() {
+                return this.multiplier * (this.exponent * this.tetrative)
+            },
+            /**
+             * @type {number}
+             */
+            get defense() {
+                return s.getDefense(user)
+            },
+            set defense(v) {
+                return s.db.data[user].defense = v;
+            },
+            /**
+             * @type {number}
+             */
+            get speed() {
+                return s.getSpeed(user)
+            },
+            set speed(v) {
+                return s.db.data[user].speed = v;
+            },
+            /**
+             * @type {number}
+             */
+            get maxHealth() {
+                return s.getMaxHealth(user)
+            },
+            set maxHealth(v) {
+                return s.db.data[user].maxHealth = v;
+            },
+            /**
+             * @type {number}
+             */
+            get tetrative() {
+                return s.getTetrative(user)
+            },
+            set tetrative(v) {
+                return s.db.data[user].tetrative = v;
+            },
+            /**
+             * @type {number}
+             */
+            get xp() {
+                return s.getXP(user)
+            },
+            set xp(v) {
+                return s.db.data[user].xp = v;
+            },
+            /**
+             * @type {number}
+             */
+            get levelUpXP() {
+                return s.getLevelUpXP(user)
+            },
+            set levelUpXP(v) {
+                return s.db.data[user].levelUpXP = v;
+            },
+            /**
+             * @type {number}
+             */
+            get level() {
+                return s.getLevel(user)
+            },
+            set level(v) {
+                return s.db.data[user].level = v;
+            },
+            /**
+             * @type {number}
+             */
+            get multiplier() {
+                return s.getMultiplier(user)
+            },
+            set multiplier(v) {
+                return s.db.data[user].multiplier = v;
+            },
+            /**
+             * @type {number}
+             */
+            get exponent() {
+                return s.getMultiplierMultiplier(user)
+            },
+            set exponent(v) {
+                return s.db.data[user].multiplierMultiplier = v;
+            },
+        }
+        for (let c in s._currencies) {
+            let v = s._currencies[c]
+            Object.defineProperty(o.money, v.propertyName, { get() {
+                return s.getMoney(user, c)
+            }, set(v) { stuff.db.data[user][v.propertyName] = BigInt(v) + "" } })
+        }
+        return o
+    },
     addDonated(user, amount) {
         var db = this.db;
         
@@ -1120,12 +1238,13 @@ Speed: ${Math.floor(this.getSpeed(user))} + ${spdIncrease}`);
     getMultiplier(user, raw = true) {
         var s = require('./stuff')
         if (raw) return s.db.getData(`/${user}/multiplier`) || 1;
-        if (!raw) return (s.db.getData(`/${user}/multiplier`) || 1) * (s.db.getData(`/${user}/`).multiplierMultiplier || 1);
+        if (!raw) return (s.db.getData(`/${user}/multiplier`) || 1) * (s.getMultiplierMultiplier(user, false) || 1);
     },
 
-    getMultiplierMultiplier(user) {
+    getMultiplierMultiplier(user, raw = true) {
         var s = require('./stuff')
-        return s.db.getData(`/${user}/`).multiplierMultiplier || 1;
+        if (raw) return s.db.getData(`/${user}/`).multiplierMultiplier || 1;
+        else return (s.db.getData(`/${user}/`).multiplierMultiplier || 1) * this.getTetrative(user, false)
     },
 
     ___format(value) {
@@ -1762,13 +1881,24 @@ Speed: ${Math.floor(this.getSpeed(user))} + ${spdIncrease}`);
             propertyName: "no",
             icon: "<:ohno:737474912666648688>",
             value: 0,
+        },
+        "social-credit": {
+            name: 'Chinese Social Credits', 
+            icon: ':credit_card:', 
+            propertyName: 'social-credits', 
+            value: 686868
         }
     },
     currencies: {},
     getMoney(user, currency = "ip") {
         var h = this
         var cur = h.currencies[currency] || h.currencies.ip;
-        return BigInt(h.clamp(parseInt(this.db.getData(`/${user}/`)[cur.propertyName] || 0), Number.MIN_VALUE / 2, Number.MAX_VALUE)) || 0n;
+        try {
+            return BigInt(this.db.getData(`/${user}/`)[cur.propertyName] || 0) || 0n;
+        } catch (er) {
+            console.error(er)
+            return 0n
+        }
     },
     addMoney(user, amount, currency = "ip") {
         var stuff = require('./stuff')
@@ -1776,8 +1906,7 @@ Speed: ${Math.floor(this.getSpeed(user))} + ${spdIncrease}`);
         var a = BigInt(Math.floor(amount) || 0);
         
         var h = stuff;
-        if (a > 0n) stuff.db.push(`/${user}/${cur.propertyName}`, (h.getMoney(user, currency) + a).toString())
-        else stuff.db.push(`/${user}/${cur.propertyName}`, (h.getMoney(user, currency) + a).toString())
+        stuff.db.push(`/${user}/${cur.propertyName}`, (h.getMoney(user, currency) + a).toString())
     },
     eggscriptInterpreter: (message, phoneData, str = "", slot) => {
         var s = require('./stuff')
