@@ -5,7 +5,7 @@ stuff.db.load()
 const client = new Discord.Client({ intents: 32767 });
 var collecting = false;
 var result = "";
-var snipeStream = require('fs').createWriteStream("F:/snipe-log.txt")
+var snipeStream = require('fs').createWriteStream("snipe-log.txt")
 var snipeLog = new ((require('console')).Console)(snipeStream, snipeStream)
 stuff.client = client;
 client.commands = new Discord.Collection();
@@ -115,16 +115,6 @@ stuff.loadCommands = loadCommands;
 client.once('ready', async () => {
     console.log('oh yes');
     loadSlashCommands()
-    try {
-        var c = fs.readFileSync("prev-channel.txt", "utf8")
-        client.channels.fetch(c).then(c => {
-            c.send(`Restart'd`)
-            fs.unlinkSync("prev-channel.txt")
-        }).catch(er => console.log(er))
-        Object.entries(stuff.shopItems).forEach(([k, v]) => {
-            stuff.originalPrices[k] = v.price || 0;
-        })
-    } catch (er) {}
     client.taxInterval = setInterval(() => {
         try {
             stuff.forEachUser((id, data) => {
@@ -145,6 +135,16 @@ client.once('ready', async () => {
         stuff.updateStonks()
         client.stonksTimeout = setTimeout(stonksThing, stuff.getConfig('stonkUpdateInterval'))
     }
+    try {
+        Object.entries(stuff.shopItems).forEach(([k, v]) => {
+            stuff.originalPrices[k] = v.price || 0;
+        })
+        var c = fs.readFileSync("prev-channel.txt", "utf8")
+        client.channels.fetch(c).then(c => {
+            c.send(`Restart'd`)
+            fs.unlinkSync("prev-channel.txt")
+        }).catch(er => console.log(er))
+    } catch (er) {}
     stonksThing()
 });
 var usage = u;
