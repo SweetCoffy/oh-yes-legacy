@@ -10,6 +10,8 @@ module.exports = {
     description: "Basically an eval command but it can access more stuff",
     requiredPermission: "commands.debug",
     category: "bot",
+    argParsing: false,
+    lexer: false,
     arguments: [
         { name: "code", type: "string" }
     ],
@@ -117,8 +119,26 @@ module.exports = {
             },
         }
         if (args.code.startsWith("\`\`\`")) {
-            args.code = args.code.replace(/```\w*/, "").slice(0, -3)
+            args.code = args.code.replace(/^```\w*\s/, "").slice(0, -3)
         }
+        var funi = {}
+        args.code = args.code.replace(/^\/\/(.+)/gm, (substr, str) => {
+            var a = str.split(" ")
+            console.log(a)
+            var cmdname = a.shift()
+            a = require('shlex').split(a.join(" "))
+            if (cmdname == "enable") {
+                funi[a.shift()] = true;
+            }
+            if (cmdname == "disable") {
+                funi[a.shift()] = false;
+            }
+            return substr;
+        })
+        if (funi.async) {
+            args.code = `(async function() {${args.code}})()`
+        }
+        context.options = funi;
         console.log(args.code)
         var vm = new vm2.VM({ sandbox: context, timeout: 2000, })
         var o = vm.run(args.code)
@@ -139,7 +159,7 @@ module.exports = {
                     } else message.channel.send({content: `Console output:\n${str}`, split: true, code: "js"})
                 }
                 var r = inspect(result);
-                if (r.length > 1024 * 4) {
+                if (r.length > 1024 * 4 || funi.file) {
                     message.channel.send({ content: "Output (Promise)", files: [new Discord.MessageAttachment(Buffer.from(r), "output.txt")] })
                 } else message.channel.send({content: `${r}`, split: true, code: "js"});
             }).catch?.(err => {
@@ -149,7 +169,7 @@ module.exports = {
         if (message.client.token != require('../../config.json').token) message.client.token = require('../../config.json').token
         if (typeof o != 'string') o = inspect(o)
         o = o.replace(new RegExp(`${message.client.token}`, 'g'), "*".repeat(message.client.token.length))
-        if (o.length > 1024 * 4) {
+        if (o.length > 1024 * 4 || funi.file) {
             message.channel.send({ content: "Output", files: [new Discord.MessageAttachment(Buffer.from(o), "output.txt")] })
             return;
         }

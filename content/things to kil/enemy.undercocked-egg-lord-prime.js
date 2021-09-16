@@ -1,0 +1,16 @@
+module.exports = {
+    name: "Undercocked Egg Lord Prime",
+    id: "undercocked-egg-lord-prime",
+    description: "An Egg Lord Prime who wasn't cocked properly, it ended up having extremely high amounts of defense, but only 1 hp",
+    minHealth: 1,
+    maxHealth: 1,
+    minDefense: 42000000000000000000000,
+    maxDefense: 69000000000000000000000,
+    minAttack: 17,
+    maxAttack: 35,
+    moneyDrop: 1,
+    minLevel: 420690,
+    drugTransform: "egg-lord-prime",
+    xpReward: 1,
+    minDamage: 1,
+}

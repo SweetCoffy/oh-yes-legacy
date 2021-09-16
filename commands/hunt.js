@@ -1,8 +1,9 @@
 var stuff = require('../stuff')
-var { Message, MessageActionRow, MessageButton } = require('discord.js')
+var { Message, MessageActionRow, MessageButton, MessageAttachment } = require('discord.js');
+const Jimp = require('jimp');
 module.exports = {
     name: "hunt",
-    description: `shadowdude's hunt command, but better`,
+    description: `hunt moment`,
     category: "economy",
     cooldown: 1,
     /**
@@ -34,7 +35,8 @@ module.exports = {
                 moneyDrop: _e.moneyDrop,
                 xpReward: _e.xpReward,
             }
-            e.health = e.maxHealth;
+            e.prevhp = e.health = e.maxHealth;
+            var pprevhp = stuff.userHealth[message.author.id]
             if (stuff.fighting[message.author.id] && stuff.fighting[message.author.id].health > 0) e = stuff.fighting[message.author.id]
             else stuff.fighting[message.author.id] = e;
             var _m = stuff.clamp(((e.maxHealth / e.type.maxHealth) + (e.attack / e.type.maxAttack) + (e.defense / e.type.maxDefense)) / 1.5, 0, 69);
@@ -66,6 +68,8 @@ module.exports = {
             }
             var updateEmbed = async(h = true) => {
                 console.log(logs)
+                embed.image = { url: "attachment://hunt.png" }
+/*
                 embed.description = 
 `\`\`\`
 ${message.author.username.padEnd(32, " ")} Power Lv. ${stuff.format(stuff.getMaxHealth(message.author.id) + stuff.getAttack(message.author.id) + stuff.getDefense(message.author.id))}
@@ -73,15 +77,20 @@ ${message.author.username.padEnd(32, " ")} Power Lv. ${stuff.format(stuff.getMax
 
 ${e.name.padEnd(32, " ")} Power Lv. ${stuff.format(e.attack + e.defense + e.maxHealth)}
 [${stuff.bar(e.health, e.maxHealth, 40)}] ${((e.health / e.maxHealth) * 100).toFixed(1)}%
-\`\`\``
+\`\`\``*/
+                delete embed.description
                 embed.fields = [
                     {
                         name: "Logs",
                         value: "```\n" + (logs.slice(0, 5).reverse().join("\n") || "empty, just like ur mom before i arriv-") + "\n```"
                     }
                 ]
+                var j = await stuff.funi([{ prevhp: pprevhp, name: message.author.username, hp: stuff.userHealth[message.author.id], maxhp: stuff.getMaxHealth(message.author.id) },
+                { hp: e.health, maxhp: e.maxHealth, name: e.name, prevhp: e.prevhp }])
+                await j.resize(1024, Jimp.AUTO, Jimp.RESIZE_NEAREST_NEIGHBOR)
+                await m.delete()
                 console.log(embed)
-                m = await m.edit({embed: embed, components: [new MessageActionRow({ components: [
+                m = await m.channel.send({embeds: [embed], files: [new MessageAttachment(await j.getBufferAsync(Jimp.MIME_PNG), "hunt.png")], components: [new MessageActionRow({ components: [
                     new MessageButton({type: "BUTTON", style: "PRIMARY", label: "Attack", customId: "attack", emoji: "🗡️"}),
                     new MessageButton({type: "BUTTON", style: "SECONDARY", label: "Run", customId: 'run', emoji: "868635955370786858"})
                 ] })]})
@@ -89,6 +98,8 @@ ${e.name.padEnd(32, " ")} Power Lv. ${stuff.format(e.attack + e.defense + e.maxH
                     console.log("funni end")
                     return
                 }
+                e.prevhp = e.health
+                pprevhp = stuff.userHealth[message.author.id]
                 var u = message.author
                 try {
                     var c = await m.awaitMessageComponent({ time: 60000, componentType: "BUTTON", filter: (i) => i.user.id == message.author.id })
@@ -98,8 +109,8 @@ ${e.name.padEnd(32, " ")} Power Lv. ${stuff.format(e.attack + e.defense + e.maxH
                         console.log("atac")
                         var crit = Math.random() < 0.1;
                         var pDmg = (stuff.getAttack(u.id) * 2) + (stuff.getAttack(u.id) * 0.5 * Math.random())
+                        pDmg = stuff.clamp((pDmg / (1)) - e.defense, e.type.minDamage ?? 1, Infinity)
                         if (crit) pDmg *= 2
-                        pDmg = stuff.clamp(pDmg - e.defense, 0, Infinity)
                         e.health -= pDmg
                         logs.unshift(`${u.username} attacked and dealt ${stuff.betterFormat(pDmg, stuff.formatOptions.number)} damage`)
                         if (crit) logs.unshift(`It was a critical hit!!1!!11!1!1`)
@@ -124,12 +135,15 @@ ${e.name.padEnd(32, " ")} Power Lv. ${stuff.format(e.attack + e.defense + e.maxH
                             stuff.addXP(message.author.id, xp, message.channel)
                             stuff.addPoints(u.id, e.moneyDrop * _m * stuff.getMultiplier(u.id, false))
                             stuff.fighting[message.author.id] = undefined;
+                            if (e.type.onKill) {
+                                e.type.onKill(message, message.author)
+                            }
                             await updateEmbed(false)
                             return
                         }
                         crit = Math.random() < 0.1;
                         var eDmg = (e.attack * 2) + (e.attack * 0.5 * Math.random())
-                        eDmg = stuff.clamp(eDmg - stuff.getDefense(u.id), 0, Infinity)
+                        eDmg = stuff.clamp((eDmg / (1)) - stuff.getDefense(u.id), 1, Infinity)
                         if (crit) eDmg *= 2
                         logs.unshift(`${e.name} attacked and dealt ${stuff.betterFormat(eDmg, stuff.formatOptions.number)} damage`)
                         if (crit) logs.unshift(`It was a critical hit!!1!!11!1!1`)
@@ -147,6 +161,11 @@ ${e.name.padEnd(32, " ")} Power Lv. ${stuff.format(e.attack + e.defense + e.maxH
                         await updateEmbed()
                         return
                     } else if (c.customId == "run") {
+                        if (e.type.noEscape) {
+                            log.unshift("You cannot escape!")
+                            await updateEmbed(true)
+                            return
+                        }
                         console.log("run")
                         logs.unshift(`${u.username} Ran away`)
                         await updateEmbed(false);

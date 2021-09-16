@@ -1,0 +1,3 @@
+cat last.log > prev.log;
+node . > last.log;
+exit;

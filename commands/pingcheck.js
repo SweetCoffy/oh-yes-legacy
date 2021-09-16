@@ -46,21 +46,24 @@ module.exports = {
             },
             {
                 letter: "S",
-                points: 150000,
+                points: 550000,
             },
             {
                 letter: "H",
-                points: 200000,
+                points: 600000,
             },
             {
                 letter: "H+",
-                points: 500000,
+                points: 700000,
             },
             {
                 letter: "How",
                 points: 100000000000000000000000,
             },
         ]
+        for (var r of ranks) {
+            r.points *= 10
+        }
         try {
             var unfunFact = ``
             if (a.ignoreLimit && !stuff.getPermission(message.author.id, "commands.pingcheck.ignoreLimit", message.guild.id)) unfunFact += `--ignoreLimit will have no effect if you don't have the \`commands.pingcheck.ignoreLimit\` permission\n`
@@ -75,7 +78,7 @@ module.exports = {
             var messages;
             if (!hh) {
                 await message.channel.send(`Send ${Math.ceil(args.pings / 2)} h's before the ${(args.pings * 3.5 / 2).toFixed(1)} second time limit`)
-                messages = await message.channel.awaitMessages(m => m.content.toLowerCase() == "h" && m.author.id == message.author.id, { max: args.pings / 2, time: args.duration * 3.5 * 1000});
+                messages = await message.channel.awaitMessages({ max: args.pings / 2, time: args.duration * 3.5 * 1000, filter: m => m.content.toLowerCase() == "h" && m.author.id == message.author.id});
                 var now = Date.now();
                 var completionTime = (now - oldNow) / 1000;
                 var completionTimeMs = (completionTime - Math.floor(completionTime)) * 1000;

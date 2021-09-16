@@ -538,7 +538,7 @@ module.exports = {
     },
 
     getDefense(user) {
-        return this.clamp(this.db.getData(`/${user}/`).defense || 0, -50, Infinity);
+        return this.clamp(this.db.getData(`/${user}/`).defense || 1, -50, Infinity);
     },
 
     addDefense(user, amount) {
@@ -641,18 +641,39 @@ module.exports = {
      * @returns {Promise<Number, Error | CommandError, any[]>} Promise for the completion of the loop
      */
     repeat (callback, times) {
-        return Promise.resolve().then(() => {
+        var t = this;
+        return new Promise(resolve => {
             var iterations = 0;
             var data = [];
-            try {
-                for (var i = 0; i < times; i++) {
+            var i = 0;
+            var error = null;
+            var limit = t.getConfig("repeatLimit", 512);
+            var func = () => {
+                if (i >= times) {
+                    return false
+                }
+                try {
                     data.push(callback(i));
                     iterations++;
+                } catch (err) { 
+                    error = err
+                    return false
+                } finally {
+                    i++
                 }
-                return [iterations, undefined, data];
-            } catch (err) { 
-                return [iterations, err, data];
+                return true
             }
+            function funi() {
+                for (var h = 0; h < limit; h++) {
+                    if (!func()) {
+                        resolve([iterations, error, data])
+                        return false;
+                    }
+                }
+                setTimeout(() => funi(), 0)
+                return true;
+            }
+            funi()
         })
     },
     getTetrative(user) {
@@ -703,10 +724,17 @@ module.exports = {
     addXP(user, amt, c) {
         var x = this.getXP(user) + amt
         var l = this.getLevelUpXP(user)
+        var d = this.getUserData(user)
+        d = { attack: d.attack, defense: d.defense, speed: d.speed, maxHealth: d.maxHealth }
+        var lev = this.getLevel(user)
+        var dat = {hp: 0, atk: 0, def: 0, spd: 0, startLevel: lev, levels: 0}
         while (x >= l) {
             x -= l;
-            this.levelUp(user, c)
+            this.levelUp(user, null, dat)
             l = this.getLevelUpXP(user)
+        }
+        if (dat.levels > 0) {
+            if (c) c.send(`<@${user}> Leveled up!\nLevel: ${dat.startLevel} -> ${dat.startLevel + dat.levels}\n❤️ HP: ${d.maxHealth} + ${dat.hp}\n🗡️ Attack: ${d.attack} + ${dat.atk}\n🛡️ Defense: ${d.defense} + ${dat.def}\n<:drip_sneakers:831930943588663297> Speed: ${d.speed} + ${dat.spd}`)
         }
         this.db.data[user].levelUpXP = l;
         this.db.data[user].xp = x;
@@ -714,9 +742,9 @@ module.exports = {
     getLevel(user) {
         return this.db.data[user].level || 1
     },
-    levelUp(user, c) {
+    levelUp(user, c, dat = {hp: 0, atk: 0, def: 0, spd: 0, startLevel: 0, levels: 0}) {
         var l = this.getLevelUpXP(user)
-        l *= 1.125;
+        l *= 1.075;
         this.db.data[user].level = this.getLevel(user) + 1
         var hpIncrease  = Math.ceil(7 * Math.random());
         var atkIncrease = Math.ceil(5 * Math.random());
@@ -732,6 +760,11 @@ Speed: ${Math.floor(this.getSpeed(user))} + ${spdIncrease}`);
         this.addMaxHealth(user, hpIncrease)
         this.addAttack(user, atkIncrease)
         this.db.data[user].levelUpXP = l;
+        dat.atk += atkIncrease;
+        dat.def += defIncrease;
+        dat.spd += spdIncrease
+        dat.hp += hpIncrease;
+        dat.levels++;
     },
     randomArrayElement(arr) {
         return arr[Math.floor(arr.length * Math.random())];
@@ -1393,9 +1426,6 @@ Speed: ${Math.floor(this.getSpeed(user))} + ${spdIncrease}`);
 
     removeItem(user, itemName, count = 1) {
         var items = this.db.getData(` /${user}/inventory/`);
-
-
-
         var times = 0;
         for (let i = 0; i < items.length; i++) {
             const element = items[i];
@@ -1404,7 +1434,6 @@ Speed: ${Math.floor(this.getSpeed(user))} + ${spdIncrease}`);
                 times++;
             }
         }
-         
         this.db.push(` /${user}/inventory/`, items) 
         return times > 0; 
     },
@@ -1768,7 +1797,7 @@ Speed: ${Math.floor(this.getSpeed(user))} + ${spdIncrease}`);
             self.stonks[k] = { mult: 1 + percent, percent }
         })
         var i = self.shopItems;
-        var h = Object.entries(self.stonks).sort((a, b) => {
+        var h = Object.entries(self.stonks).filter(el => !self.shopItems[el[0]].unlisted).sort((a, b) => {
             var aDiff = (i[a[0]].price * a[1].mult) - i[a[0]].price
             var bDiff = (i[b[0]].price * b[1].mult) - i[b[0]].price
             return bDiff - aDiff

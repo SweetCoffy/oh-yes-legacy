@@ -1,6 +1,7 @@
 module.exports = {
     name: "Shadow Realm Creature",
     id: "shadow-realm-creature",
+    description: "A creature that came from the shadow realm, it is unknown how it escaped",
     minHealth: 100,
     maxHealth: 250,
     minDefense: 30,

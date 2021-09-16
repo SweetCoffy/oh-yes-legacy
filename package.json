@@ -22,8 +22,9 @@
     "node-json-db": "^1.1.0",
     "numeral": "^2.0.6",
     "request": "^2.88.2",
-    "safe-eval": "^0.4.1",
     "shlex": "^2.1.0",
+    "strip-ansi": "^7.0.1",
+    "uint1array": "^1.2.0",
     "vm2": "^3.9.2",
     "youtube-search-api": "^1.0.7"
   }

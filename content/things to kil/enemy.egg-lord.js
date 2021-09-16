@@ -1,6 +1,7 @@
 module.exports = {
     name: "Egg Lord",
     id: "egg-lord",
+    description: "An angry egg fan who turned into egg lord because somebody ate an egg",
     minHealth: 5000,
     maxHealth: 5000,
     minDefense: 90,
@@ -9,6 +10,7 @@ module.exports = {
     maxAttack: 100,
     moneyDrop: 10000,
     hidden: true,
+    drugTransform: "undercocked-egg-lord-prime",
     xpReward: 1254,
     drops: [
         { min: 1, max: 2, item: "ice-cube", chance: 0.5 },

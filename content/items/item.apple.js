@@ -6,10 +6,11 @@ module.exports = {
     price: 20,
     addedMultiplier: .1,
     rarity: stuff.rarity.white,
-    extraInfo: `Increases max HP by a very small amount`,
+    extraInfo: `Very healthy apple, Increases max HP and defense by a very small amount`,
     onUse(user) {
         stuff.addMultiplier(user, .1)
-        stuff.addMaxHealth(user, 0.001);
+        stuff.addMaxHealth(user, 0.005);
+        stuff.addDefense(user, 0.0007);
         stuff.removeItem(user, "apple")
     }
 }

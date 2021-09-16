@@ -18,7 +18,7 @@
     "vChance": 1,
     "prestigeMin": 10000000000,
     "achievements": "819754844004548608",
-    "massBuyLimit": 8192,
+    "massBuyLimit": 131072,
     "cursedThing": "undefined",
     "auditLogs": "770065254880247858",
     "randomReactions": 0,
@@ -57,7 +57,7 @@
     "stonksMaxPercent": 1.2,
     "stonksMinPercent": -0.9,
     "auditLog": 751179205315920000,
-    "stonkUpdateInterval": 240000,
+    "stonkUpdateInterval": 60000,
     "massCraftLimit": 512,
     "Peter.timeLeftTillHeartStops": 12200,
     "massUseLimit": 4096,
@@ -91,8 +91,9 @@
         "youtube": true,
         "lyrics": 1,
         "yeet": true,
-        "waiting": false,
-        "timer": true
+        "waiting": 1,
+        "timer": true,
+        "time": 1
     },
     "commands.eggscript": true,
     "commands.waiting": false,
@@ -106,5 +107,6 @@
         "gud": true
     },
     "massFeedLimit": 512,
-    "massGiftLimit": 512
+    "massGiftLimit": 512,
+    "repeatLimit": 1024
 }

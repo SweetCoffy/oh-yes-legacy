@@ -5,7 +5,7 @@ module.exports = {
     description: "do work and earn moni!!11!1",
     cooldown: 7.5,
     category: "economy",
-    execute (message) {
+    execute (message, a, _e, e) {
         var things = [
             {
                 message: "You got free Internet Points\™️ from someone... h",
@@ -26,13 +26,23 @@ module.exports = {
             {
                 message: "You deleted some random person that did the cat from existence",
                 amount: 3000,
+            },
+            {
+                message: "You did the cat",
+                amount: -1,
+                onGet: (user, msg) => {
+                    stuff.startBattle(user.id, stuff.enemies['the-cat'])
+                    msg.channel.send("The Cat has awoken!")
+                }
             }
         ]        
         var thing = stuff.randomArrayElement(things);
+        if (e.debug) thing = things[e.debug]
         var embed = {
             title: "stonks",
             color: 0x40ff60,
             description: thing.message,
+            footer: {}
         }
         var amount = thing.amount * Math.random();
         if (amount > 0) {
@@ -53,6 +63,7 @@ module.exports = {
             embed.thumbnail = { width: 1024, height: 512, url: 'https://cdn.thednvr.com/uploads/2020/08/31081641/video_image-AD6vS07lL-1.jpg' }
         }         
         embed.footer = { text: `earned ${stuff.format(amount)} Internet Points\™️` }
+        if (thing.onGet) thing.onGet(message.author, message)
         stuff.addPoints(message.author.id, amount, `Did work`);
         message.channel.send({embed: embed});
     }

@@ -1,6 +1,7 @@
 module.exports = {
     name: "Egg Hater",
     id: "egg-hater",
+    description: "The average egg hater",
     minHealth: 10,
     maxHealth: 40,
     minDefense: 0.1,

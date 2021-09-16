@@ -31,6 +31,7 @@ function messageThing(message) {
 const { resolve, join } = require('path');
 const { counter } = require('./stuff');
 const cooldowns = new Discord.Collection();
+client.cooldowns = cooldowns;
 const h = {
     get auditLogs() {
         return client.channels.cache.get(stuff.getConfig("auditLogs"))
@@ -294,7 +295,7 @@ client.on('messageCreate', async message => {
                 defense: 0,
                 maxHealth: 100,
                 gold: 0,
-                maxItems: 262144,
+                maxItems: 1024 * 32,
                 taxes: [],
                 inventory: [],
                 pets: [],
@@ -329,6 +330,19 @@ client.on('messageCreate', async message => {
             Promise.all(promises).catch(e => console.log(e))
         } catch (_e) {}
     }
+    var arg = message.content.split(" ")
+    arg[0] = arg[0].replace(/^<\@\!(\d+)>/, (substr, ping) => {
+        return ping;
+    })
+    if (arg[0] == client.user.id) {
+        arg.shift()
+        var pingCmd = arg.shift()
+        if (pingCmd == "join") {
+            var e = await message.reply("k lol")
+            await stuff.joinMatch(e, stuff.pvp[message.author.id], false)
+        }
+        return;
+    }
     messageThing(message)
     if (!stuff.db.exists(`/${message.author.id}/pets`)) {
         stuff.db.push(`/${message.author.id}/pets`, []);
@@ -359,30 +373,32 @@ client.on('messageCreate', async message => {
         } 
     }
 } catch (e) {sendError(message.channel, e)}
-   if (message.author.bot && message.author.id != config.ohnoId)
-   return;
-   var user = message.mentions.users.first();
-   if (user) {
-       if (user.id == client.user.id) {
-           message.react('729900329440772137');
-           message.channel.send({content: message.author.toString(), embed: {
-               title: "get ponged",
-               color: 0x2244ff,
-               description: `i have **${client.commands.size}** commands, use \`;help\` for a list of commands`
-           }}).then(m => m.delete({timeout: 10000}))
-       }
-   }
-    var prefix = (message.channel.id == stuff.getConfig("noPrefixChannel")) ? "" : stuff.getConfig('prefix', ';');
-    if (!message.content.startsWith(prefix)) return;
-    var args = message.content.slice(prefix.length).split(" ")
-    const commandName = args.shift();
-    const command = client.commands.get(commandName) ?? client.commands.filter(v => {
-        if (!v.aliases) return
-        if (v.aliases.includes(commandName)) return true
-    }).first();
+if (message.author.bot && message.author.id != config.ohnoId) return;
+var user = message.mentions.users.first();
+if (user) {
+    if (user.id == client.user.id) {
+        message.react('729900329440772137');
+        message.channel.send({content: message.author.toString(), embed: {
+            title: "get ponged",
+            color: 0x2244ff,
+            description: `i have **${client.commands.size}** commands, use \`;help\` for a list of commands`
+        }}).then(m => m.delete({timeout: 10000}))
+    }
+}
+var prefix = (message.channel.id == stuff.getConfig("noPrefixChannel")) ? "" : stuff.getConfig('prefix', ';');
+stuff.addXP(message.author.id, Math.random() * 2, message.channel)
+if (!message.content.startsWith(prefix)) return;
+var args = message.content.slice(prefix.length).split(" ")
+const commandName = args.shift();
+const command = client.commands.get(commandName) ?? client.commands.filter(v => {
+    if (!v.aliases) return
+    if (v.aliases.includes(commandName)) return true
+}).first();
     var shlex = require('shlex')
     var minimist = require('minimist')
-    var flags = minimist(shlex.split(args.join(" ")))
+    var a = shlex.split(args.join(" "))
+    if (command?.lexer == false) a = args;
+    var flags = (command?.argParsing == false) ? { _: a } : minimist(a)
     args = flags._;
     if (!command) return;
     try {
@@ -473,4 +489,3 @@ function sendError (channel, err) {
 }
 stuff.sendError = sendError;
 client.login(config.token);
-

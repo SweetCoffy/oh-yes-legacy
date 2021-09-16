@@ -43,7 +43,6 @@ Are you sure to do prestige? (react with ✅ to confirm)
                 stuff.db.push(`/${message.author.id}/equipment`, [])
                 stuff.db.push(`/${message.author.id}/equipmentSlots`, 6)
                 stuff.addMoney(message.author.id, Number(total.toString()), 'cheesy-way')
-                stuff.addMoney(message.author.id, Number(total.toString()) / 1000, 'capacity')
                 stuff.addAchievement(message.author.id, {
                     id: "other:oblivion",
                     name: "First Oblivion",

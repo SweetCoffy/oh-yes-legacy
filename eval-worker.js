@@ -50,7 +50,8 @@ parentPort.on('message', d => {
             console: new Console({ stdout, stderr, colorMode: false }),
             Buffer: h,
             Proxy: h,
-            Reflect: h
+            Reflect: h,
+            options: d.options,
         }
         var vm = new vm2.VM({ timeout: 2500, sandbox: context })
         var r = vm.run(d.code)

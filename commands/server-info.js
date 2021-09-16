@@ -54,16 +54,12 @@ module.exports = {
                     value: `${_members.size} (${bots.size} bots, ${members.size} actual users)`,
                 },
                 {
-                    name: "Region",
-                    value: `${guild.region.slice(0, 1).toUpperCase() + guild.region.slice(1)}`,
-                },
-                {
                     name: "Channels",
                     value: `Text: ${channels.filter(el => el.type == "text").size}\nVoice: ${channels.filter(el => el.type == "voice").size}\nCategories: ${channels.filter(el => el.type == "category").size}`
                 }
             ]
         }
         
-        msg.edit({content: "", embed: embed})
+        msg.edit({content: undefined, embeds: [embed]})
     }
 }

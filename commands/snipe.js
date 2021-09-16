@@ -34,7 +34,7 @@ module.exports = {
                 if (e.color) embed.color = e.color;
             }
             if (del.message.guild.id != message.guild.id) embed.description = "message isn't from this server so get rekt"
-            await message.channel.send({embed: embed})
+            await message.channel.send({embeds: [embed]})
             message.client.snipe.shift();
             if (!flags.all) break;
             del = message.client.snipe[0]

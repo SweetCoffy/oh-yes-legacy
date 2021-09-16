@@ -9,6 +9,8 @@ module.exports = {
     description: "h",
     removed: false,
     cooldown: 3,
+    argParsing: false,
+    lexer: false,
     arguments: [
         {
             name: "code",
@@ -19,9 +21,22 @@ module.exports = {
     async execute(message, args) {
         try {
             if (args.code.startsWith("\`\`\`")) {
-                args.code = args.code.replace(/```\w*/, "").slice(0, -3)
+                args.code = args.code.replace(/^```\w*\s/, "").slice(0, -3)
             }
             var code = args.code;
+            var funi = {}
+            code = code.replace(/^\/\/(.+)/gm, (substr, str) => {
+                var a = str.split(" ")
+                var cmdname = a.shift()
+                a = require('shlex').split(a.join(" "))
+                if (cmdname == "enable") {
+                    funi[a.shift()] = true;
+                }
+                if (cmdname == "disable") {
+                    funi[a.shift()] = false;
+                }
+                return substr;
+            })
             var a = message.attachments.first();
             if (a) {
                 if (a.size > 1024 * 256) throw `lol no`
@@ -51,7 +66,7 @@ module.exports = {
                     sendError(message.channel, er)
                 }
             }
-            stuff.evalWorker.postMessage({ id, code: code })
+            stuff.evalWorker.postMessage({ id, code: code, options: funi })
             stuff.evalWorker.on('message', l)
         } catch (e) {
             sendError(message.channel, e)

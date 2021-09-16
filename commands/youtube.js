@@ -17,13 +17,14 @@ module.exports = {
         var msg = await message.channel.send(`🔍 Searching \`${args.query}\``)
         var results = await yt.GetListByKeyword(args.query);
         if (results.items[0]) {
+            var i = 0;
             if (extraArgs.debug) {
-                message.channel.send({ content: util.inspect(results.items[0]), code: "js", split: true })
+                await msg.edit({ content: util.inspect(results.items[i]), code: "js", split: true })
                 return;
             }
-            var txt = results.items[0].title.toLowerCase();
+            var txt = results.items[i].title.toLowerCase();
             if (checkAmongUs(txt)) throw `still no`
-            msg.edit("https://youtube.com/watch/?v=" + results.items[0].id)
+            msg.edit("https://youtube.com/watch?v=" + results.items[0].id)
         } else {
             msg.edit(`No results found`)
         }

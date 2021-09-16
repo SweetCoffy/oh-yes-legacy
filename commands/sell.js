@@ -32,7 +32,7 @@ module.exports = {
             var price = s[it.id].price * stuff.stonks[it.id].mult || 0;
             stuff.addMoney(message.author.id, price, stuff.shopItems[it.id].currency || "ip");
             stuff.db.data[message.author.id].inventory.splice(slot, 1)
-            totalSold[it.currency || "ip"] += price;
+            totalSold[stuff.shopItems[it.id].currency || "ip"] += price;
         }, repeatAmount).then(([iter, err]) => {
             var a = Object.entries(totalSold).filter(el => el[1] > 0).map(el => `${stuff.currencies[el[0]].icon} ${stuff.format(el[1])}`)
             if (err && iter <= 0) stuff.sendError(message.channel, err)

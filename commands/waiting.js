@@ -1,3 +1,5 @@
+const stuff = require("../stuff");
+
 module.exports = {
     name: "waiting",
     useArgsObject: true,
@@ -13,9 +15,9 @@ module.exports = {
         var msg = await message.channel.send(`Waiting...`)
         var counter = 0;
         var interval = setInterval(() => {
-            msg.edit(`Waiting... ${chars[counter]} (${Math.floor((target - Date.now()) / 1000)} seconds left)`)
+            if (counter >= chars.length) counter = 0;
+            msg.edit(`Waiting... \`${chars[counter]}\` (${stuff.funiTime((target - Date.now()))})`)
             counter++;
-            if (counter > (chars.length - 1)) counter = 0;
         }, 1000 * 2)
         setTimeout(() => {
             clearInterval(interval);

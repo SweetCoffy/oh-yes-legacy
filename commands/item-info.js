@@ -74,7 +74,7 @@ module.exports = {
         }
 
         if (itemData.price) {
-            embed.fields.push({name: "Buy/Sell price", value: `${stuff.format(itemData.price * stuff.stonks[args[0]].mult)} ${stuff.currencies[itemData.currency || 'ip'].icon}`, inline: true})
+            embed.fields.push({name: "Buy/Sell price", value: `${stuff.currencies[itemData.currency || 'ip'].icon} ${stuff.format(itemData.price)} (+${(stuff.stonks[args[0]].percent * 100).toFixed(1)}%)`, inline: true})
         }
         var craftable = stuff.craftables[args[0]];
         if (craftable) {

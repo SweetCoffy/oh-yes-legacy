@@ -11,7 +11,7 @@ module.exports = {
         {
             name: "options",
             type: "stringArray"
-        }
+        },
     ],
     supportsQuoteArgs: true,
     useArgsObject: true,
@@ -69,7 +69,7 @@ module.exports = {
             ]
         }
         var msg = await message.channel.send({embed: embed})
-        var col = msg.createReactionCollector((r, u) => !u.bot && [...n, '🚫'].includes(r.emoji.name), { time: 15000 * 60 })
+        var col = msg.createReactionCollector({ time: 15000 * 480, filter: (r, u) => !u.bot && [...n, '🚫'].includes(r.emoji.name) })
         col.on('collect', (r, u) => {
             r.users.remove(u.id)
             if (r.emoji.name == '🚫') {
