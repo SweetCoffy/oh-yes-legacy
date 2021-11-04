@@ -60,7 +60,7 @@ async function funi(things, w = 320) {
     var i = 0;
     var longest = 64;
     for (var t of things) {
-        var str = `${Math.ceil(t.hp)}/${Math.ceil(t.maxhp)}`
+        var str = `${stuff.format(Math.ceil(t.hp))}/${stuff.format(Math.ceil(t.maxhp))}`
         var l = (str.length * 8) + 4;
         if (l > longest) longest = l;
     }
@@ -95,7 +95,7 @@ async function funi(things, w = 320) {
         }
         t.hp = Math.max(t.hp, 0)
         ypos = (i * (thingH + 1)) + (thingH - 10);
-        var str = `${Math.ceil(t.hp)}/${Math.ceil(t.maxhp)}`
+        var str = `${stuff.format(Math.ceil(t.hp))}/${stuff.format(Math.ceil(t.maxhp))}`
         gradientRect(xpos, ypos, longest, 10, [0x60, 0x60, 0x60, 0xff], [0x80, 0x80, 0x80, 0xff])
         drawText(xpos + 1, ypos + 1, str)
         xpos += longest
@@ -111,8 +111,6 @@ async function funi(things, w = 320) {
             var argba = a
             var brgba = b
 
-            console.log(`${argba}; ${brgba}`)
-
             var r = Math.abs(Math.floor(lerp(argba[0], brgba[0], t)))
             var g = Math.abs(Math.floor(lerp(argba[1], brgba[1], t)))
             var bl = Math.abs(Math.floor(lerp(argba[2], brgba[2], t)))
@@ -121,7 +119,6 @@ async function funi(things, w = 320) {
             g.toString(16).padStart(2, "0") +
             bl.toString(16).padStart(2, "0") +
             al.toString(16).padStart(2, "0")
-            console.log(s)
             return parseInt(s, 16)
         }
         function gradientRect(x, y, w, h, from, to) {

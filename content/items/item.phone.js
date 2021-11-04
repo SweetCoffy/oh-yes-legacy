@@ -6,6 +6,7 @@ module.exports = {
     unstackable: true,
     inStock: 9999999999,
     rarity: stuff.rarity.blue,
+    pageIcon: "📲",
     type: "Other",
     stackable: false,
     getInvInfo(item) {
@@ -48,7 +49,8 @@ module.exports = {
         if (!cmd) {
             throw `The command \`${args[0]}\` is not available`;
         } else {
-            return cmd.execute(message, _args, phoneData, slot, eggscriptContext);
+            cmd.execute(message, _args, phoneData, slot, eggscriptContext);
+            throw ''
         }
         return false;
     }

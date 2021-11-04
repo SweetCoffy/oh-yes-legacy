@@ -198,7 +198,8 @@ stuff.shopItems = shopItems = {
         equipable: true,
         unstackable: true,
         icon: "🛡️",
-        name: "Shield",   
+        name: "Shield",
+        pageIcon: "https://discord.com/assets/ad2e4d6e7b90ca6005a5038e22b099cc.svg",
         onUse() {},
         onEquip(user) {
             var stuff = require('../../stuff');
@@ -286,7 +287,7 @@ stuff.shopItems = shopItems = {
             var stuff = require('../../stuff')
             stuff.removeItem(user, "life-drink")
             stuff.userHealth[user] += 20
-            stuff.db.push(`/${user}/maxHealth`, stuff.getMaxHealth(user) + 20)
+            stuff.addMaxHealth(user, 20)
             stuff.userHealth[user] = stuff.getMaxHealth(user);
             return true;
         }
@@ -370,30 +371,30 @@ stuff.shopItems = shopItems = {
             
                 const stuff = require('../../stuff');
                 stuff.removeItem(user, "car");
-                if (!stuff.currentBoss) {
-                    stuff.currentBoss = {
-                        name: "Car Lord",
-                        health: 50000,
-                        drops: 1000000000000000000,
-                        maxHealth: 50000,
-                        damage: 350,
-                        itemDrops: [
-                            "cake",
-                            "cake",
-                            "coin",
-                            "coin",
-                            "milk",
-                            "baguette",
-                            "life-drink",
-                            "diamond",
-                            "shield"
-                        ],
-                        fighting: [
-                            user
-                        ]
-                    }
+                if (true) {
                     
-                    message.channel.send("Car Lord has awoken!")
+                    // stuff.currentBoss = {
+                    //     name: "Car Lord",
+                    //     health: 50000,
+                    //     drops: 1000000000000000000,
+                    //     maxHealth: 50000,
+                    //     damage: 350,
+                    //     itemDrops: [
+                    //         "cake",
+                    //         "cake",
+                    //         "coin",
+                    //         "coin",
+                    //         "milk",
+                    //         "baguette",
+                    //         "life-drink",
+                    //         "diamond",
+                    //         "shield"
+                    //     ],
+                    //     fighting: [
+                    //         user
+                    //     ]
+                    // }
+                    stuff.startBattle(user, stuff.enemies["car-lord"])
                 }
             
         }
@@ -447,7 +448,8 @@ stuff.shopItems = shopItems = {
                 icon: "<:oO:749319330503852084>", 
                 id: "oo", 
                 food: "cookie",
-                chonk: stuff.clamp(1 * Math.random(), 0.2, 1),
+                chonk: 150,
+                maxChonk: 150,
                 baseMultiplierAdd: 25
             })
             return true;
@@ -476,7 +478,9 @@ stuff.shopItems = shopItems = {
                 name: "Router", 
                 icon: "<:router:739890062820638751>", 
                 id: "router", 
-                chonk: stuff.clamp(0.6 * Math.random(), 0.25, 0.7),
+                chonk: 75,
+                baseMultiplierAdd: 1,
+                maxChonk: 999,
                 food: "bread"
             })
             return true;
@@ -506,8 +510,9 @@ stuff.shopItems = shopItems = {
                 name: "Spider", 
                 icon: ":spider:", 
                 id: "spider", 
-                chonk: stuff.clamp(0.6 * Math.random(), 0.25, 1.2),
+                chonk: 50,
                 damage: 50,
+                maxChonk: 150,
                 baseMultiplierAdd: 350,
                 food: "spaghet"
             })
@@ -524,40 +529,6 @@ stuff.shopItems = shopItems = {
                         user
                     ]
                 }
-                message.channel.send("Giant Tarantula has awoken!")
-            }
-            return true;
-        }
-    },
-    "cooked-egg": {
-        name: `Cooked egg`,
-        icon: ":cooking:",
-        price: 750000,
-        inStock: 999999999,
-        rarity: Rarity.red,
-        description: "You should feel bad about that unborn chicken!",
-        type: "Consumable & Boss Summon",
-        extraInfo: "Summons Egg Lord Prime",
-        addedMultiplier: 7,
-        onUse: function(user, message) {
-            const stuff = require('../../stuff');
-            stuff.addMultiplier(user, 7)
-            stuff.removeItem(user, "cooked-egg");
-            if (!stuff.currentBoss) {
-                stuff.currentBoss = {
-                    name: "Egg Lord Prime",
-                    health: 65000,
-                    drops: 1000000000000000,
-                    damageReduction: 2,
-                    damage: 900,
-                    maxHealth: 100000,
-                    itemDrops: ["reverse-card", "eggs", "coin", "cake", "cake", "eggs", "egg", "coin", "cake", "life-drink", "life-drink", "full-cake", "shield", "diamond"],
-                    fighting: [
-                        user
-                    ]
-                }
-                message.channel.send("Egg Lord Prime has awoken!")
-                
             }
             return true;
         }
@@ -597,6 +568,7 @@ stuff.shopItems = shopItems = {
         price: 300,
         addedMultiplier: 3,
         rarity: Rarity.blue,
+        pageIcon: "🧃",
         inStock: 99999999,
         type: "Consumable & Boss summon",
         description: "Dani said it was cringe, but they are now allies!",
@@ -617,7 +589,6 @@ stuff.shopItems = shopItems = {
                         user
                     ]
                 }
-                message.channel.send("Milk Gang has awoken!")
             }
             return true;
         }
@@ -630,6 +601,7 @@ stuff.shopItems = shopItems = {
         inStock: 99999999,
         rarity: Rarity.blue,
         addedMultiplier: 4,
+        pageIcon: "🥛",
         description: "Dani likes it a lot!",
         onUse: function(user, message) {
             const stuff = require('../../stuff');
@@ -645,6 +617,7 @@ stuff.shopItems = shopItems = {
         price: 500,
         inStock: 99999999,
         type: "Consumable",
+        pageIcon: "🥖",
         rarity: Rarity.blue,
         addedMultiplier: 10,
         description: "Thicc bread, but it's actually thicc in only one direction",

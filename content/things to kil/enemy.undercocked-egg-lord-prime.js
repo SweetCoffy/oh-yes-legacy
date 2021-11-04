@@ -9,7 +9,7 @@ module.exports = {
     minAttack: 17,
     maxAttack: 35,
     moneyDrop: 1,
-    minLevel: 420690,
+    rarity: 24,
     drugTransform: "egg-lord-prime",
     xpReward: 1,
     minDamage: 1,

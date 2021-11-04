@@ -7,9 +7,16 @@ function takeDamage(p, user, amt, ignoreDefense, mul = 1) {
     if (isNaN(stuff.userHealth[user.id])) stuff.userHealth[user.id] = stuff.getMaxHealth(user.id)
     var def = p.stats[user.id].def
     if (ignoreDefense) def = 0;
-    var dmg = Math.max((amt / (1 + (def * 0.125 * 0.5))) - def, 1) * mul
+    var dmg = Math.max((amt) - def, 1) * mul
     stuff.userHealth[user.id] -= dmg;
     return dmg;
+}
+function calcMoveDamage(power, level, atk, def) {
+    return Math.ceil(((atk / def) * (power / 15)) * (level / 3))
+}
+function takeDamagePower(p, user, target, power, mul) {
+    var dmg = calcMoveDamage(power, p.stats[user.id].level, p.stats[user.id].atk, p.stats[target.id].def)
+    return takeDamage(p, target, dmg, true, mul)
 }
 const MAX_LOG_LINES = 15
 stuff.pvpStatus = {
@@ -17,6 +24,7 @@ stuff.pvpStatus = {
         name: "Poisoned",
         short: "PSN",
         icon: "🟪",
+        turns: 7,
         color: [0x80, 0x00, 0x80, 0xff],
         onGive(b, u) { b.logs.send(`${u.username} has been poisoned!`) },
         onTurn(b, u) { 
@@ -29,6 +37,7 @@ stuff.pvpStatus = {
     cringe: {
         name: "Cronge",
         short: "CRONG",
+        turns: 8,
         color: [0x61, 0x80, 0x39, 0xff],
         icon: "⬜",
         onGive(b, u) { b.logs.send(`${u.username} cronged!`); b.stats[u.id].defmul -= 0.5; b.stats[u.id].atkmul -= 0.5 },
@@ -42,10 +51,24 @@ stuff.pvpStatus = {
     frozen: {
         name: "Frozen",
         short: "FRZ",
+        turns: 5,
         color: [0x00, 0x80, 0xff, 0xff],
-        onGive(b, u) { b.logs.send(`${u.username} froze!`); b.stats[u.id].defmul += 0.5 },
+        onGive(b, u) { b.logs.send(`${u.username} froze!`); b.stats[u.id].defmul += 10 },
         onTurn(b, u) { },
-        onTake(b, u) { b.logs.send(`${u.username} is no longer frozen!`); b.stats[u.id].defmul -= 0.5 },
+        onTake(b, u) { b.logs.send(`${u.username} is no longer frozen!`); b.stats[u.id].defmul -= 10 },
+    },
+    loser: {
+        name: "Loser",
+        short: "LOSER",
+        color: [0xff, 0x00, 0x00, 0xff],
+        turns: 69,
+        onGive(b, u) { b.logs.send(`${u.username}, Where are you from, losertown? Because you're a loser`) },
+        onTurn(b, u) { 
+            b.stats[u.id].defmul = 0;
+            b.stats[u.id].spdmul = 0;
+            b.stats[u.id].atkmul = 0;
+        },
+        onTake(b, u) { b.logs.send(`${u.username} is no longer a loser!`) },
     }
 }
 stuff.pvpMoves = {
@@ -59,9 +82,6 @@ stuff.pvpMoves = {
         async beforeUse(logs, c, user, target, b) {
             for (var i = 0; i < 4; i++) {
                 logs.send(`@${target.tag}`)
-            }
-            for (var s in stuff.pvpStatus) {
-                addStatus(b, target, s)
             }
         }
     },
@@ -103,6 +123,8 @@ stuff.pvpMoves = {
         use(logs, c, user, target, p) {
             addStatus(p, target, "cringe")
             if (Math.random() < 0.3) addStatus(p, target, "poison")
+            if (Math.random() < 0.01) addStatus(p, target, "loser")
+            if (Math.random() < 0.03) addStatus(p, target, "frozen")
         }
     },
     stronk: {
@@ -111,7 +133,7 @@ stuff.pvpMoves = {
         accuracy: 100,
         description: "Increases the user's attack",
         use(logs, c, user, target, p) {
-            p.stats[user.id].atkmul += 0.25;
+            p.stats[user.id].atkmul *= 1.5;
             logs.send(`${user.username}'s Attack rose!'`)
         }
     },
@@ -121,7 +143,7 @@ stuff.pvpMoves = {
         accuracy: 100,
         description: "Increases the user's defense",
         use(logs, c, user, target, p) {
-            p.stats[user.id].defmul += 0.25;
+            p.stats[user.id].defmul *= 1.5;
             logs.send(`${user.username}'s Defense rose!'`)
         }
     },
@@ -129,19 +151,31 @@ stuff.pvpMoves = {
         name: "Hel",
         power: NaN,
         accuracy: 100,
-        description: "Triggers the effects of the user's status effects as if 2 turns have passed, then heals the status effects",
+        usesCharge: true,
+        description: "Heals the user, the effect depends on how many charges the user has",
         use(logs, c, user, target, p) {
-            var l = [...(p.status[user.id] || [])]
-            for (var i = 0; i < 2; i++) {
-                for (var s of l) {
-                    if (stuff.pvpStatus[s].onTurn) {
-                        stuff.pvpStatus[s].onTurn(p, user)
+            var c = Math.min(p.stats[user.id].charge, 7)
+            if (c >= 1) {
+                logs.send(`${user.username} Healed their status effects!`)
+                if (p.status[user.id]) {
+                    var e = [...p.status[user.id]]
+                    for (var s of e) {
+                        removeStatus(p, user, s.id)
                     }
                 }
+            } 
+            if (c >= 2) {
+                var hp = Math.min(p.stats[user.id].health - stuff.userHealth[user.id], (c - 1) * (p.stats[user.id].health / 6))
+                stuff.userHealth[user.id] += hp
+                logs.send(`${user.username} Restored ${hp} HP!`)
             }
-            for (var s of l) {
-                removeStatus(p, user, s)
+            if (c >= 4) {
+                var h = (c - 3) * 25;
+                p.stats[user.id].health += h;
+                stuff.userHealth[user.id] += h;
+                logs.send(`${user.username} got +${h} Max HP!`)
             }
+            p.stats[user.id].charge -= c;
         }
     },
     counter: {
@@ -166,6 +200,36 @@ stuff.pvpMoves = {
             logs.send(`${target.username} took ${Math.floor(d)} damage`)
         }
     },
+    charge: {
+        name: "Charge",
+        power: NaN,
+        accuracy: 100,
+        usesCharge: true,
+        description: "Charges funi attacc",
+        failCheck(user, t, p) {
+            return p.stats[user.id].charge < 100;
+        },
+        use(logs, c, user, target, p) {
+            p.stats[user.id].charge++;
+            logs.send(`${user.username} is charging...`)
+        },
+    },
+    release: {
+        name: "Release",
+        power: NaN,
+        accuracy: 100,
+        usesCharge: true,
+        type: "attack",
+        getPower(user, t, p) {
+            return p.stats[user.id].charge * 50;
+        },
+        beforeUse(logs, c, user, target, p) {
+            logs.send(`${user.username} released their charge! (${p.stats[user.id].charge * 50} Power)`)
+        },
+        afterUse(logs, c, user, target, p) {
+            p.stats[user.id].charge = 0;
+        },
+    },
     troll: {
         name: "Troll",
         power: NaN,
@@ -183,6 +247,7 @@ stuff.pvpMoves = {
         }
     }
 }
+delete stuff["counter"]
 function hfuni(n) {
     if (isNaN(n)) return null
     if (n > 0) return `+${n}`
@@ -200,6 +265,7 @@ async function matchInfo(msg, p, i = true, save = true) {
     for (var m in stuff.pvpMoves) {
         btns.push(new MessageButton({label: stuff.pvpMoves[m].name, type: "BUTTON", customId: m, style: "PRIMARY"}))
     }
+    btns.push(new MessageButton({emoji: "ℹ️", type: "BUTTON", customId: "info", style: "SECONDARY"}))
     var c = 0;
     var acc = []
     for (var b of btns) {
@@ -220,13 +286,19 @@ async function matchInfo(msg, p, i = true, save = true) {
     console.log(rows)
     var logs = p.logs;
     var j = await stuff.funi(Object.keys(p.stats).map(el => msg.client.users.cache.get(el)).map(user => {
-        var s = [...(p.status[user.id] || [])]
+        var s = [...(p.status[user.id] || []).map(el => el.id)]
         var d = p.stats[user.id]
+        if (d.charge > 0) {
+            s.push({
+                name: `${d.charge}x CHRG`,
+                color: [0xD0, 0x00, 0xFF, 0xFF]
+            })
+        }
         if (d.atkmul != 1) {
-            s.push({ name: `${d.atkmul}x ATK`, color: (d.atkmul >= 1) ? [0x00, 0xff, 0x00, 0xff] : [0xff, 0x00, 0x00, 0xff] })
+            s.push({ name: `${d.atkmul.toFixed(2)}x ATK`, color: (d.atkmul >= 1) ? [0x00, 0xff, 0x00, 0xff] : [0xff, 0x00, 0x00, 0xff] })
         }
         if (d.defmul != 1) {
-            s.push({ name: `${d.defmul}x DEF`, color: (d.defmul >= 1) ? [0x00, 0xff, 0x00, 0xff] : [0xff, 0x00, 0x00, 0xff] })
+            s.push({ name: `${d.defmul.toFixed(2)}x DEF`, color: (d.defmul >= 1) ? [0x00, 0xff, 0x00, 0xff] : [0xff, 0x00, 0x00, 0xff] })
         }
         var hp = stuff.userHealth[user.id]
         if (!p.users.some(el => el.id == user.id)) {
@@ -272,6 +344,33 @@ ${funni(stuff.userHealth[user.id] / p.stats[user.id].health)}${Math.ceil(stuff.u
     ms.createMessageComponentCollector({ componentType: "BUTTON", time: 60000 }).on('collect', async (v) => {
         try {
             console.log(`${v.user.tag} ${v.customId}`)
+            if (v.customId == "info") {
+                await v.reply({
+                    ephemeral: true,
+                    embeds: [
+                        {
+                            title: "Detailed info",
+                            fields: p.users.map(u => {
+                                var stats = p.stats[u.id]
+                                var status = p.status[u.id] || []
+                                return {
+                                    name: u.username,
+                                    value: "```" + 
+                                    `HP: ${Math.ceil(stuff.userHealth[u.id])}/${stats.health}` + "\n" + 
+                                    `Attack: ${stats.attack} (x${stats.atkmul})` + "\n" + 
+                                    `Defense: ${stats.defense} (x${stats.defmul})` + "\n" + 
+                                    `Speed: ${stats.speed} (x${stats.spdmul})` + "\n" +
+                                    `Charge: ${stats.charge || 0}` + "\n" + 
+                                    "\n" +
+                                    `${status.map(el => `${stuff.pvpStatus[el.id].name} (${el.turns} turns left)`).join("\n") || "No status effects"}` + 
+                                    "```"
+                                }
+                            })
+                        }
+                    ]
+                })
+                return;
+            }
             if (!p.users.find(u => u.id == v.user.id)) return
             //if (p.choices.find(el => el.user.id == v.user.id)) return
             var rows = []
@@ -307,17 +406,17 @@ ${funni(stuff.userHealth[user.id] / p.stats[user.id].health)}${Math.ceil(stuff.u
 function addStatus(b, u, s) {
     if (!b.status[u.id]) b.status[u.id] = []
     var st = b.status[u.id]
-    if (!st.includes(s)) {
+    if (!st.some(el => el.id == s)) {
         stuff.pvpStatus[s].onGive(b, u)
-        st.push(s) 
+        st.push({id: s, turns: stuff.pvpStatus[s].turns || Infinity}) 
     }
 }
 function removeStatus(b, u, s) {
     if (!b.status[u.id]) b.status[u.id] = []
     var st = b.status[u.id]
-    if (st.includes(s)) {
+    if (st.find(e => e.id == s)) {
         stuff.pvpStatus[s].onTake(b, u)
-        st.splice(st.indexOf(s), 1)
+        st.splice(st.findIndex(e => e.id == s), 1)
     }
 }
 stuff.matchInfo = matchInfo
@@ -330,7 +429,7 @@ async function queueMove(msg, p, user, move, target, ms) {
                 let users = p.users.filter(el => el.id != stuff.client.user.id)
                 let user = users[Math.floor(users.length * Math.random())]
                 let move = "bonk"
-                if (!p.status[user.id]?.includes("cringe")) move = "twitter"
+                //if (!p.status[user.id]?.includes("cringe")) move = "twitter"
                 if (p.stats[stuff.client.user.id]?.atkmul < 2 || Math.random() < 0.1) move = "stronk"
                 if (Math.random() > 0.6) move = "bonk"
                 if (Math.random() > 0.9) move = "ping"
@@ -351,6 +450,9 @@ async function queueMove(msg, p, user, move, target, ms) {
     var logs = p.logs;
     p.choices.push({user: user, speedMul: m.speedMul || 0, func: async() => {
         if (p.ended) return
+        let m = stuff.pvpMoves[move]
+        console.log("funi move")
+        console.log(m)
         await logs.send(`${user.username} used ${m.name} (target: ${target.username})`)
         var showMissed = true;
         if (!p.stats[user.id].moveHistory) p.stats[user.id].moveHistory = []
@@ -377,25 +479,31 @@ async function queueMove(msg, p, user, move, target, ms) {
             if (m.use) await m.use(logs, msg.channel, user, target, p)
             else if (m.type == "attack") {
                 var atk = p.stats[user.id].atk
-                var dmg = ((atk * 1.5) + (atk * Math.random())) * (m.power / 10)
+                var power = m.power;
+                if (m.getPower) power = m.getPower(user, target, p)
+                var dmg = calcMoveDamage(power, p.stats[user.id].level, atk, p.stats[target.id].def)
                 var mul = 1;
                 if (Math.random() < 0.25) {
                     mul *= 2
                     logs.send(`It was a critical hit!11!!!`)
                 }
-                dmg = takeDamage(p, target, dmg, false, mul)
+                dmg = takeDamage(p, target, dmg, true, mul)
                 logs.send(`${target.username} took ${stuff.format(dmg)} damage`)
             }
+            if (m.afterUse) await m.afterUse(logs, msg.channel, user, target, p)
             if (isNaN(acc)) break;
             showMissed = false;
         }
+        if (!m.usesCharge) {
+            if (p.stats[user.id].charge > 0) p.stats[user.id].charge--;
+        }
     }})
     if (p.choices.length >= p.users.length) {
-        await ms.delete()
-        var c = p.choices.sort((a, b) => (stuff.getSpeed(b.user.id)) - (stuff.getSpeed(a.user.id))).sort((a, b) => b.speedMul - a.speedMul)
+        await ms.delete().catch(console.error)
+        var c = p.choices.sort((a, b) => (p.stats[b.user.id].spd) - (p.stats[a.user.id].spd)).sort((a, b) => b.speedMul - a.speedMul)
         for (var choice of c) {
             var i = 0;
-            if (stuff.userHealth[choice.user.id] > 0) {
+            if (stuff.userHealth[choice.user.id] > 0 || p.noEnd) {
                 var c = 1;
                 //for (var s of (p.status[choice.user.id] || [])) {
                 //    if (s == "cringe") c *= 0.75
@@ -404,19 +512,25 @@ async function queueMove(msg, p, user, move, target, ms) {
                     await choice.func()
                 } 
             }
-            for (var u of p.users) {
-                if (p.status[u.id]) {
-                    for (var st of p.status[u.id]) {
-                        stuff.pvpStatus[st].onTurn(p, u)
+            var u = choice.user
+            if (p.status[u.id]) {
+                var l = [...p.status[u.id]]
+                for (var st of l) {
+                    stuff.pvpStatus[st.id].onTurn(p, u)
+                    st.turns--;
+                    if (st.turns <= 0) {
+                        removeStatus(p, u, st.id)
                     }
                 }
+            }
+            for (let u of p.users) {
                 if (stuff.userHealth[u.id] > 0) {
                     i++;
                     continue;
                 }                        
                 logs.send(`${u.username} Fukin died`)
-                stuff.pvp[u.id] = null;
-                p.users[i] = null;
+                if (!p.noEnd) stuff.pvp[u.id] = null;
+                if (!p.noEnd) p.users[i] = null;
                 var m = Number((stuff.getMoney(u.id, "ip") / 2n) + "")
                 stuff.addMoney(u.id, -m, "ip")
                 var xp = stuff.getXP(u.id)
@@ -425,7 +539,8 @@ async function queueMove(msg, p, user, move, target, ms) {
                 p.xpReward += xp;
                 p.ipReward += m;
                 stuff.db.data[u.id].xp = 0
-                stuff.userHealth[u.id] = stuff.getMaxHealth(u.id)
+                if (!p.noEnd) stuff.userHealth[u.id] = stuff.getMaxHealth(u.id)
+                else stuff.userHealth[u.id] = p.stats[u.id].health
             }
             p.users = p.users.filter(el => el)
             if (p.users.length <= 1 && !p.noEnd) {
@@ -520,7 +635,6 @@ module.exports = {
         var p = stuff.pvp[msg.author.id]
         if (p) {
             if (args.action == "end") {
-                if (msg.author.id != p.host.id) throw `No.`
                 for (var user of p.users) {
                     stuff.pvp[user.id] = null
                 }

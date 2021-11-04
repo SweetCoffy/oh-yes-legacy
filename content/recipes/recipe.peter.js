@@ -8,5 +8,6 @@ module.exports = {
         { id: "oO", amount: 2 },
         { id: "v_1", amount: 3 },
         { id: "v_", amount: 4 },
+        { id: "disto", amount: 25 },
     ]
 }

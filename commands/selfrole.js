@@ -1,5 +1,5 @@
 const stuff = require("../stuff")
-
+var { Message, MessageActionRow, MessageButton } = require('discord.js')
 module.exports = {
     name: 'selfrole',
     aliases: ['role'],
@@ -14,8 +14,15 @@ module.exports = {
     ],
     useArgsObject: true,
     cooldown: 1,
+    /**
+     * 
+     * @param {Message} message 
+     * @param {*} args 
+     * @returns 
+     */
     async execute(message, args) {
-        var roles = Object.values(stuff.selfRoles)
+        var roles = Object.values(stuff.getConfig(`guilds.${message.guild.id}.selfroles`) || {})
+        if (roles.length <= 0) throw `This guild doesn't have any self roles`
         console.log(args.roles)
         if (args.roles?.length > 0 && args.roles?.[0]) {
             var member = await message.member.fetch();
@@ -45,24 +52,29 @@ module.exports = {
             description: `${roles.map((el, i) => `${(i == selected) ? '► ' : ''}${(selectedRoles.includes(el.id)) ? '✅' : '⬛'}<@&${el.id}> — ${el.description}`).join("\n")}`,
             footer: { text: `🔼 🔽: Move cursor\n🇦: Select\n✅: Done` }
         }
-        var msg = await message.channel.send({embed: embed})
-        for (const emoji of e) {
-            await msg.react(emoji)
-        }
-        var c = msg.createReactionCollector((r, u) => e.includes(r.emoji.name) && message.author.id == u.id, {time: 1000 * 60})
-        c.on('collect', async (r, u) => {
-            if (u.id != message.author.id) return
-            r.users.remove(u.id)
-            if (r.emoji.name == '🔼') selected--
-            if (r.emoji.name == '🔽') selected++
+        var msg = await message.channel.send({embeds: [embed], components: [new MessageActionRow({ components: [
+            new MessageButton({ emoji: e[0], style: "PRIMARY", customId: "up" }),
+            new MessageButton({ emoji: e[1], style: "PRIMARY", customId: "down" }),
+            new MessageButton({ emoji: e[2], style: "SUCCESS", customId: "a" }),
+            new MessageButton({ emoji: e[3], style: "SUCCESS", customId: "done" })
+        ] })]})
+        //for (const emoji of e) {
+        //    await msg.react(emoji)
+        //}
+        var c = msg.createMessageComponentCollector((r, u) => e.includes(r.emoji.name) && message.author.id == u.id, {time: 1000 * 60})
+        c.on('collect', async (i) => {
+            if (i.user.id != message.author.id) return await i.reply({ ephemeral: true, content: "This isn't for you, you fucking egger" })
+            if (i.customId == 'up') selected--
+            if (i.customId == 'down') selected++
             selected = stuff.clamp(selected, 0, roles.length - 1)
-            if (r.emoji.name == '🇦') {
+            if (i.customId == "a") {
                 if (selectedRoles.includes(roles[selected].id)) {
                     selectedRoles.splice(selectedRoles.indexOf(roles[selected].id), 1)
                 } else selectedRoles = [...new Set([...selectedRoles, roles[selected].id])]
             }
             updateEmbed()
-            if (r.emoji.name == '✅') {
+            await i.deferUpdate()
+            if (i.customId == 'done') {
                 c.stop()
                 var rolesToRemove = roles.map(el => el.id).filter(el => !selectedRoles.includes(el))
                 var rolesToAdd = selectedRoles

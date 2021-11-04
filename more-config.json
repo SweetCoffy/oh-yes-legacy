@@ -1,7 +1,7 @@
 {
     "suggestionsChannel": "751179205315919952",
     "reportsChannel": "751179205315919952",
-    "archiveCategory": "750194381516177529",
+    "archiveCategory": "896321674289508401",
     "v_": "755546914715336765",
     "someRandomObject": "{\"h\": \"hhhhhh\", \"array\": [\"lol\", \"h\"]} -asObject",
     "ohno": "737474912666648688",
@@ -9,7 +9,7 @@
     "oO": "749319330503852084",
     "deepfriedv_": "750501468385050624",
     "madv_": "758760245455224903",
-    "announcements": "819754844004548608",
+    "announcements": "896321674088157216",
     "server-info": "736691780140924979",
     "unarchiveSuggestions": "736730736219914321",
     "season": 32,
@@ -17,10 +17,10 @@
     "idk": "%appdata%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup",
     "vChance": 1,
     "prestigeMin": 10000000000,
-    "achievements": "819754844004548608",
+    "achievements": "896321674088157216",
     "massBuyLimit": 131072,
     "cursedThing": "undefined",
-    "auditLogs": "770065254880247858",
+    "auditLogs": "896321674088157216",
     "randomReactions": 0,
     "noPrefixChannel": "774413155173793833",
     "prefix": ";",
@@ -80,26 +80,27 @@
     "command.adventure": true,
     "commands.lyrics": true,
     "oblivionMinimum": 1000000,
-    "stonkUpdates": "751179205315919952",
+    "stonkUpdates": "896321674088157217",
     "massSellLimit": 4096,
     "commands.donate": true,
     "commands.urban": true,
     "commands.delete": 0,
     "commands.delet": true,
     "commands": {
-        "delet": true,
-        "youtube": true,
+        "delet": 0,
+        "youtube": 1,
         "lyrics": 1,
         "yeet": true,
         "waiting": 1,
         "timer": true,
-        "time": 1
+        "time": 1,
+        "pingcheck": true
     },
     "commands.eggscript": true,
     "commands.waiting": false,
     "warn.command": false,
     "countingChannel": "850855777731084319",
-    "quotes": "762482449175150640",
+    "quotes": "896321673714876416",
     "commands.snipe": true,
     "sebosSanity": "",
     "commands.yt": true,
@@ -108,5 +109,43 @@
     },
     "massFeedLimit": 512,
     "massGiftLimit": 512,
-    "repeatLimit": 1024
+    "repeatLimit": 1024,
+    "811288942951399475": {
+        "levelUpMessages": "811712269276414003"
+    },
+    "guilds": {
+        "728718708079460424": {
+            "selfroles": {
+                "886020655433277470": {
+                    "id": "886020655433277470",
+                    "description": "the gold role"
+                },
+                "888135691555446805": {
+                    "id": "888135691555446805",
+                    "description": "hhh"
+                },
+                "869871368710291478": {
+                    "id": "869871368710291478",
+                    "description": "get pink'd lol"
+                }
+            }
+        },
+        "896321673031204894": {
+            "selfroles": {
+                "898716403622887477": {
+                    "id": "898716403622887477",
+                    "description": "Retard"
+                },
+                "901340017534844979": {
+                    "id": "901340017534844979",
+                    "description": "You are beat up."
+                },
+                "901340334326427651": {
+                    "id": "901340334326427651",
+                    "description": "You are fucking beat down"
+                }
+            }
+        }
+    },
+    "pregnant": false
 }

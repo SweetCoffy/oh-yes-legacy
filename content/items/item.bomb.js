@@ -20,12 +20,10 @@ module.exports = {
                     }
                     for (var k in stuff.fighting) {
                         if (!stuff.fighting[k]) continue;
-                        if (stuff.fighting[k].health <= 1) {
-                            stuff.fighting[k].health = 0
-                            continue
+                        for (var e of stuff.fighting[k].enemies) {
+                            if (e.health <= 1) e.health = 0;
+                            else e.health = 1;
                         }
-                        console.log(stuff.fighting[k])
-                        stuff.fighting[k].health = 1;
                     }
                 })
             }, 5000)

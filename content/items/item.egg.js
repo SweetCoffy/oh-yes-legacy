@@ -15,7 +15,6 @@ module.exports = {
         setTimeout(() => {
             if (!stuff.fighting[user]) {
                 stuff.startBattle(user, "egg-lord")
-                message.channel.send("Egg Lord has awoken! Use ;hunt to fight it")
             }
         }, 1000)
         return true;

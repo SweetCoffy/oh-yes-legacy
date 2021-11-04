@@ -5,7 +5,7 @@ module.exports = {
     description: "reloads all commands lol",
     requiredPermission: 'commands.reload',
     category: "bot",
-    async execute(message) {
+    async execute(message, _a, _b, a) {
         console.clear()
         var m = await message.channel.send(`Loading commands...`)
         var c = Object.entries(stuff.loadCommands())
@@ -15,8 +15,10 @@ module.exports = {
         stuff.updateContent()
         stuff.updateVenezuelaMode()
         stuff.updateStonks()
-        await m.edit("Loading slash commands...")
-        await stuff.loadSlashCommands()
+        if (!a.noslash) {
+            await m.edit("Loading slash commands...")
+            await stuff.loadSlashCommands()
+        }
         var embed = {
             title: `Random crap has been reloaded`,
             color: 0x177dd1,

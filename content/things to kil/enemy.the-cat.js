@@ -13,5 +13,7 @@ module.exports = {
     minLevel: 999999999999,
     noEscape: true,
     hidden: true,
+    boss: true,
     xpReward: 999999999999,
+    rarity: 9999,
 }

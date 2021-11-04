@@ -5,5 +5,6 @@ module.exports = {
         { id: "oO", amount: 21 },
         { id: "v_", amount: 25 },
         { id: "v_1", amount: 69 },
+        { id: "disto", amount: 5 },
     ]
 }

@@ -25,7 +25,8 @@ module.exports = {
     ],
     useArgsObject: true,
     execute(message, args) {
-        var cur = stuff.currencies[args.currency]
+        args.currency = args.currency || "ip"
+        var cur = stuff._currencies[args.currency || "ip"]
         if (!cur) throw `Invalid currency`
         var money = stuff.getMoney(message.author.id, args.currency)
         if (money < args.amount) throw new CommandError("e", "You can't get money from nowhere")

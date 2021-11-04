@@ -31,7 +31,7 @@ module.exports = {
                 message: "You did the cat",
                 amount: -1,
                 onGet: (user, msg) => {
-                    stuff.startBattle(user.id, stuff.enemies['the-cat'])
+                    stuff.startBattle(user, stuff.enemies['the-cat'])
                     msg.channel.send("The Cat has awoken!")
                 }
             }

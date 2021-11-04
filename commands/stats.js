@@ -56,6 +56,7 @@ module.exports = {
             }
             counter++
         }
+        var u = stuff.getUserData(user.id)
         var embed = {
             author: {
                 name: user.username,
@@ -66,7 +67,7 @@ module.exports = {
             fields: [
                 {
                     name: "Money",
-                    value: `${Object.entries(stuff.currencies).filter(el => stuff.getMoney(user.id, el[0]) > 0n).map(el => `${el[1].icon} ${stuff.format(stuff.getMoney(user.id, el[0]))}`).join('\n')}`,
+                    value: `${Object.entries(stuff.currencies).filter(el => stuff.getMoney(user.id, el[0]) != 0n).map(el => `${el[1].icon} ${stuff.format(stuff.getMoney(user.id, el[0]))}`).join('\n')}`,
                     inline: true,
                 },
                 {
@@ -86,14 +87,9 @@ module.exports = {
                 },
                 {
                     name: `Other`,
-                    value: `Level: ${userObject.level || 1}\n\`${xpBar}\`\nTo next level: ${stuff.format(stuff.getLevelUpXP(user.id) - stuff.getXP(user.id))}\n:heart: ${stuff.format(stuff.userHealth[user.id])}/${stuff.format(userObject.maxHealth || 100)}\n:shield: ${stuff.format(userObject.defense || 0)}\n🗡️ ${stuff.format(userObject.attack || 1)}\n<:drip_sneakers:831930943588663297> ${stuff.format(userObject.speed || 0)}\nPowah level: ${stuff.format(stuff.getMaxHealth(user.id) + stuff.getAttack(user.id) + stuff.getDefense(user.id))}\n**${stuff.format(stuff.getRankValue(userObject))}** Rank Value\n${(medals)}`,
+                    value: `Level: ${userObject.level || 1}\n\`${xpBar}\`\nTo next level: ${stuff.format(stuff.getLevelUpXP(user.id) - stuff.getXP(user.id))}\n:heart: ${stuff.format(stuff.userHealth[user.id])}/${stuff.format(u.maxHealth)} (Base: ${stuff.getBaseHP(user.id)})\n:shield: ${stuff.format(u.defense || 0)} (Base: ${stuff.getBaseDEF(user.id)})\n🗡️ ${stuff.format(u.attack || 1)} (Base: ${stuff.getBaseATK(user.id)})\n👟 ${stuff.format(u.speed || 0)} (Base: ${stuff.getBaseSPD(user.id)})\nPowah level: ${stuff.format(stuff.getMaxHealth(user.id) + stuff.getAttack(user.id) + stuff.getDefense(user.id))}\n**${stuff.format(stuff.getRankValue(userObject))}** Rank Value\n${(medals)}`,
                     inline: true,
                 },
-                {
-                    name: `Taxes`,
-                    value: `${stuff.getTaxes(user.id).map(el => `**${el.name}** ─ ${stuff.format(el.amount * (stuff.getMultiplier(user.id) * el.multiplierEffect))}/h (${stuff.format(el.amount * (stuff.getMultiplier(user.id) * el.multiplierEffect) / 60)}/m)`).join('\n') || 'none'}`,
-                    inline: true,
-                }
             ],
             footer: { text: `${stuff.dataStuff.getData('/').venezuelaMode ? 'Venezuela mode is enabled' : ((userObject.points < -500) ? 'Oh no' : 'Everything looks fine')}` }
         }
@@ -103,18 +99,16 @@ module.exports = {
 `
 ${Object.entries(stuff.currencies).filter(el => stuff.getMoney(user.id, el[0]) > 0n).map(el => `${el[1].icon} ${stuff.format(stuff.getMoney(user.id, el[0]))}`).join('\n')}
 
-${stuff.getTaxes(user.id).map(el => `**${el.name}** ─ ${stuff.format(el.amount * (stuff.getMultiplier(user.id) * el.multiplierEffect))}/h (${stuff.format(el.amount * (stuff.getMultiplier(user.id) * el.multiplierEffect) / 60)}/m)`).join('\n') || 'no taxes'}
-
 **Multiplier**: ${stuff.format(multiplier)}
 **Exponent**: ${stuff.format(stuff.getMultiplierMultiplier(user.id))}
 
 Level: ${userObject.level || 1}
 \`${xpBar}\`
 Next level: ${stuff.format(stuff.getLevelUpXP(user.id) - stuff.getXP(user.id))}
-:heart: ${stuff.format(stuff.userHealth[user.id])}/${stuff.format(userObject.maxHealth || 100)}
-:shield: ${stuff.format(userObject.defense || 0)}
-:dagger: ${stuff.format(userObject.attack || 1)}
-<:drip_sneakers:831930943588663297> ${stuff.format(userObject.speed)}
+:heart: ${stuff.format(stuff.userHealth[user.id])}/${stuff.format(u.maxHealth)} (Base: ${stuff.getBaseHP(user.id)})
+:shield: ${stuff.format(y.defense || 0)} (Base: ${stuff.getBaseDEF(user.id)})
+:dagger: ${stuff.format(y.attack || 1)} (Base: ${stuff.getBaseATK(user.id)})
+👟 ${stuff.format(u.speed)} (Base: ${stuff.getBaseSPD(user.id)})
 **Powah level**: ${stuff.format(stuff.getMaxHealth(user.id) + stuff.getAttack(user.id) + stuff.getDefense(user.id))}
 
 **Equipment** (${stuff.getEquipment(user.id).length}/${stuff.getEquipmentSlots(user.id)}): ${stuff.getEquipment(user.id).map(el => el.icon).slice(0, 20).join(" ") || "doesn't exist"}

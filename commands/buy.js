@@ -24,6 +24,10 @@ module.exports = {
     aliases: ['shop'],
     cooldown: 1,
     execute(message, args, _extraArgs, _extraArgsObject, discount = 1) {
+        var p = Number(args._item)
+        if (!isNaN(p)) {
+            args.item = null;
+        }
         var item = args.item;
         var amount = args.amount;
         var useOldShop = _extraArgsObject.oldShop || stuff.getUserConfig(message.author.id).useOldShop;
@@ -40,7 +44,7 @@ module.exports = {
             })
             var userconfig = stuff.getUserConfig(message.author.id)
             var itemNames = []
-            var page = (parseInt(_extraArgsObject.page) || 1) - 1;
+            var page = (p || parseInt(_extraArgsObject.page) || 1) - 1;
             var itemsPerPage = useOldShop ? (stuff.clamp(userconfig.itemsPerPage, 1, 10) || 10) * 3: (stuff.clamp(userconfig.itemsPerPage, 1, 10) || 10)
             var startFrom = 0 + (itemsPerPage * page);
 

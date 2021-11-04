@@ -103,7 +103,7 @@ module.exports = {
         if (itemData.multiplierMultiplier) {
             embed.fields.push({name: "Exponent", value: `+**${stuff.format(itemData.multiplierMultiplier)}** exponent`, inline: true})
         }
-
-        message.channel.send({embed: embed});
+        embed.fields = embed.fields.map(el => ({ name: (el.name + "") || "empty", value: (el.value + "") || "empty", inline: el.inline || false }))
+        message.channel.send({embeds: [embed]});
     }
 }

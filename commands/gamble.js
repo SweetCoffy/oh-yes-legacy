@@ -25,7 +25,7 @@ module.exports = {
             var bonus = Math.ceil(amount * (a * 0.25))
             amount += bonus
             stuff.addMoney(message.author.id, amount * 2, curr)
-            message.channel.send(`You got ${stuff.currencies[curr].icon} ${stuff.format(oldA)} (+${stuff.format(bonus)} Life savings bonus) <:oO:749319330503852084>`)
+            message.channel.send(`You got ${stuff.currencies[curr].icon} ${stuff.format(oldA)} (+${stuff.format(bonus)} Life savings bonus) <:oO:749319330503852084>, you now have ${stuff.currencies[curr].icon} ${stuff.format(stuff.getMoney(message.author.id, curr))}`)
         } else {
             message.channel.send(`You lost ${stuff.currencies[curr].icon} ${stuff.format(amount)} <:_v:823258737451073556>`)
         }

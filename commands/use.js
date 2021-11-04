@@ -24,7 +24,7 @@ module.exports = {
         }
     ],
     cooldown: 4,
-
+    lexer: false,
     execute(message, args, _extraArgs, extraArgs) {
         var p = stuff.pvp[message.author.id]
         if (args.length < 1) throw "e"; 

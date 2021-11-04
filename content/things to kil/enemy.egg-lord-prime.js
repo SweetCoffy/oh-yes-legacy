@@ -1,3 +1,5 @@
+const stuff = require("../../stuff")
+
 module.exports = {
     name: "Egg Lord Prime",
     id: "egg-lord-prime",
@@ -11,6 +13,13 @@ module.exports = {
     moneyDrop: 10000000000000000000,
     hidden: true,
     xpReward: 10005,
+    rarity: 999,
+    boss: true,
+    ai(self, player, e) {
+        if (!e.enemies.some(el => el.type.id == "egg-lord")) {
+            e.enemies.push(stuff.createEnemy(stuff.enemies["egg-lord"]))
+        }
+    },
     drops: [
         { item: "keanu", min: 1, max: 1, chance: 0.07 },
         { item: "sebo2205", min: 1, max: 1, chance: 0.001 },

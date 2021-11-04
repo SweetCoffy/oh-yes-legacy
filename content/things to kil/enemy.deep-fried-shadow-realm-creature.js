@@ -10,5 +10,6 @@ module.exports = {
     maxAttack: 5000,
     moneyDrop: 1250000,
     minLevel: 300,
+    rarity: 20,
     xpReward: 1432,
 }

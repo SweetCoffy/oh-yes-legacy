@@ -24,8 +24,10 @@ module.exports = {
             e.xpReward = prime.xpReward
             e.message = null;
         }
-        if (stuff.fighting[u].type.drugTransform) {
-            transform(stuff.fighting[u], stuff.fighting[u].type.drugTransform)
-        } 
+        for (var e of stuff.fighting[u].enemies) {
+            if (e.type.drugTransform) {
+                transform(e, e.type.drugTransform)
+            }
+        }
     }
 }

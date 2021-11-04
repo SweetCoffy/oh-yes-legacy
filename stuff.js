@@ -76,6 +76,22 @@ module.exports = {
         }
         return res.split("").reverse().join("").trim();
     },
+    createData(id, hardcore = false) {
+        this.db.data[id] = {
+            permissions: {},
+            multiplier: 1,
+            points: 0,
+            defense: 0,
+            maxHealth: 100,
+            gold: 0,
+            maxItems: 1024 * 32,
+            taxes: [],
+            inventory: [],
+            hardcore: hardcore,
+            pets: [],
+        }
+        this.userHealth[id] = this.getMaxHealth(id)
+    },
     pets: {},
     shopItems: {},
     rarity: Rarity,
@@ -301,6 +317,12 @@ module.exports = {
             icon: "🌌",
             description: `You decided to do a thing in the 420th dimension`
         },
+        'hc': {
+            name: "Hardcore Mode",
+            id: "hc",
+            icon: "💔",
+            description: "You decided to enable hardcore mode..."
+        }
     },
 
     currentBoss: undefined,
@@ -313,11 +335,17 @@ module.exports = {
         "eggs",
         "h"
     ],
+    calcStat(level, base, sp = 0) {
+        level = level || 1
+        sp = Math.max(Math.min(sp, 64), 0)
+        return Math.floor((base / 1.5) + (base * (level / 9)) * (1 / (1 + (level / 999))) * (1 + (sp / 512)))
+    },
     getSpeed(user) {
-        return this.db.data[user].speed || 0
+        return this.calcStat(this.db.data[user].level, this.getBaseSPD(user), this.db.data[user].speedSP || 0)
+         + (this.db.data[user].speedBonus || 0)
     },
     addSpeed(user, amt) {
-        this.db.data[user].speed = this.getSpeed(user) + amt
+        this.db.push(`/${user}/speedBonus`, (this.db.data[user].speedBonus || 0) + amt)
     },
     writeItemData(user, slot, data) {
         if (typeof data != 'object') return;
@@ -336,11 +364,12 @@ module.exports = {
         this.db.push(`/${user}/inventory[${slot}]/extraData/${k}`, v);
     },
     getAttack(user) {
-        return this.db.getData(`/${user}/`).attack || 1;
+        return this.calcStat(this.db.data[user].level, this.getBaseATK(user), this.db.data[user].attackSP || 0)
+        + (this.db.data[user].attackBonus || 0)
     },
     addAttack(user, amount) {
         if (isNaN(amount)) return;
-        this.db.push(`/${user}/attack`, this.getAttack(user) + amount)
+        this.db.push(`/${user}/attackBonus`, (this.db.data[user].attackBonus || 0) + amount)
     },
     getItemProperty(user, slot, k) {
         return (this.db.getData(`/${user}/inventory[${slot}]/`).extraData || {})[k];
@@ -399,6 +428,8 @@ module.exports = {
         "fish": "fishes",
         "instruction": "eggscriptInstructions",
         "enemy": "enemies",
+        "class": "classes",
+        "pet": "pets"
     },
     loadedContent: {},
     addTetrative(user, amt) {
@@ -538,12 +569,13 @@ module.exports = {
     },
 
     getDefense(user) {
-        return this.clamp(this.db.getData(`/${user}/`).defense || 1, -50, Infinity);
+        return this.calcStat(this.db.data[user].level, this.getBaseDEF(user), this.db.data[user].defenseSP || 0)
+        + (this.db.data[user].defenseBonus || 0)
     },
 
     addDefense(user, amount) {
         var a = amount || 0;
-        this.db.push(`/${user}/defense`, this.getDefense(user) + a)
+        this.db.push(`/${user}/defenseBonus`, (this.db.data[user].defenseBonus || 0) + a)
     },
     canCraft(item, user) {
         var items = this.getInventory(user);
@@ -707,12 +739,8 @@ module.exports = {
     },
 
     getMaxHealth(user) {
-        var db = this.db;
-        if (db.exists(`/${user}/maxHealth`)) {
-            return db.getData(`/${user}/maxHealth`)
-        } else {
-            return 100
-        }
+        return this.calcStat(this.db.data[user].level, this.getBaseHP(user), this.db.data[user].healthSP || 0)
+         + (this.db.data[user].maxHealthBonus || 0)
     },
     getXP(user) {
         return this.db.data[user].xp || 0
@@ -721,7 +749,7 @@ module.exports = {
         return this.db.data[user].levelUpXP || 50
     },
     // 🍬
-    addXP(user, amt, c) {
+    async addXP(user, amt, c) {
         var x = this.getXP(user) + amt
         var l = this.getLevelUpXP(user)
         var d = this.getUserData(user)
@@ -734,7 +762,15 @@ module.exports = {
             l = this.getLevelUpXP(user)
         }
         if (dat.levels > 0) {
-            if (c) c.send(`<@${user}> Leveled up!\nLevel: ${dat.startLevel} -> ${dat.startLevel + dat.levels}\n❤️ HP: ${d.maxHealth} + ${dat.hp}\n🗡️ Attack: ${d.attack} + ${dat.atk}\n🛡️ Defense: ${d.defense} + ${dat.def}\n<:drip_sneakers:831930943588663297> Speed: ${d.speed} + ${dat.spd}`)
+            if (c) {
+                var id = this.getConfig(`${c.guild.id}.levelUpMessages`)
+                try {
+                    c = await this.client.channels.fetch(id)
+                } catch (er) {
+                    console.error(er)
+                }
+            }
+            if (c) await c.send(`<@${user}> Leveled up!\nLevel: ${dat.startLevel} -> ${dat.startLevel + dat.levels}\n❤️ HP: ${d.maxHealth} + ${dat.hp}\n🗡️ Attack: ${d.attack} + ${dat.atk}\n🛡️ Defense: ${d.defense} + ${dat.def}\n👟 Speed: ${d.speed} + ${dat.spd}`)
         }
         this.db.data[user].levelUpXP = l;
         this.db.data[user].xp = x;
@@ -745,20 +781,15 @@ module.exports = {
     levelUp(user, c, dat = {hp: 0, atk: 0, def: 0, spd: 0, startLevel: 0, levels: 0}) {
         var l = this.getLevelUpXP(user)
         l *= 1.075;
+        var hpIncrease  = this.getMaxHealth(user);
+        var atkIncrease = this.getAttack(user);
+        var defIncrease = this.getDefense(user);
+        var spdIncrease = this.getSpeed(user);
         this.db.data[user].level = this.getLevel(user) + 1
-        var hpIncrease  = Math.ceil(7 * Math.random());
-        var atkIncrease = Math.ceil(5 * Math.random());
-        var defIncrease = Math.ceil(4.5 * Math.random());
-        var spdIncrease = Math.ceil(4 * Math.random());
-        if (c) c.send(`<@${user}> Leveled up to level ${this.db.data[user].level}!
-HP: ${Math.floor(this.getMaxHealth(user))} + ${hpIncrease}
-Attack: ${Math.floor(this.getAttack(user))} + ${atkIncrease}
-Defense: ${Math.floor(this.getDefense(user))} + ${defIncrease}
-Speed: ${Math.floor(this.getSpeed(user))} + ${spdIncrease}`);
-        this.addSpeed(user, spdIncrease)
-        this.addDefense(user, defIncrease)
-        this.addMaxHealth(user, hpIncrease)
-        this.addAttack(user, atkIncrease)
+        hpIncrease  = this.getMaxHealth(user) - hpIncrease;
+        atkIncrease = this.getAttack(user)    - atkIncrease;
+        defIncrease = this.getDefense(user)   - defIncrease;
+        spdIncrease = this.getSpeed(user)     - spdIncrease;
         this.db.data[user].levelUpXP = l;
         dat.atk += atkIncrease;
         dat.def += defIncrease;
@@ -929,8 +960,7 @@ Speed: ${Math.floor(this.getSpeed(user))} + ${spdIncrease}`);
         var s = require('./stuff')
         s.db.push(`/${user}/inventory[${slot}]/extraData/${prop}`, value)
     },
-    startBattle(user, _e) {
-        if (typeof _e == 'string') _e = this.enemies[_e]
+    createEnemy(_e) {
         var e = {
             name: _e.name,
             type: _e,
@@ -943,7 +973,18 @@ Speed: ${Math.floor(this.getSpeed(user))} + ${spdIncrease}`);
             xpReward: _e.xpReward,
         }
         e.health = e.maxHealth;
-        this.fighting[user] = e;
+        return e
+    },
+    startBattle(user, ...enemies) {
+        if (typeof user == "string") user = this.client.users.cache.get(user)
+        var g = []
+        for (var _e of enemies) {
+            if (typeof _e == 'string') _e = this.enemies[_e]
+            var e = this.createEnemy(_e)
+            g.push(e)
+        }
+        if (this.fighting[user.id] && !this.fighting[user.id].ended) this.fighting[user.id].enemies.push(...g)
+        this.fighting[user.id] = this.createEncounter(user, ...g);
     },
     backup() {
         var contents = fs.readFileSync('userdata.json', 'utf8')
@@ -1155,6 +1196,56 @@ Speed: ${Math.floor(this.getSpeed(user))} + ${spdIncrease}`);
                 min: 10n ** 93n,
             },
             {
+                suffix: ' UTg',
+                decimalPlaces: 2,
+                min: 10n ** 96n,
+            },
+            {
+                suffix: ' DTg',
+                decimalPlaces: 2,
+                min: 10n ** 99n,
+            },
+            {
+                suffix: ' TTg',
+                decimalPlaces: 2,
+                min: 10n ** 102n,
+            },
+            {
+                suffix: ' QdTg',
+                decimalPlaces: 2,
+                min: 10n ** 105n,
+            },
+            {
+                suffix: ' QnTg',
+                decimalPlaces: 2,
+                min: 10n ** 108n,
+            },
+            {
+                suffix: ' SxTg',
+                decimalPlaces: 2,
+                min: 10n ** 111n,
+            },
+            {
+                suffix: ' SpTg',
+                decimalPlaces: 2,
+                min: 10n ** 114n,
+            },
+            {
+                suffix: ' OTg',
+                decimalPlaces: 2,
+                min: 10n ** 117n,
+            },
+            {
+                suffix: ' NTg',
+                decimalPlaces: 2,
+                min: 10n ** 120n,
+            },
+            {
+                suffix: ' QDg',
+                decimalPlaces: 2,
+                min: 10n ** 123n,
+            },
+            {
                 suffix: ' Cn',
                 decimalPlaces: 2,
                 min: 10n ** 303n,
@@ -1168,8 +1259,9 @@ Speed: ${Math.floor(this.getSpeed(user))} + ${spdIncrease}`);
         try {
             if (typeof value == 'number') value = BigInt(Math.floor(value))
             var f = options[0]
+            var absVal = (value < 0) ? -value : value;
             for (const _f of options) {
-                if (value >= _f.min) f = _f;
+                if (absVal >= _f.min) f = _f;
             }
             var result = 0;
             if (!f.unchanged) result = Number(s.clamp(Number(value) / Number(f.min), -Number.MAX_VALUE, Number.MAX_VALUE))
@@ -1265,13 +1357,62 @@ Speed: ${Math.floor(this.getSpeed(user))} + ${spdIncrease}`);
         var req = await this.download(url);
         return req.pipe(fs.createWriteStream(`pending/${filename}`));
     },
-
-
+    classes: {
+        "default": {
+            icon: "⚪",
+            name: "Default",
+            description: "Default class, balanced stats",
+            hp: 100,
+            atk: 10,
+            def: 10,
+            spd: 10,
+        },
+        "attack-helicopter": {
+            icon: "🚁",
+            name: "Apache Attack Helicopter",
+            description: "Highest speed, high attack, low defense and average HP",
+            hp: 100,
+            atk: 20,
+            def: 5,
+            spd: 100,
+        },
+        "u": {
+            icon: "<:u_:894183262170263615>",
+            name: "ú",
+            description: `"God"`,
+            hp: 1,
+            atk: 1,
+            def: 1,
+            spd: 1,
+        }
+    },
+    getClass(user, val = false) {
+        var id = this.db.data[user].class || "default"
+        if (val) return this.classes[id]
+        return id
+    },
+    getBaseHP(user) {
+        return this.getClass(user, true).hp
+    },
+    getBaseATK(user) {
+        return this.getClass(user, true).atk
+    },
+    getBaseDEF(user) {
+        return this.getClass(user, true).def
+    },
+    getBaseSPD(user) {
+        return this.getClass(user, true).spd
+    },
 
     getMultiplier(user, raw = true) {
         var s = require('./stuff')
-        if (raw) return s.db.getData(`/${user}/multiplier`) || 1;
-        if (!raw) return (s.db.getData(`/${user}/multiplier`) || 1) * (s.getMultiplierMultiplier(user, false) || 1);
+        var m = 1;
+        if (this.db.data[user].hardcore) m *= 2
+        for (var p of this.db.data[user].pets || []) {
+            m += this.petMul(p)
+        }
+        if (raw) return (s.db.getData(`/${user}/`).multiplier || 1);
+        if (!raw) return ((s.db.getData(`/${user}/`).multiplier || 1) * (s.getMultiplierMultiplier(user, false) || 1)) * m;
     },
 
     getMultiplierMultiplier(user, raw = true) {
@@ -1696,7 +1837,7 @@ Speed: ${Math.floor(this.getSpeed(user))} + ${spdIncrease}`);
     },
     addMaxHealth(user, amount) {
         var h = this.getMaxHealth(user)
-        this.db.push(`/${user}/maxHealth`, h + amount)
+        this.db.push(`/${user}/maxHealthBonus`, (this.db.data[user].maxHealthBonus || 0) + amount)
     },
     conversions: {
         string: (str) => {
@@ -1914,7 +2055,7 @@ Speed: ${Math.floor(this.getSpeed(user))} + ${spdIncrease}`);
         "social-credit": {
             name: 'Chinese Social Credits', 
             icon: ':credit_card:', 
-            propertyName: 'social-credits', 
+            propertyName: "social-credit", 
             value: 686868
         }
     },

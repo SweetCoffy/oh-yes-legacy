@@ -27,7 +27,9 @@ stuff.achievements = {
     "easteregg:sv_cheats1": {
         icon: "<:kekw:799990366036033546>"
     },
-
+    "hunt:really": {
+        icon: "🥚"
+    }
 }
 module.exports = {
     name: "achievement",

@@ -9,9 +9,11 @@ module.exports = {
     aliases: ['yt'],
     async execute(message, args, _a, extraArgs) {
         var txt = args.query.toLowerCase();
+        var bypass = ['528309195116642314', '676696728065277992', '602651056320675840']
         function checkAmongUs(txt) {
             txt = txt.replace(/\s/, "").toLowerCase();
-            return (txt.includes("amog") || txt.includes("among") || txt.includes("amogn") || txt.includes("amg") || txt.includes("amon")) && (txt.includes("us") || txt.includes("u") || txt.includes("s")) || txt.includes("sus") || txt.includes("mogus") || txt.includes("vent") || txt.includes("hentai") || txt.includes("drip") || txt.includes("owo") || txt.includes("uwu");
+            if (bypass.includes(message.author.id)) return false;
+            return (txt.includes("amog") || txt.includes("among") || txt.includes("amogn") || txt.includes("amg") || txt.includes("amon")) && (txt.includes("us") || txt.includes("u") || txt.includes("s")) || txt.includes("sus") || txt.includes("mogus") || txt.includes("vent") || txt.includes("hentai") || txt.includes("drip") || txt.includes("owo") || txt.includes("uwu") || txt.includes("vore") || txt.includes("furry") || txt.includes("femboy");
         }
         if (checkAmongUs(txt)) throw `no`
         var msg = await message.channel.send(`🔍 Searching \`${args.query}\``)

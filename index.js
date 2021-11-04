@@ -15,9 +15,20 @@ client.voteTimeout = 100;
 client.snipeLimit = 500;
 client.slashCommands = new Discord.Collection();
 client.snipe = [];
+if (fs.existsSync("dump.json")) {
+    var e = JSON.parse(fs.readFileSync("dump.json", "utf8"))
+    e.stored = BigInt(e.stored)
+    stuff.dump = e;
+}
+setInterval(() => {
+    fs.writeFileSync("dump.json", JSON.stringify(stuff.dump, (k, v) => {
+        if (typeof v == "bigint") return v + ""
+        return v;
+    }))
+}, 30000)
 var u = JSON.parse(fs.readFileSync("command-usage.json", 'utf8'))
 stuff.commandUsage = u;
-const DEBUG_GUILDS = ["758128084632600596", "728718708079460424"]
+const DEBUG_GUILDS = ["896321673031204894"]
 const chalk = require('chalk')
 if (!stuff.dataStuff.exists(`/banned`)) {
     stuff.dataStuff.push(`/banned`, [])
@@ -116,16 +127,6 @@ stuff.loadCommands = loadCommands;
 client.once('ready', async () => {
     console.log('oh yes');
     loadSlashCommands()
-    client.taxInterval = setInterval(() => {
-        try {
-            stuff.forEachUser((id, data) => {
-                data.taxes.forEach(el => {
-                    var a = (el.amount * (data.multiplier * el.multiplierEffect)) / 60
-                    stuff.addPoints(id, -a, `${el.name}`)
-                })
-            })
-        } catch (e) {console.log(e)}
-    }, 1000 * 60)
     client.backupInterval = setInterval(() => {
         try {
             stuff.backup();
@@ -147,6 +148,11 @@ client.once('ready', async () => {
         }).catch(er => console.log(er))
     } catch (er) {}
     stonksThing()
+    try {
+        require('./api.js')
+    } catch (er) {
+
+    }
 });
 var usage = u;
 client.on('channelCreate', (c) => {
@@ -278,28 +284,19 @@ client.on('messageCreate', async message => {
         }
         var hasData = false;
         var u = message.author.id;
+        if (!stuff.db.data[message.author.id]) {
+            stuff.createData(message.author.id)
+        }
+        if (stuff.db.data[message.author.id].hardcore && stuff.userHealth[message.author.id] <= 0) {
+            delete stuff.db.data[message.author.id]
+            message.reply(`Congratulations, you fucking died in hardcore mode, omw to delete your data`)
+            return
+        }
         if (stuff.userHealth[message.author.id] == undefined) {
             stuff.userHealth[message.author.id] = stuff.getMaxHealth(message.author.id);
         }
-        try {
-            stuff.db.getData(`/${message.author.id}/permissions`);
-            hasData = true;
-        } catch (er) {
-            hasData = false;
-        }
-        if (!hasData) {
-            stuff.db.push(`/${message.author.id}`, {
-                permissions: {},
-                multiplier: 1,
-                points: 0,
-                defense: 0,
-                maxHealth: 100,
-                gold: 0,
-                maxItems: 1024 * 32,
-                taxes: [],
-                inventory: [],
-                pets: [],
-            });
+        if (!stuff.db.data[message.author.id]["social-credit"]) {
+            stuff.db.data[message.author.id]["social-credit"] = "300"
         }
         stuff.addTax(message.author.id, 'existing');
         if (message.channel.type == 'dm') return;
@@ -344,6 +341,23 @@ client.on('messageCreate', async message => {
         return;
     }
     messageThing(message)
+    var p = stuff.db.data[message.author.id]?.pets
+    if (p) {
+        for (var pet of p) {
+            pet.chonk -= Math.random() * 3
+            if (pet.chonk <= 0) {
+                pet.ded = true
+                message.reply(`BRUH, ${pet.name} fucking died`)
+            } else if (pet.chonk < (pet.maxChonk / 4) && !pet.dropped) {
+                pet.dropped = true
+                message.reply(`${pet.name}'s chonk has dropped below 25%, you should feed them`)
+            }
+            if (pet.chonk > (pet.maxChonk / 4)) {
+                pet.dropped = false
+            }
+        }
+        stuff.db.data[message.author.id].pets = p.filter(el => !el.ded)
+    }
     if (!stuff.db.exists(`/${message.author.id}/pets`)) {
         stuff.db.push(`/${message.author.id}/pets`, []);
     }
@@ -378,11 +392,6 @@ var user = message.mentions.users.first();
 if (user) {
     if (user.id == client.user.id) {
         message.react('729900329440772137');
-        message.channel.send({content: message.author.toString(), embed: {
-            title: "get ponged",
-            color: 0x2244ff,
-            description: `i have **${client.commands.size}** commands, use \`;help\` for a list of commands`
-        }}).then(m => m.delete({timeout: 10000}))
     }
 }
 var prefix = (message.channel.id == stuff.getConfig("noPrefixChannel")) ? "" : stuff.getConfig('prefix', ';');

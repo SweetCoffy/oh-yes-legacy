@@ -26,11 +26,12 @@ var execute = function(message, args) {
     data.code = code;
     delete data.randomNumber;
     stuff.db.push(`/${user.id}/warns[]`, data)
+    stuff.addMoney(user.id, -15, "social-credit")
     user.send({embed: {
         title: `You've been warned by ${message.author.username}`,
         color: 0xff0000,
         description: reason,
-        footer: { text: `warn code: ${code}, if you continue to do so you'll get ban- jk, most of these warns are pointless anyway` }
+        footer: { text: `warn code: ${code}, -15 social credit` }
     }}).catch(() => console.log('oh no'))
     message.channel.send({embed: {
         title: `Warned ${user.username}`,

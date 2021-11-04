@@ -7,14 +7,32 @@ module.exports = {
     /**
      * @type {import('discord.js').ApplicationCommandOption[]}
      */
-    options: [],
+    options: [
+        {
+            name: "sort",
+            description: "The funi sort mode",
+            type: "STRING",
+            required: false,
+            choices: [{name: "most used", value: "most_used"}, {name: "least used", value: "least_used"}, {name: "none", value: "none"}],
+        }
+    ],
+    /**
+     * 
+     * @param {CommandInteraction} i 
+     */
     async run(i) {
+        var s = i.options.getString("sort", false) || "most_used"
         var u = commandUsage
+        function funiSort(a, b) {
+            if (s == "none") return 0;
+            if (s == "least_used") return a[1] - b[1]
+            return b[1] - a[1]
+        }
         var clist = i.client.commands.map(e => [e.name, u.commands[e.name] || 0])
-        .sort((a, b) => b[1] - a[1])
+        .sort(funiSort)
         .map(el => `${el[0].padEnd(16, " ")} : ${el[1].toString().padStart(6, " ")} (${((el[1] / u.total) * 100).toFixed(1).padEnd(5, " ")}%)`)
         var slist = i.client.slashCommands.map(e => [e.name, u.slash_commands[e.name] || 0])
-        .sort((a, b) => b[1] - a[1])
+        .sort(funiSort)
         .map(el => `${el[0].padEnd(16, " ")} : ${el[1].toString().padStart(6, " ")} (${((el[1] / u.total) * 100).toFixed(1).padEnd(5, " ")}%)`)
         await i.reply({
             embeds: [{

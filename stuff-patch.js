@@ -26,9 +26,9 @@ module.exports = {
         var s = stuff
         return s.db.getData(` /${user}/inventory`)
     },
-    itemP(id, amt = 1) {
+    itemP(id, amt = 1, noIcon = false) {
         var i = stuff.shopItems[id]
-        return `${(amt != 1) ? `${amt}x ` : ''}${i.icon} ${i.name}`
+        return `${(amt != 1) ? `${amt}x ` : ''}${!noIcon ? `${i.icon} ` : ""}${i.name}`
     },
     eggscript(str, context = {}) {
             var variables = { define(name, value) { variables[name] = value }, 

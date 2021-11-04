@@ -7,27 +7,37 @@ async function joinMatch(msg, p, bypassCheck = false) {
     await msg.channel.send(`Joined ${p.host}'s match`)
     stuff.pvp[msg.author.id] = p;
     p.users.push(msg.author)
+    var pclass = stuff.getClass(msg.author.id, true)
     var stats = {
-        attack: 10,
-        defense: 8,
-        health: 300,
+        attack: stuff.calcStat(p.level, pclass.atk, 0),
+        defense: stuff.calcStat(p.level, pclass.def, 0),
+        health: stuff.calcStat(p.level, pclass.hp, 0),
+        level: p.level,
         get atk() {
             return this.attack * this.atkmul;
         },
         get def() {
             return this.defense * this.defmul;
         },
+        get spd() {
+            return this.speed * this.spdmul;
+        },
         evasion: 0,
         accuracy: 1,
         atkmul: 1,
         defmul: 1,
         accmul: 1,
+        spdmul: 1,
         evmul: 1,
+        charge: 0,
+        speed: stuff.calcStat(p.level, pclass.spd, 0),
     }
     if (!p.fair) {
         stats.attack = stuff.getAttack(msg.author.id)
         stats.defense = stuff.getDefense(msg.author.id)
         stats.health = stuff.getMaxHealth(msg.author.id)
+        stats.speed = stuff.getSpeed(msg.author.id)
+        stats.level = stuff.getLevel(msg.author.id)
     } else if (p.quick) {
         if (p.quicklevel > 0) {
             for (var i = p.quicklevel; i >= 0; i--) {
@@ -83,6 +93,7 @@ module.exports = {
                     host: msg.author,
                     users: [],
                     turn: 0,
+                    level: Number(h.level) || 50,
                     noEnd: h.ohno,
                     ready: false,
                     maxPlayers: args.players,

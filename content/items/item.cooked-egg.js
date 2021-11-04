@@ -5,6 +5,7 @@ module.exports = {
     price: 187500000000,
     inStock: 999999999,
     rarity: 15543583,
+    pageIcon: "🍳",
     description: 'You should feel bad about that unborn chicken!',
     type: 'Consumable & Boss Summon',
     extraInfo: 'Summons Egg Lord Prime',
@@ -15,7 +16,6 @@ module.exports = {
         setTimeout(() => {
             if (!stuff.fighting[user]) {
                 stuff.startBattle(user, "egg-lord-prime")
-                message.channel.send("Egg Lord Prime has awoken! Use ;hunt to fight it")
             }
         }, 1000)
         return true;
