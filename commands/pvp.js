@@ -24,11 +24,51 @@ async function joinMatch(msg, p, bypassCheck = false) {
         },
         evasion: 0,
         accuracy: 1,
-        atkmul: 1,
-        defmul: 1,
-        accmul: 1,
-        spdmul: 1,
-        evmul: 1,
+        
+        atkmod: 0,
+        defmod: 0,
+        accmod: 0,
+        spdmod: 0,
+        evamod: 0,
+        chgmod: 0,
+
+        helditem: stuff.getHeld(msg.author.id).slice(0, 3).map(el => ({...el})),
+        
+        get atkmul() {
+            return Math.max(Math.min(1 + (this.atkmod / 6), 4), 0.125)
+        },
+        get defmul() {
+            return Math.max(Math.min(1 + (this.defmod / 6), 4), 0.125)
+        },
+        get accmul() {
+            return Math.max(Math.min(1 + (this.accmod / 6), 4), 0.125)
+        },
+        get spdmul() {
+            return Math.max(Math.min(1 + (this.spdmod / 6), 4), 0.125)
+        },
+        get evamul() {
+            return Math.max(Math.min(1 + (this.evamod / 6), 4), 0.125)
+        },
+        get chgmul() {
+            return Math.max(Math.min(1 + (this.chgmod / 12), 4), 0.125)
+        },
+        
+        set atkmul(v) {
+            this.atkmod = (v - 1) * 6
+        },
+        set defmul(v) {
+            this.defmod = (v - 1) * 6
+        },
+        set accmul(v) {
+            this.accmod = (v - 1) * 6
+        },
+        set spdmul(v) {
+            this.spdmod = (v - 1) * 6
+        },
+        set evamul(v) {
+            this.evamod = (v - 1) * 6
+        },
+
         charge: 0,
         speed: stuff.calcStat(p.level, pclass.spd, 0),
     }
@@ -38,24 +78,32 @@ async function joinMatch(msg, p, bypassCheck = false) {
         stats.health = stuff.getMaxHealth(msg.author.id)
         stats.speed = stuff.getSpeed(msg.author.id)
         stats.level = stuff.getLevel(msg.author.id)
-    } else if (p.quick) {
-        if (p.quicklevel > 0) {
-            for (var i = p.quicklevel; i >= 0; i--) {
-                stats.health /= 2;
-            }
-        } else {
-            var l = Math.abs(p.quicklevel)
-            for (var i = 0; i < l; i++) {
-                stats.health *= 2;
-            }
-        }
     }
-
+    stats.health *= p.hpmul
     p.stats[msg.author.id] = stats
+    p.status[msg.author.id] = []
     if (p.users.length >= p.maxPlayers) {
         p.ready = true
         for (var u of p.users) {
             stuff.userHealth[u.id] = p.stats[u.id].health;
+            p.turnlog.users.push({
+                user: u.username,
+                userId: u.id,
+                ...p.stats[u.id],
+            })
+        }
+        p.turnlog.startedAt = Date.now()
+        var f = stuff.fieldStatus[p.startfield]
+        var id = p.startfield
+        if (p.startfield == "random") {
+            var keys = Object.keys(stuff.fieldStatus)
+            var key = keys[Math.floor(Math.random() * keys.length)]
+            f = stuff.fieldStatus[key]
+            id = key
+        }
+        if (f) {
+            var f = stuff.addField(p, id)
+            f.turns = Math.floor(f.turns * 1.5)
         }
         stuff.matchInfo(msg, p)
     }
@@ -94,17 +142,42 @@ module.exports = {
                     users: [],
                     turn: 0,
                     level: Number(h.level) || 50,
+                    startfield: h.startfield || "",
                     noEnd: h.ohno,
                     ready: false,
                     maxPlayers: args.players,
                     choices: [],
+                    fieldStatus: [],
+                    logs: [],
                     ipReward: 0,
                     xpReward: 0,
                     fair: !h.unfair,
-                    quick: "quick" in h,
-                    quicklevel: Math.max(Math.min((Number(h.quick) || 1) - (Number(h.nquick) || 0), 32), -32),
+                    hpmul: Number(h.hpmul) || 1,
                     status: {},
+                    get randomEvents() {
+                        if (this.fieldEffects.some(el => el.id == "no_random")) return false
+                        return true
+                    },
                     stats: {},
+                    turnlog: {
+                        users: [],
+                        turns: []
+                    },
+                }
+                p.logs.send = function(str) {
+                    p.logs.push(str)
+                }
+                p.turnlog.rules = {
+                    maxPlayers: p.maxPlayers,
+                    level: p.level,
+                    endless: p.noEnd,
+                    unfair: !p.fair,
+                    hpmul: p.hpmul,
+                    startfield: p.startfield,
+                }
+                p.turnlog.info = {
+                    moves: stuff.pvpMoves,
+                    statusEffects: stuff.pvpStatus,
                 }
                 console.log(p)
                 await joinMatch(msg, p, true)

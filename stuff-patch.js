@@ -350,4 +350,55 @@ module.exports = {
         s %= 60;
         return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}.${ms.toString().slice(0, 2).padStart(2, "0")}`
     },
+    classes: {
+        "default": {
+            icon: "⚪",
+            name: "Default",
+            description: "Default class, balanced stats",
+            hp: 270,
+            atk: 70,
+            def: 70,
+            spd: 70,
+        },
+        "attack-helicopter": {
+            icon: "🚁",
+            name: "Apache Attack Helicopter",
+            description: "yes",
+            hp: 250,
+            atk: 105,
+            def: 40,
+            spd: 85,
+        },
+        "tonk": {
+            icon: "🅱️",
+            name: "Tonk",
+            description: "Tonk",
+            hp: 250,
+            atk: 100,
+            def: 120,
+            spd: 10,
+        },
+        "u": {
+            icon: "<:u_:894183262170263615>",
+            name: "ú",
+            description: `"God"`,
+            hp: 70,
+            atk: 270,
+            def: 70,
+            spd: 70,
+        },
+        "rock": {
+            icon: "🪨",
+            name: "Rock",
+            description: "Rock",
+            hp: 210,
+            atk: 70,
+            def: 70 + 130,
+            spd: 0,
+        }
+    },
+    getHeld(user) {
+        if (!this.db.data[user].helditem) this.db.data[user].helditem = []
+        return this.db.data[user].helditem
+    },
 }

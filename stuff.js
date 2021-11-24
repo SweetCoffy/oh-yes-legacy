@@ -338,7 +338,7 @@ module.exports = {
     calcStat(level, base, sp = 0) {
         level = level || 1
         sp = Math.max(Math.min(sp, 64), 0)
-        return Math.floor((base / 1.5) + (base * (level / 9)) * (1 / (1 + (level / 999))) * (1 + (sp / 512)))
+        return Math.floor((base / 1.5) + (base * (level / 9)) * (1 + (sp / 512)))
     },
     getSpeed(user) {
         return this.calcStat(this.db.data[user].level, this.getBaseSPD(user), this.db.data[user].speedSP || 0)
@@ -1357,35 +1357,7 @@ module.exports = {
         var req = await this.download(url);
         return req.pipe(fs.createWriteStream(`pending/${filename}`));
     },
-    classes: {
-        "default": {
-            icon: "⚪",
-            name: "Default",
-            description: "Default class, balanced stats",
-            hp: 100,
-            atk: 10,
-            def: 10,
-            spd: 10,
-        },
-        "attack-helicopter": {
-            icon: "🚁",
-            name: "Apache Attack Helicopter",
-            description: "Highest speed, high attack, low defense and average HP",
-            hp: 100,
-            atk: 20,
-            def: 5,
-            spd: 100,
-        },
-        "u": {
-            icon: "<:u_:894183262170263615>",
-            name: "ú",
-            description: `"God"`,
-            hp: 1,
-            atk: 1,
-            def: 1,
-            spd: 1,
-        }
-    },
+    classes: {},
     getClass(user, val = false) {
         var id = this.db.data[user].class || "default"
         if (val) return this.classes[id]

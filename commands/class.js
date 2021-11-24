@@ -16,7 +16,7 @@ module.exports = {
             var pclass = stuff.classes[showClass]
             // 🟥 🟨 🟩
             function bar(v = 0) {
-                var max = 100
+                var max = 200
                 var width = 15
                 var fill = "🟩"
                 var bg = "⬛"
@@ -43,10 +43,11 @@ module.exports = {
                     title: `${pclass.icon} ${pclass.name}`,
                     description: 
 `${pclass.description}
-\`HP  ${pclass.hp .toString().padStart(3, " ")}\` ${bar(pclass.hp / 3) } \`300\`
-\`DEF ${pclass.def.toString().padStart(3, " ")}\` ${bar(pclass.def)    } \`100\`
-\`ATK ${pclass.atk.toString().padStart(3, " ")}\` ${bar(pclass.atk)    } \`100\`
-\`SPD ${pclass.spd.toString().padStart(3, " ")}\` ${bar(pclass.spd)    } \`100\``
+\`HP  ${pclass.hp .toString().padStart(3, " ")}\` ${bar(pclass.hp / 3) } \`600\`
+\`DEF ${pclass.def.toString().padStart(3, " ")}\` ${bar(pclass.def)    } \`200\`
+\`ATK ${pclass.atk.toString().padStart(3, " ")}\` ${bar(pclass.atk)    } \`200\`
+\`SPD ${pclass.spd.toString().padStart(3, " ")}\` ${bar(pclass.spd)    } \`200\`
+Total: ${pclass.hp + pclass.def + pclass.atk + pclass.spd}`
                 }],
                 components: [
                     new MessageActionRow().addComponents(new MessageSelectMenu().setMinValues(1).setMaxValues(1).setCustomId("class").addOptions(
