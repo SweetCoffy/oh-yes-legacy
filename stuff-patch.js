@@ -2,24 +2,29 @@
 var stuff = require('./stuff.js')
 module.exports = {
     bar(v, max, w, options) {
-        var opts = { fill: ["▒", "▓", "█"], padding: " ", showText: false }
-        for (var p in options) {
-            opts[p] = options[p]
+        var c = 0
+        var fill = "█"
+        var bg = " "
+        var str = ""
+        var chars = Math.min((v / max) * w, w)
+        while (c < chars) {
+            var f = fill
+            var epicVal = Math.min(chars - c, 1)
+            if (epicVal < 1)   f = "▉"
+            if (epicVal < 7/8) f = "▊"
+            if (epicVal < 3/4) f = "▋"
+            if (epicVal < 5/8) f = "▌"
+            if (epicVal < 1/2) f = "▍"
+            if (epicVal < 3/8) f = "▎"
+            if (epicVal < 1/4) f = "▏"
+            c++
+            str += f
         }
-        var val = v;
-        v = v % (max + 0.01)
-        var { fill, padding, showText } = opts;
-        var bar = ""
-        var v = (v / max) * w;
-        for (;v > 0; v--) {
-            var idx = Math.floor(Math.max(Math.min(v, 0.999), 0) * fill.length)
-            var c = fill[idx]
-            bar += c
+        while (c < w) {
+            c++
+            str += bg
         }
-        while (bar.length < w) {
-            bar += padding
-        } 
-        return bar + (showText ? ` ${stuff.format(val)}/${stuff.format(max)}` : "")
+        return str
     },
     test: "the j",
     getInventory(user) {
@@ -350,6 +355,50 @@ module.exports = {
         s %= 60;
         return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}.${ms.toString().slice(0, 2).padStart(2, "0")}`
     },
+    // ❤️ 🗡️ 🛡️ 👟 🔘
+    stats: {
+        hp: {
+            name: "HP",
+            fullName: "Health",
+            fullKey: "maxHealth",
+            icon: "❤️"
+        },
+        atk: {
+            name: "ATK",
+            fullName: "Attack",
+            fullKey: "attack",
+            icon: "🗡️"
+        },
+        def: {
+            name: "DEF",
+            fullName: "Defense",
+            fullKey: "defense",
+            icon: "🛡️"
+        },
+        spatk: {
+            name: "SpATK",
+            fullName: "Sp. Attack",
+            fullKey: "specialAttack",
+            icon: "🔘🗡️"
+        },
+        spdef: {
+            name: "SpDEF",
+            fullName: "Sp. Defense",
+            fullKey: "specialDefense",
+            icon: "🔘🛡️"
+        },
+        spd: {
+            name: "SPD",
+            fullName: "Speed",
+            fullKey: "speed",
+            icon: "👟"
+        },
+        miscdef: {
+            name: "MiscDEF",
+            fullName: "Misc. Defense",
+            fullKey: "miscDefense",
+        },
+    },
     classes: {
         "default": {
             icon: "⚪",
@@ -357,7 +406,10 @@ module.exports = {
             description: "Default class, balanced stats",
             hp: 270,
             atk: 70,
+            spatk: 70,
             def: 70,
+            spdef: 70,
+            miscdef: 70,
             spd: 70,
         },
         "attack-helicopter": {
@@ -365,35 +417,47 @@ module.exports = {
             name: "Apache Attack Helicopter",
             description: "yes",
             hp: 250,
-            atk: 105,
+            atk: 125,
             def: 40,
-            spd: 85,
+            spatk: 80,
+            spdef: 20,
+            spd: 135,
+            miscdef: 40,
         },
         "tonk": {
             icon: "🅱️",
             name: "Tonk",
             description: "Tonk",
             hp: 250,
-            atk: 100,
+            atk: 50,
             def: 120,
+            spatk: 60,
+            spdef: 105,
             spd: 10,
+            miscdef: 95,
         },
         "u": {
             icon: "<:u_:894183262170263615>",
             name: "ú",
             description: `"God"`,
-            hp: 70,
-            atk: 270,
-            def: 70,
-            spd: 70,
+            hp: 100,
+            atk: 210,
+            def: 40,
+            spatk: 100,
+            spdef: 40,
+            spd: 120,
+            miscdef: 80,
         },
         "rock": {
             icon: "🪨",
             name: "Rock",
             description: "Rock",
             hp: 210,
-            atk: 70,
-            def: 70 + 130,
+            atk: 10,
+            spatk: 30,
+            def: 240,
+            spdef: 200,
+            miscdef: 0,
             spd: 0,
         }
     },

@@ -103,6 +103,19 @@ module.exports = {
         if (itemData.multiplierMultiplier) {
             embed.fields.push({name: "Exponent", value: `+**${stuff.format(itemData.multiplierMultiplier)}** exponent`, inline: true})
         }
+        if (stuff.pvpItems[args[0]]) {
+            var pvpi = stuff.pvpItems[args[0]]
+            embed.fields.push({
+                name: "PVP: Active Effect",
+                value: `${pvpi.activeEffect || "None"}`,
+                inline: false
+            })
+            embed.fields.push({
+                name: "PVP: Passive Effect",
+                value: `${pvpi.passiveEffect || "None"}`,
+                inline: false
+            })
+        }
         embed.fields = embed.fields.map(el => ({ name: (el.name + "") || "empty", value: (el.value + "") || "empty", inline: el.inline || false }))
         message.channel.send({embeds: [embed]});
     }

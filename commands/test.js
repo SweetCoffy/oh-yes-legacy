@@ -3,7 +3,18 @@ var Discord = require('discord.js')
 var fs = require('fs')
 const stuff = require('../stuff')
 var chars = {}
+var cv = require('canvas')
+var clamp = stuff.clamp
 fs.readdirSync("chars").forEach(el => chars[el.replace(".raw", "").replace("default_font_", "")] = fs.readFileSync(`chars/${el}`))
+var sprites = {}
+for (var c in chars) {
+    sprites[c] = {
+        width: chars[c][0],
+        height: chars[c][1],
+        data: chars[c].slice(2)
+    }
+}
+stuff.sprites = sprites
 async function funi(things, w = 320) {
     var thingH = 20
     var j = await jimp.create(w, things.length * (thingH + 1))
@@ -133,29 +144,391 @@ async function funi(things, w = 320) {
     }
     return j;
 }
+function pointInPoly(poly, pointx, pointy) {
+    var i, j;
+    var inside = false;
+    for (i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+        if(((poly[i].y > pointy) != (poly[j].y > pointy)) && (pointx < (poly[j].x-poly[i].x) * (pointy-poly[i].y) / (poly[j].y-poly[i].y) + poly[i].x) ) inside = !inside;
+    }
+    return inside;
+}
+function textWidth(str) {
+    var w = 0;
+    for (var char of str) {
+        var code = char.charCodeAt(0)
+        var c = sprites[code]
+        if (!c) continue;
+        w += c.width
+    }
+    return w;
+}
+class CanvasThing {
+    /**
+     * @type {Uint8ClampedArray}
+     */
+    buffer = null;
+    /**
+     * @type {cv.ImageData}
+     */
+    data = null;
+    /**
+     * @type {cv.Canvas}
+     */
+    canvas = null;
+    /**
+     * @type {cv.CanvasRenderingContext2D}
+     */
+    context = null
+    constructor() {
+        this.canvas = new cv.Canvas(256, 256)
+        this.context = this.canvas.getContext('2d')
+        this.data = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height)
+        this.buffer = this.data.data
+    }
+    fillPoly(points, color, borderColor) {
+        console.log("draw poly fill")
+        var pointx = points.map(el => el.x)
+        var pointy = points.map(el => el.y)
+    
+        var minX = Math.floor(Math.min(...pointx))
+        var maxX = Math.floor(Math.max(...pointx))
+    
+        var minY = Math.ceil(Math.min(...pointy))
+        var maxY = Math.ceil(Math.max(...pointy))
+    
+        if (!borderColor) borderColor = color
+        for (var y = minY; y < maxY; y++) {
+            for (var x = minX; x < maxX; x++) {
+                var h = pointInPoly(points, x, y)
+                if (h) {
+                    var i = (Math.floor(x) + (Math.floor(y) * this.data.width)) * 4
+                    this.buffer[i + 0] = color[0]
+                    this.buffer[i + 1] = color[1]
+                    this.buffer[i + 2] = color[2]
+                    this.buffer[i + 3] = color[3]
+                }
+                //drawText(`${h}`, 0, 0, Infinity, 1, [1, 1, 1, 1], true)
+            }
+        }
+        var prev = points[0]
+        for (var i = 1; i < points.length; i++) {
+            var point = points[i]
+            this.drawLine(prev.x, prev.y, point.x, point.y, borderColor)
+            prev = point
+        }
+    }
+    drawLine(x1, y1, x2, y2, color) {
+        console.log("draw line")
+        var dx = x2 - x1
+        var dy = y2 - y1
+        var magnitude = Math.sqrt(dx*dx + dy*dy)
+        dx /= magnitude
+        dy /= magnitude
+        var x = x1
+        var y = y1
+        while ((Math.abs(x - x2) + Math.abs(y - y2)) >= 1) {
+            if (x > this.canvas.width || y > this.canvas.height || y < 0 || x < 0) continue
+            var i = (Math.floor(x) + (Math.floor(y) * this.data.width)) * 4
+            this.buffer[i + 0] = color[0]
+            this.buffer[i + 1] = color[1]
+            this.buffer[i + 2] = color[2]
+            this.buffer[i + 3] = color[3]
+            x += dx
+            y += dy
+        }
+    }
+    drawSprite(spr, x, y, dither = 0, colMul = [1, 1, 1, 1]) {
+        console.log("draw sprite")
+        x = Math.floor(x)
+        y = Math.floor(y)
+        var i = (x + (y * this.data.width)) * 4
+        var w = spr.width
+        var h = spr.height
+        spr = spr.data
+        var e = w * h * 4
+        var l = 0;
+        if (x > this.canvas.width || y > this.canvas.height) return;
+        if (x < -spr.width || y < -spr.height) return;
+        var d = 0
+        for (var j = 0; j < e; j += 4) {
+            var r = spr[j] * colMul[0]
+            var g = spr[j + 1] * colMul[1]
+            var b = spr[j + 2] * colMul[2]
+            var a = spr[j + 3] * colMul[3]
+            if (a > 10) {
+                this.buffer[i + 0] = r
+                this.buffer[i + 1] = g
+                this.buffer[i + 2] = b
+                this.buffer[i + 3] = 255
+            }
+            d++
+            i += 4;
+            l++;
+            if (l >= w) {
+                l = 0;
+                i += this.data.width * 4;
+                i -= w * 4;
+            }
+        }
+    }
+    drawText(str, x, y, maxWidth = Infinity, lineSpacing = 1, colMul = [1, 1, 1, 1], shadow = false, _shadowText = false) {
+        console.log("draw text")
+        if (shadow) {
+            drawText(str, x + 1, y + 1, maxWidth, lineSpacing, [0, 0, 0, 1], false, true)
+        }
+        x = Math.floor(x)
+        y = Math.floor(y)
+        var curX = x;
+        var curY = y;
+        var curW = 0;
+        var h = 0;
+        var w = 0;
+        var colorMode = false;
+        var cm = colMul
+        var wobbleMode = false;
+        var scaleMode = false;
+        var wobbleIntensity = 0;
+        var wobbleSpeed = 0;
+        var wobbleAxis = 0;
+        var tallestChar = 8;
+        var scale = 1;
+        for (var i = 0; i < str.length; i++) {
+            var c = str[i]
+            if (c == "\uFFFF") {
+                colorMode = true;
+                var r = str.charCodeAt(++i)
+                var g = str.charCodeAt(++i)
+                var b = str.charCodeAt(++i)
+                cm = [r, g, b, 0xFF]
+                continue
+            } else if (c == "\uFFF0") {
+                colorMode = false;
+                cm = colMul
+                continue
+            }
+            if (c == "\uFFDF") {
+                wobbleMode = true;
+                wobbleIntensity = str.charCodeAt(++i) / 255
+                wobbleSpeed = str.charCodeAt(++i) / 255
+                wobbleAxis = str.charCodeAt(++i)
+                continue;
+            } else if (c == "\uFFD0") {
+                wobbleMode = false;
+                wobbleIntensity = 0;
+                wobbleSpeed = 0;
+                wobbleAxis = 0;
+                continue;
+            }
+            if (c == "\uFFEF") {
+                scaleMode = true;
+                scale = str.charCodeAt(++i) / 255
+                continue
+            } else if (c == "\uFFE0") {
+                scaleMode = false;
+                scale = 1;
+                continue
+            }
+            var wobbleOfs = 0
+            if (wobbleMode) {
+                wobbleOfs = Math.sin((Date.now() / 100 + i) * wobbleSpeed) * wobbleIntensity * 4
+            }
+            var xofs = 0
+            var yofs = 0
+            if (wobbleAxis == 1) {
+                yofs = wobbleOfs
+            } else if (wobbleAxis == 2) {
+                xofs = wobbleOfs
+            } else if (wobbleAxis == 3) {
+                xofs = yofs = wobbleOfs
+            }
+            if (c == "\n") {
+                curY += tallestChar + lineSpacing;
+                h += tallestChar + lineSpacing;
+                curX = x;
+                curW = 0;
+                continue;
+            }
+            if (_shadowText) cm = [0, 0, 0, 1]
+            var code = c.charCodeAt(0)
+            var char = sprites[code]
+            if (!char) continue;
+            if (scale != 1) char = char.scale(scale)
+            if (curW > w) w = curW
+            if (curW + char.width >= maxWidth) {
+                curY += tallestChar + lineSpacing;
+                h += tallestChar + lineSpacing
+                tallestChar = 8;
+                curX = x;
+                curW = 0; 
+            }
+            if (char.height > tallestChar) tallestChar = char.height
+            this.drawSprite(char, curX + xofs, curY + yofs, 0, cm)
+            curX += char.width;
+            curW += char.width;
+        }
+        return {width: w, height: h + 8, x, y}
+    }
+    drawRect(x, y, w, h, c, dithering = 0) {
+        x = Math.floor(x)
+        y = Math.floor(y)
+        w = Math.floor(w)
+        h = Math.floor(h)
+        var r = c[0]
+        var g = c[1]
+        var b = c[2]
+        var a = c[3]
+        var d = 0;
+        var i = (x + (y * this.data.width)) * 4
+        var e = w * h * 4
+        var l = 0
+        for (var j = 0; j < e; j += 4) {
+            if (a > 10) {
+                this.buffer[i + 0] = r
+                this.buffer[i + 1] = g
+                this.buffer[i + 2] = b
+                this.buffer[i + 3] = a
+            }
+            i += 4;
+            l++;
+            if (l >= w) {
+                l = 0;
+                i += this.data.width * 4;
+                i -= w * 4;
+            }
+        }
+    }
+}
+function nearestNeighbor(src, dst) {
+    let pos = 0
+
+    for (let y = 0; y < dst.height; y++) {
+      for (let x = 0; x < dst.width; x++) {
+        const srcX = Math.floor(x * src.width / dst.width)
+        const srcY = Math.floor(y * src.height / dst.height)
+  
+        let srcPos = ((srcY * src.width) + srcX) * 4
+  
+        dst.data[pos++] = src.data[srcPos++] // R
+        dst.data[pos++] = src.data[srcPos++] // G
+        dst.data[pos++] = src.data[srcPos++] // B
+        dst.data[pos++] = src.data[srcPos++] // A
+      }
+    }
+}
 stuff.funi = funi;
+function genThing(data) {
+    return new Promise(resolve => {
+        var thing = new CanvasThing()
+        var col = [0x00, 0x70, 0xFF, 0xFF]
+        var text = []
+        var points = []
+        var stats = Object.keys(stuff.stats)
+        var w = Math.floor(thing.canvas.width - 64)
+        var h = w
+
+        var xpos = thing.canvas.width / 2
+        var ypos = thing.canvas.height / 2
+
+        var max = 300
+        var step = 360 / stats.length
+    
+        for (var i = 0; i < stats.length; i++) {
+            var dist = 1 * (w / 2)
+            dist = clamp(dist, 0, w / 2)
+    
+            var dx = Math.sin(i * step * (Math.PI / 180))
+            var dy = Math.cos(i * step * (Math.PI / 180))
+            points.push({x: xpos + dx * dist, y: ypos + dy * dist})
+        }
+        var bgcol = [0x50, 0x50, 0x50, 0xFF]
+        thing.fillPoly(points, bgcol.map((el, i) => {
+            if (i == 3) return el / 2
+            return el
+        }), bgcol)
+    
+        points = []
+    
+        var prevpoint = null
+        for (var i = 0; i < stats.length; i++) {
+            var v = data[stats[i]]
+            var label = `${stuff.stats[stats[i]].name}`
+            var value = `${data[stats[i]]}`
+            var dist = (v / max) * (w / 2)
+            dist = clamp(dist, 0, w / 2)
+    
+            var dx = Math.sin(i * step * (Math.PI / 180))
+            var dy = Math.cos(i * step * (Math.PI / 180))
+            points.push({x: xpos + dx * dist, y: ypos + dy * dist})
+            prevpoint = {x: dx * dist, y: dy * dist}
+    
+            text.push({
+                x: prevpoint.x,
+                y: prevpoint.y,
+                str: label,
+                value: value
+            })
+        }
+        points.push(points[0])
+        thing.fillPoly(points, col.map((el, i) => {
+            if (i == 3) return el / 2
+            return el
+        }), col)
+        for (var t of text) {
+            var magnitude = Math.sqrt(t.x*t.x + t.y*t.y)
+
+            var prevx = t.x
+            var prevy = t.y
+
+            t.x += (t.x / magnitude) * 24
+            t.y += (t.y / magnitude) * 24
+
+            thing.drawLine(prevx + xpos, prevy + ypos, t.x + xpos, t.y + ypos, col)
+            thing.drawRect(prevx - 1, prevy - 1, 2, 2, col)
+
+            var tw = textWidth(t.str)
+            thing.drawText(t.str, xpos + t.x - (tw / 2), ypos + t.y - 9)
+            var tw = textWidth(t.value)
+            thing.drawText(t.value, xpos + t.x - (tw / 2), ypos + t.y)
+        }
+        var dst = {
+            width: thing.canvas.width * 2,
+            height: thing.canvas.height * 2,
+        }
+        dst.data = new Uint8ClampedArray(dst.width * dst.height * 4)
+        var src = {
+            width: thing.canvas.width,
+            height: thing.canvas.height,
+            data: thing.buffer
+        }
+        nearestNeighbor(src, dst)
+        thing.canvas.width = dst.width
+        thing.canvas.height = dst.height
+        thing.data = thing.context.createImageData(thing.canvas.width, thing.canvas.height)
+        thing.buffer = thing.data.data
+        thing.buffer.set(dst.data, 0)
+        thing.context.putImageData(thing.data, 0, 0)
+        fs.writeFileSync("bruh.bin", thing.buffer)
+        var buf = Buffer.alloc(1024 * 16)
+        var i = 0
+        var stream = thing.canvas.createPNGStream().on("data", (chunk) => {
+            for (var j = 0; j < chunk.length; j++) {
+                buf[i++] = chunk[j]
+            }
+            if (i >= buf.length / 2) {
+                buf = Buffer.concat([buf, Buffer.alloc(buf.length)])
+            }
+        }).on("close", () => {
+            buf = buf.slice(0, i + 1)
+            resolve(buf)
+        })
+    })
+}
 module.exports = {
     name: "test",
     arguments: [
         {
-            name: "name",
-            type: "string",
-        },
-        {
-            name: "hp",
-            type: "number",
-        },
-        {
-            name: "maxhp",
-            type: "number",
-        },
-        {
-            name: "prevhp",
-            type: "number",
-        },
-        {
-            name: "status",
-            type: "stringArray",
+            name: "numbers",
+            type: "stringArray"
         }
     ],
     useArgsObject: true,
@@ -165,8 +538,11 @@ module.exports = {
      * @param {*} args 
      */
     async execute(msg, args) {
-        var f = await funi([{ hp: args.hp, maxhp: args.maxhp, name: args.name, prevhp: args.prevhp, status: args.status }, { hp: Math.floor(Math.random() * 100), maxhp: 100, name: "The Fucking Sun", prevhp: 90, status: ["cringe", "poison"]}])
-        f.resize(1024, jimp.AUTO, jimp.RESIZE_NEAREST_NEIGHBOR)
-        await msg.channel.send({ files: [ new Discord.MessageAttachment(await f.getBufferAsync(jimp.MIME_PNG), "funi.png") ] })
+        var data = stuff.getClass(msg.author.id, true)
+        var buf = await genThing(data)
+        msg.channel.send({files: [new Discord.MessageAttachment(buf, "funi.png")]})
+        //var f = await funi([{ hp: args.hp, maxhp: args.maxhp, name: args.name, prevhp: args.prevhp, status: args.status }, { hp: Math.floor(Math.random() * 100), maxhp: 100, name: "The Fucking Sun", prevhp: 90, status: ["cringe", "poison"]}])
+        //f.resize(1024, jimp.AUTO, jimp.RESIZE_NEAREST_NEIGHBOR)
+        //await msg.channel.send({ files: [ new Discord.MessageAttachment(await f.getBufferAsync(jimp.MIME_PNG), "funi.png") ] })
     }
 }

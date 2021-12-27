@@ -367,6 +367,9 @@ module.exports = {
         return this.calcStat(this.db.data[user].level, this.getBaseATK(user), this.db.data[user].attackSP || 0)
         + (this.db.data[user].attackBonus || 0)
     },
+    getSpecialAttack(user) {
+        return this.calcStat(this.db.data[user].level, this.getBaseSpATK(user), this.db.data[user].specialAttackSP || 0)
+    },
     addAttack(user, amount) {
         if (isNaN(amount)) return;
         this.db.push(`/${user}/attackBonus`, (this.db.data[user].attackBonus || 0) + amount)
@@ -572,6 +575,12 @@ module.exports = {
         return this.calcStat(this.db.data[user].level, this.getBaseDEF(user), this.db.data[user].defenseSP || 0)
         + (this.db.data[user].defenseBonus || 0)
     },
+    getSpecialDefense(user) {
+        return this.calcStat(this.db.data[user].level, this.getBaseSpDEF(user), this.db.data[user].specialDefenseSP || 0)
+    },
+    getMiscDefense(user) {
+        return this.calcStat(this.db.data[user].level, this.getBaseMiscDEF(user), this.db.data[user].miscDefenseSP || 0)
+    },
 
     addDefense(user, amount) {
         var a = amount || 0;
@@ -755,7 +764,9 @@ module.exports = {
         var d = this.getUserData(user)
         d = { attack: d.attack, defense: d.defense, speed: d.speed, maxHealth: d.maxHealth }
         var lev = this.getLevel(user)
-        var dat = {hp: 0, atk: 0, def: 0, spd: 0, startLevel: lev, levels: 0}
+        var dat = {hp: 0, atk: 0, def: 0, spd: 0, spatk: 0, spdef: 0, startLevel: lev, levels: 0}
+        var s = {...this.stats}
+        delete s["miscdef"]
         while (x >= l) {
             x -= l;
             this.levelUp(user, null, dat)
@@ -770,7 +781,13 @@ module.exports = {
                     console.error(er)
                 }
             }
-            if (c) await c.send(`<@${user}> Leveled up!\nLevel: ${dat.startLevel} -> ${dat.startLevel + dat.levels}\n❤️ HP: ${d.maxHealth} + ${dat.hp}\n🗡️ Attack: ${d.attack} + ${dat.atk}\n🛡️ Defense: ${d.defense} + ${dat.def}\n👟 Speed: ${d.speed} + ${dat.spd}`)
+            if (c) await c.send(`<@${user}> Leveled up!\nLevel: ${dat.startLevel} -> ${dat.startLevel + dat.levels}\n${Object.keys(s).map(k => {
+                var fullkey = s[k].fullKey
+                console.log(s[k])
+                console.log(k)
+                console.log(fullkey)
+                return `${s[k].icon || "❔"} ${s[k].fullName}: ${Math.floor(this[`get${fullkey.slice(0, 1).toUpperCase() + fullkey.slice(1)}`](user))} + ${Math.floor(dat[k])}`
+            }).join("\n")}`)
         }
         this.db.data[user].levelUpXP = l;
         this.db.data[user].xp = x;
@@ -781,18 +798,25 @@ module.exports = {
     levelUp(user, c, dat = {hp: 0, atk: 0, def: 0, spd: 0, startLevel: 0, levels: 0}) {
         var l = this.getLevelUpXP(user)
         l *= 1.075;
-        var hpIncrease  = this.getMaxHealth(user);
-        var atkIncrease = this.getAttack(user);
-        var defIncrease = this.getDefense(user);
-        var spdIncrease = this.getSpeed(user);
+        var hpIncrease    = this.getMaxHealth(user);
+        var atkIncrease   = this.getAttack(user);
+        var defIncrease   = this.getDefense(user);
+        var spdIncrease   = this.getSpeed(user);
+        var spatkIncrease = this.getSpecialAttack(user);
+        var spdefIncrease = this.getSpecialDefense(user);
+
         this.db.data[user].level = this.getLevel(user) + 1
-        hpIncrease  = this.getMaxHealth(user) - hpIncrease;
-        atkIncrease = this.getAttack(user)    - atkIncrease;
-        defIncrease = this.getDefense(user)   - defIncrease;
-        spdIncrease = this.getSpeed(user)     - spdIncrease;
+        hpIncrease  = this.getMaxHealth(user)        - hpIncrease;
+        atkIncrease = this.getAttack(user)           - atkIncrease;
+        defIncrease = this.getDefense(user)          - defIncrease;
+        spdIncrease = this.getSpeed(user)            - spdIncrease;
+        spatkIncrease = this.getSpecialAttack(user)  - spatkIncrease;
+        spdefIncrease = this.getSpecialDefense(user) - spdefIncrease;
         this.db.data[user].levelUpXP = l;
         dat.atk += atkIncrease;
         dat.def += defIncrease;
+        dat.spatk += spatkIncrease;
+        dat.spdef += spdefIncrease;
         dat.spd += spdIncrease
         dat.hp += hpIncrease;
         dat.levels++;
@@ -1369,8 +1393,17 @@ module.exports = {
     getBaseATK(user) {
         return this.getClass(user, true).atk
     },
+    getBaseSpATK(user) {
+        return this.getClass(user, true).spatk
+    },
     getBaseDEF(user) {
         return this.getClass(user, true).def
+    },
+    getBaseSpDEF(user) {
+        return this.getClass(user, true).spdef
+    },
+    getBaseMiscDEF(user) {
+        return this.getClass(user, true).miscdef
     },
     getBaseSPD(user) {
         return this.getClass(user, true).spd

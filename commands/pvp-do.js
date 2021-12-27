@@ -2,20 +2,34 @@ const { Message, MessageAttachment, MessageButton, MessageActionRow, MessageComp
 const Jimp = require('jimp');
 var stuff = require('../stuff')
 if (!stuff.pvp) stuff.pvp = {}
-function takeDamage(p, user, amt, ignoreDefense, mul = 1) {
+function takeDamage(p, user, amt, ignoreDefense, mul = 1, useMisc = false) {
     if (isNaN(mul)) mul = 1;
     if (isNaN(stuff.userHealth[user.id])) stuff.userHealth[user.id] = stuff.getMaxHealth(user.id)
     var def = p.stats[user.id].def
     if (ignoreDefense) def = 0;
-    var dmg = Math.max((amt) - def, 1) * mul
+    var dmg = Math.max((amt) - def, 1)
+    if (useMisc) dmg = Math.max(dmg - (p.stats[user.id].miscdef * 1.1), 1)
+    dmg *= mul
     stuff.userHealth[user.id] -= dmg;
     return dmg;
 }
 function calcMoveDamage(power, level, atk, def) {
     return Math.ceil(((atk / def) * (power / 10)) * (level / 2))
 }
-function takeDamagePower(p, user, target, power, mul) {
-    var dmg = calcMoveDamage(power, p.stats[user.id].level, p.stats[user.id].atk, p.stats[target.id].def)
+function getATK(p, user, cat = "physical") {
+    cat ||= "physical"
+    console.log(cat)
+    return p.stats[user.id][stuff.types[cat].atk]
+}
+function getDEF(p, user, cat = "physical") {
+    cat ||= "physical"
+    console.log(cat)
+    return p.stats[user.id][stuff.types[cat].def]
+}
+function takeDamagePower(p, user, target, power, mul, cat = "physical") {
+    var def = p.stats[target.id][stuff.types[cat].def]
+    var atk = p.stats[user.id][stuff.types[cat].atk]
+    var dmg = calcMoveDamage(power, p.stats[user.id].level, atk, def)
     return takeDamage(p, target, dmg, true, mul)
 }
 function addField(p, field) {
@@ -44,14 +58,19 @@ const MAX_LOG_LINES = 15
 stuff.pvpItems = {
     egg: {
         removeUse: true,
+        activeEffect: "Increases Attack, Defense, Special Attack, Special Defense and Speed by 3 stages",
         use(p, user, it) {
-            statB("atk", user, p, 2, p.logs)
-            statB("def", user, p, 2, p.logs)
-            statB("spd", user, p, 2, p.logs)
+            statB("atk", user, p, 3, p.logs)
+            statB("def", user, p, 3, p.logs)
+            statB("spatk", user, p, 3, p.logs)
+            statB("spdef", user, p, 3, p.logs)
+            statB("spd", user, p, 3, p.logs)
         }
     },
     eggs: {
         removeUse: true,
+        activeEffect: "Fully restores health and heals status effects",
+        passiveEffect: "Heals by 5% of the user's max health per turn",
         turn(p, user, it) {
             var heal = p.stats[user.id].health * 0.05
             if (stuff.userHealth[user.id] + heal <= p.stats[user.id].health) {
@@ -69,12 +88,14 @@ stuff.pvpItems = {
     },
     battery: {
         removeUse: true,
+        activeEffect: "Incrases Charge Rate by 6 stages and Speed by 1 stage",
         use(p, user, it) {
             statB("spd", user, p, 1, p.logs)
             statB("chg", user, p, 6, p.logs)
         }
     },
     shield: {
+        passiveEffect: "Blocks damage that is greater than 10% of the user's max health",
         turn(p, user, it) {
             var stats = p.stats[user.id]
             if (!it.health) it.health = stats.health / 3
@@ -90,21 +111,128 @@ stuff.pvpItems = {
                 }
             }
         }
+    },
+    ["anime-list"]: {
+        removeUse: true,
+        activeEffect: "Inflicts cringe and increases Attack and Special Attack by 6 stages",
+        passiveEffect: "Every 3 turns, inflicts cringe on the user and increases their Attack and Special Attack stats by 1 stage",
+        turn(p, user, it) {
+            if (p.turn % 3 == 0) {
+                addStatus(p, user, "cringe")
+                statB("atk", user, p, 1, p.logs)
+                statB("spatk", user, p, 1, p.logs)
+            }
+        },
+        use(p, user, it) {
+            addStatus(p, user, "cringe")
+            statB("atk", user, p, 6, p.logs)
+            statB("spatk", user, p, 6, p.logs)
+        }
+    },
+    _: {
+        removeUse: true,
+        activeEffect: "Triggers a random Field Effect",
+        use(p, user, it) {
+            var list = Object.keys(stuff.fieldStatus)
+            addField(p, list[Math.floor(Math.random() * list.length)])
+        }
+    },
+    donut: {
+        activeEffect: "Increases Attack and Special Attack by 6 stages but reduces Defense and Special Defense by 2 stages",
+        removeUse: true,
+        use(p, user, it) {
+            statB("atk", user, p, 6, p.logs)
+            statB("spatk", user, p, 6, p.logs)
+            statB("def", user, p, -2, p.logs)
+            statB("spdef", user, p, -2, p.logs)
+        }
+    },
+    bomb: {
+        removeUse: true,
+        activeEffect: "Removes Field Effects and hurts everyone by 35% of their max health",
+        use(p, user, it) {
+            var perc = 0.35 + (p.fieldStatus.reduce((prev, cur) => prev + cur.turns, 0) * 0.01)
+            console.log(p)
+            for (var u of p.users) {
+                stuff.userHealth[u.id] -= p.stats[u.id].health * perc
+            }
+            p.fieldStatus.map(el => el.turns = 0)
+            p.logs.send("*Vine Boom*")
+        }
+    },
+    shell: {
+        removeUse: true,
+        passiveEffect: "Every other turn, all stats lower than 0 stages will be boosted",
+        turn(p, user, it) {
+            var stats = p.stats[user.id]
+            if (p.turn % 2 == 0) {
+                var statsN = [
+                    "atk",
+                    "spatk",
+                    "def",
+                    "spdef",
+                    "spd",
+                ]
+                for (var s of statsN) {
+                    if (stats[`${s}mod`] < 0) {
+                        if (stats[`${s}mod`] < -6) {
+                            statB(s, user, p, 2, p.logs)
+                        } else {
+                            statB(s, user, p, 1, p.logs)
+                        }
+                    }
+                }
+            }
+        }
+    },
+    rock: {
+        removeUse: true,
+        passiveEffect: "Every turn, Defense and Special Defense are increased by 1 stage, at the cost of Speed, Attack and Special Attack",
+        turn(p, user, it) {
+            statB("def", user, p, 1, p.logs)
+            statB("spdef", user, p, 1, p.logs)
+
+            statB("atk", user, p, -1, p.logs)
+            statB("spatk", user, p, -1, p.logs)
+            statB("spd", user, p, -1, p.logs)
+        }
+    },
+    box: {
+        removeUser: true,
+        passiveEffect: "Has a chance to collect items every turn. When full, it will open and give the user the collected items",
+        turn(p, user, it) {
+            var keys = Object.keys(stuff.pvpItems)
+            var item = keys[Math.floor(Math.random() * keys.length)]
+            if (Math.random() < 0.25) {
+                if (!it.collected) it.collected = []
+                if (it.collected.length >= 3) return
+                it.collected.push(item)
+                p.logs.send(`${user.username} Collected an item! (${it.collected.length}/3)`)
+                if (it.collected.length >= 3) {
+                    for (var item of it.collected) {
+                        p.stats[user.id].helditem.push({id: item})
+                        p.logs.send(`${user.username} Obtained a ${stuff.shopItems[item].name}!`)
+                    }
+                    p.logs.send(`${user.username} Got bitten by a snake!`)
+                    addStatus(p, user, "poison")
+                }
+            }
+        },
+    }
+}
+stuff.types = {
+    physical: {
+        icon: "💥",
+        atk: "atk",
+        def: "def",
+    },
+    special: {
+        icon: "🔘",
+        atk: "spatk",
+        def: "spdef",
     }
 }
 stuff.fieldStatus = {
-    no_random: {
-        name: "No-Aletorio",
-        icon: "🎲",
-        description: "Disables random events",
-        turns: 5,
-        start(p) {
-            p.logs.push("A strange aura surrounds the battlefield. Randomness has been disabled!")
-        },
-        end(p) {
-            p.logs.push("The strange aura wore off")
-        }
-    },
     radiation: {
         name: "Radiation",
         icon: "☢️",
@@ -127,7 +255,7 @@ stuff.fieldStatus = {
     unstable: {
         name: "Unstable Grounds",
         icon: "🟫",
-        description: "Everyone will randomly take damage every turn, always does damage if No-Aletorio is active",
+        description: "Everyone will randomly take damage every turn",
         turns: 7,
         turnStart: true,
         start(p) {
@@ -253,26 +381,26 @@ var categories = {
     }
 }
 function statB(stat, user, p, amt, logs) {
+    if (amt == 0) return
     var logs = logs
-    var stats = {
-        atk: "Attack",
-        def: "Defense",
-        spd: "Speed",
-        chg: "Charge Rate",
-    }
-    var name = stats[stat]
+    var stats = {...stuff.stats, chg: {
+        fullName: "Charge Rate"
+    }}
+    var name = stats[stat].fullName
+    var addMessages = [
+        "rose!",
+        "rose sharply!",
+    ]
+    var subsMessages = [
+        "fell!",
+        "fell harshly!",
+    ]
     if (amt > 0) {
-        if (amt > 1) {
-            logs.send(`${user.username}'s ${name} rose sharply! (${hfuni(amt)})`)
-        } else {
-            logs.send(`${user.username}'s ${name} rose! (${hfuni(amt)})`)
-        }
+        var m = addMessages[Math.min(Math.floor(amt) - 1, addMessages.length - 1)]
+        logs.send(`${user.username}'s ${name} ${m} (${hfuni(amt)})`)
     } else {
-        if (amt < -1) {
-            logs.send(`${user.username}'s ${name} fell harshly! (${hfuni(amt)})`)
-        } else {
-            logs.send(`${user.username}'s ${name} fell! (${hfuni(amt)})`)
-        }
+        var m = subsMessages[Math.min(Math.floor(Math.abs(amt)) - 1, addMessages.length - 1)]
+        logs.send(`${user.username}'s ${name} ${m} (${hfuni(amt)})`)
     }
     p.stats[user.id][stat + "mod"] += amt
 }
@@ -292,12 +420,25 @@ stuff.pvpMoves = {
         accuracy: 100,
         type: "attack",
         category: "attack",
-        description: "A powerful ping attack, has quite a bit of recoil damage",
+        cat: "special",
+        description: "A powerful ping attack, comically lowers the user's special attack",
         evadable: true,
         afterUse(logs, c, user, target, p) {
-            stuff.userHealth[user.id] -= p.stats[user.id].health / 4
-            logs.send(`${user.username} is hurt by the recoil!`)
-            statB("atk", user, p, -2, logs)
+            statB("spatk", user, p, -6, logs)
+            statB("spdef", user, p, -2, logs)
+        }
+    },
+    slap: {
+        name: "Slap",
+        power: 210,
+        accuracy: 100,
+        type: "attack",
+        category: "attack",
+        description: "A comically powerful slap, recoil damage go brrr",
+        evadable: true,
+        afterUse(logs, c, user, target, p) {
+            stuff.userHealth[user.id] -= p.stats[user.id].health / 2.1
+            statB("def", user, p, -2, logs)
         }
     },
     twitter: {
@@ -381,7 +522,7 @@ stuff.pvpMoves = {
         use(logs, c, user, target, p) {
             var dmg = (p.stats[user.id].prevhp || p.stats[user.id].health) - stuff.userHealth[user.id];
             console.log(dmg)
-            var d = takeDamage(p, target, Math.ceil(dmg || 0) * 2, true)
+            var d = takeDamage(p, target, Math.ceil(dmg || 0) * 2, true, 1, true)
             logs.send(`${target.username} took ${Math.floor(d)} damage`)
         }
     },
@@ -412,13 +553,19 @@ stuff.pvpMoves = {
         category: "attack",
         usesCharge: true,
         type: "attack",
+        cat: "special",
         getPower(user, t, p) {
-            return (p.stats[user.id].charge * (1 + (p.stats[user.id].charge / 3))) * 50;
+            return Math.min(Math.ceil((p.stats[user.id].charge * (1 + (p.stats[user.id].charge / 8))) * 50), 500);
         },
         beforeUse(logs, c, user, target, p) {
-            logs.send(`${user.username} released their charge! (${p.stats[user.id].charge * 50} Power)`)
+            var pw = this.getPower(user, target, p)
+            logs.send(`${user.username} released their charge! (${Math.floor(pw)} Power)`)
         },
         afterUse(logs, c, user, target, p) {
+            var pw = this.getPower(user, target, p)
+            if (pw > 450) {
+                statB("def", target, p, -2, logs)
+            }
             p.stats[user.id].charge = 0;
         },
     },
@@ -429,14 +576,14 @@ stuff.pvpMoves = {
         description: "Does a little trolling and makes the target's hp % be the same as the user's, will fail if the user's hp is greater than 25%",
         accuracy: 100,
         failCheck(user, t, p) {
-            
             return (stuff.userHealth[user.id] / p.stats[user.id].health) < 0.25;
         },
         use(logs, c, user, target, p) {
             logs.send(`${user.username} trolled ${target.username}!`)
             var h = p.stats[target.id].health * (stuff.userHealth[user.id] / p.stats[user.id].health);
             if (stuff.userHealth[target.id] <= h) return;
-            stuff.userHealth[target.id] = h;
+            var dmg = stuff.userHealth[target.id] - h
+            takeDamage(p, target, dmg, true, 1, true)
         }
     },
     bloc: {
@@ -471,15 +618,19 @@ stuff.pvpMoves = {
         failCheck(user, t, p) {
             var stats = p.stats[user.id]
             if (stats.helditem.length <= 0) return false
-            var it = stats.helditem[0]
+            var i = stats.helditem.findIndex(el => stuff.pvpItems[el.id].use)
+            var it = stats.helditem[i]
+            if (i == -1) return false
             if (!stuff.pvpItems[it.id]) return false
             return true
         },
         use(logs, c, user, target, p) {
             var stats = p.stats[user.id]
-            var it = stats.helditem[0]
+            var i = stats.helditem.findIndex(el => stuff.pvpItems[el.id].use)
+            var it = stats.helditem[i]
+            if (i == -1) return
             if (stuff.pvpItems[it.id].removeUse) {
-                stats.helditem.shift()
+                stats.helditem.splice(i, 1)
             }
             stuff.pvpItems[it.id].use(p, user, it)
         }
@@ -506,7 +657,6 @@ function brub(n, max = 6) {
     }
     return str
 }
-delete stuff["counter"]
 function hfuni(n) {
     if (isNaN(n)) return null
     if (n > 0) return `+${n.toFixed(2)}`
@@ -630,10 +780,11 @@ ${funni(stuff.userHealth[user.id] / p.stats[user.id].health)}${Math.ceil(stuff.u
                                     value: "```" + 
                                     ` ❤️ HP      ${Math.ceil(stuff.userHealth[u.id]).toString().padStart(9, " ")}` + "\n" + 
                                     `        ${("/ " + stats.health.toString()).padStart(9, " ")}` + "\n" + 
-                                    `🗡️ Attack  ${stats.attack.toString().padStart(9, " ")} (x${stats.atkmul.toFixed(2).padEnd(9, " ")} ${hfuni(stats.atkmod).padEnd(2, " ")} ${brub(stats.atkmod)})` + "\n" + 
-                                    `🛡️ Defense ${stats.defense.toString().padStart(9, " ")} (x${stats.defmul.toFixed(2).padEnd(9, " ")} ${hfuni(stats.defmod).padEnd(2, " ")} ${brub(stats.defmod)})` + "\n" + 
-                                    `👟 Speed   ${stats.speed.toString().padStart(9, " ")} (x${stats.spdmul.toFixed(2).padEnd(9, " ")} ${hfuni(stats.spdmod).padEnd(2, " ")} ${brub(stats.spdmod)})` + "\n" +
-                                    `🔋 Charge  ${(stats.charge || 0).toString().padStart(9, " ")} (x${stats.chgmul.toFixed(2).padEnd(9, " ")} ${hfuni(stats.chgmod).padEnd(2, " ")} ${brub(stats.chgmod)})` + "\n" + 
+                                    Object.keys(stuff.stats).filter(el => !["hp"].includes(el)).map(s => {
+                                        var stat = stuff.stats[s]
+                                        return `${stat.fullName.padEnd(16, " ")} ${stats[stat.fullKey].toString().padStart(9, " ")} (x${stats[`${s}mul`].toFixed(2).padEnd(9, " ")} ${hfuni(stats[`${s}mod`]).padEnd(2, " ")} ${brub(stats[`${s}mod`])})`
+                                    }).join("\n") + "\n" + 
+                                    `Charge  ${(stats.charge || 0).toString().padStart(9, " ")} (x${stats.chgmul.toFixed(2).padEnd(9, " ")} ${hfuni(stats.chgmod).padEnd(2, " ")} ${brub(stats.chgmod)})` + "\n" + 
                                     "\n" +
                                     `${status.map(el => `${stuff.pvpStatus[el.id].name} (${el.turns} turns left)`).join("\n") || "No status effects"}` + 
                                     "```"
@@ -677,7 +828,8 @@ ${funni(stuff.userHealth[user.id] / p.stats[user.id].health)}${Math.ceil(stuff.u
                 })]
                 confirm = "Do you want to use this move?"
             }
-            var cont = `Epic ID: ${Math.floor(Math.random() * 1024 + Math.random() * 2048 + Math.random() * 4096)}\n\n${categories[move.category].icon} **${move.name}**\nPower: ${move.power || "-"}\nAccuracy: ${move.accuracy || "-"}\nPriority: ${hfuni(move.speedMul || 0)}\nCategory: ${categories[move.category].icon} ${categories[move.category].name}\n${move.description}\n\n${confirm}`
+            var pw = move.power || move.getPower?.(v.user, v.user, p)
+            var cont = `Epic ID: ${Math.floor(Math.random() * 1024 + Math.random() * 2048 + Math.random() * 4096)}\n\n${categories[move.category].icon} **${move.name}**\nPower: ${pw || "-"}${move.getPower ? "*" : ""}\nAccuracy: ${move.accuracy || "-"}\nPriority: ${hfuni(move.speedMul || 0)}\nCategory: ${categories[move.category].icon} ${categories[move.category].name}\n${move.description}\n\n${confirm}`
             await v.reply({ content: cont, components: rows, ephemeral: true });
             //var r = await v.fetchReply()
             //var i = await r.awaitMessageComponent({ time: 480000, filter: (u) => u.user.id == v.user.id })
@@ -861,10 +1013,10 @@ async function queueMove(msg, p, user, move, target, ms) {
             if (m.beforeUse) await m.beforeUse(logs, msg.channel, user, target, p)
             if (m.use) await m.use(logs, msg.channel, user, target, p)
             else if (m.type == "attack") {
-                var atk = p.stats[user.id].atk
+                var atk = getATK(p, user, m.cat)
                 var power = m.power;
                 if (m.getPower) power = m.getPower(user, target, p)
-                var dmg = calcMoveDamage(power, p.stats[user.id].level, atk, p.stats[target.id].def)
+                var dmg = calcMoveDamage(power, p.stats[user.id].level, atk, getDEF(p, target, m.cat))
                 var mul = 1;
                 if (Math.random() < 0.25) {
                     mul *= 2
@@ -890,137 +1042,144 @@ async function queueMove(msg, p, user, move, target, ms) {
         })
         p.turnlog.turns[p.turn].time = Date.now()
     }})
-    if (p.choices.length >= p.users.length) {
-        for (var field of p.fieldStatus) {
-            var st = stuff.fieldStatus[field.id]
-            if (st.turn) st.turn(p, field)
-            field.turns--
-        }
-        p.fieldStatus = p.fieldStatus.filter(el => {
-            if (el.turns <= 0) {
-                var st = stuff.fieldStatus[el.id]
-                if (st.end) st.end(p, el)
+    try {
+        if (p.choices.length >= p.users.length) {
+            for (var field of p.fieldStatus) {
+                var st = stuff.fieldStatus[field.id]
+                if (st.turn) st.turn(p, field)
+                field.turns--
             }
-            return el.turns > 0
-        })
-        await ms.delete().catch(console.error)
-        var c = p.choices.sort((a, b) => (p.stats[b.user.id].spd) - (p.stats[a.user.id].spd)).sort((a, b) => b.speedMul - a.speedMul)
-        for (var choice of c) {
-            var i = 0;
-            if (stuff.userHealth[choice.user.id] > 0 || p.noEnd) {
-                var c = 1;
-                //for (var s of (p.status[choice.user.id] || [])) {
-                //    if (s == "cringe") c *= 0.75
-                //}
-                if (Math.random() < c) {
-                    await choice.func()
-                } 
-            }
-            var u = choice.user
-            if (p.status[u.id]) {
-                var l = [...p.status[u.id]]
-                for (var st of l) {
-                    stuff.pvpStatus[st.id].onTurn(p, u)
-                    st.turns--;
-                    if (st.turns <= 0) {
-                        removeStatus(p, u, st.id)
+            p.fieldStatus = p.fieldStatus.filter(el => {
+                if (el.turns <= 0) {
+                    var st = stuff.fieldStatus[el.id]
+                    if (st.end) st.end(p, el)
+                }
+                return el.turns > 0
+            })
+            await ms.delete().catch(console.error)
+            var c = p.choices.sort((a, b) => (p.stats[b.user.id].spd) - (p.stats[a.user.id].spd)).sort((a, b) => b.speedMul - a.speedMul)
+            for (var choice of c) {
+                var i = 0;
+                if (stuff.userHealth[choice.user.id] > 0 || p.noEnd) {
+                    var c = 1;
+                    //for (var s of (p.status[choice.user.id] || [])) {
+                    //    if (s == "cringe") c *= 0.75
+                    //}
+                    if (Math.random() < c) {
+                        await choice.func()
+                    } 
+                }
+                var u = choice.user
+                if (p.status[u.id]) {
+                    var l = [...p.status[u.id]]
+                    for (var st of l) {
+                        stuff.pvpStatus[st.id].onTurn(p, u)
+                        st.turns--;
+                        if (st.turns <= 0) {
+                            removeStatus(p, u, st.id)
+                        }
                     }
                 }
-            }
-            for (let u of p.users) {
-                if (stuff.userHealth[u.id] > 0) {
-                    i++;
-                    continue;
-                }                        
-                logs.send(`${u.username} Fukin died`)
-                if (!p.noEnd) stuff.pvp[u.id] = null;
-                if (!p.noEnd) p.users[i] = null;
-                var m = Number((stuff.getMoney(u.id, "ip") / 2n) + "")
-                stuff.addMoney(u.id, -m, "ip")
-                var xp = stuff.getXP(u.id)
-                if (!p.fair) xp += (stuff.getLevel(u.id) * 55)
-                xp += Math.max(10 - p.turn, 0) * 10;
-                p.xpReward += xp;
-                p.ipReward += m;
-                stuff.db.data[u.id].xp = 0
-                if (!p.noEnd) stuff.userHealth[u.id] = stuff.getMaxHealth(u.id)
-                else stuff.userHealth[u.id] = p.stats[u.id].health
-            }
-            p.users = p.users.filter(el => el)
-            if (p.users.length <= 1 && !p.noEnd) {
-                p.turnlog.endedAt = Date.now()
-                var w = p.users[0]
-                var files = [new MessageAttachment(Buffer.from(logs.join("\n")), "log.txt"), new MessageAttachment(Buffer.from(JSON.stringify(p.turnlog, null, 4)), "turnlog.json")]
-                if (stuff.userHealth[w.id] > 0) {
-                    stuff.db.data[w.id].matchesWon = (stuff.db.data[w.id].matchesWon || 0) + 1
-                    await msg.channel.send({ content: `${w} Fukin won, got <:ip:770418561193607169> ${stuff.format(p.ipReward)} and ${stuff.format(p.xpReward)} XP`, files: files })
-                    await matchInfo(msg, p, false)
-                    stuff.addXP(w.id, p.xpReward, msg.channel)
-                    stuff.addPoints(w.id, p.ipReward)
-                    stuff.pvp[w.id] = null;
-                    stuff.userHealth[w.id] = stuff.getMaxHealth(w.id)
-                } else {
-                    await msg.channel.send({ content: `It was a fukin' tie!`, files: files })
+                for (let u of p.users) {
+                    if (stuff.userHealth[u.id] > 0) {
+                        i++;
+                        continue;
+                    }                        
+                    logs.send(`${u.username} Fukin died`)
+                    if (!p.noEnd) stuff.pvp[u.id] = null;
+                    if (!p.noEnd) p.users[i] = null;
+                    var m = Number((stuff.getMoney(u.id, "ip") / 2n) + "")
+                    stuff.addMoney(u.id, -m, "ip")
+                    var xp = stuff.getXP(u.id)
+                    if (!p.fair) xp += (stuff.getLevel(u.id) * 55)
+                    xp += Math.max(10 - p.turn, 0) * 10;
+                    p.xpReward += xp;
+                    p.ipReward += m;
+                    stuff.db.data[u.id].xp = 0
+                    if (!p.noEnd) stuff.userHealth[u.id] = stuff.getMaxHealth(u.id)
+                    else stuff.userHealth[u.id] = p.stats[u.id].health
                 }
-                p.ended = true;
-                for (var u of p.users) {
-                    stuff.pvp[u.id] = null;
-                }
-                var e = await msg.channel.send({ content: `The match has ended, would you like to see the images generated?`, components: [
-                    new MessageActionRow({ components: [
-                        new MessageButton({ customId: "yes", label: "Yes", style: "SUCCESS" }),
-                        new MessageButton({ customId: "no", label: "No", style: "DANGER" })
+                p.users = p.users.filter(el => el)
+                if (p.users.length <= 1 && !p.noEnd) {
+                    p.turnlog.endedAt = Date.now()
+                    var w = p.users[0]
+                    var files = [new MessageAttachment(Buffer.from(logs.join("\n")), "log.txt"), new MessageAttachment(Buffer.from(JSON.stringify(p.turnlog, null, 4)), "turnlog.json")]
+                    if (stuff.userHealth[w.id] > 0) {
+                        stuff.db.data[w.id].matchesWon = (stuff.db.data[w.id].matchesWon || 0) + 1
+                        await msg.channel.send({ content: `${w} Fukin won, got <:ip:770418561193607169> ${stuff.format(p.ipReward)} and ${stuff.format(p.xpReward)} XP`, files: files })
+                        await matchInfo(msg, p, false)
+                        stuff.addXP(w.id, p.xpReward, msg.channel)
+                        stuff.addPoints(w.id, p.ipReward)
+                        stuff.pvp[w.id] = null;
+                        stuff.userHealth[w.id] = stuff.getMaxHealth(w.id)
+                    } else {
+                        await msg.channel.send({ content: `It was a fukin' tie!`, files: files })
+                    }
+                    p.ended = true;
+                    for (var u of p.users) {
+                        stuff.pvp[u.id] = null;
+                    }
+                    var e = await msg.channel.send({ content: `The match has ended, would you like to see the images generated?`, components: [
+                        new MessageActionRow({ components: [
+                            new MessageButton({ customId: "yes", label: "Yes", style: "SUCCESS" }),
+                            new MessageButton({ customId: "no", label: "No", style: "DANGER" })
+                        ] })
                     ] })
-                ] })
-                var g = await e.awaitMessageComponent()
-                await g.deferUpdate()
-                if (g.customId == "yes") {
-                    var i = 0;
-                    var attachments = []
-                    var w = Math.max(...p.replay.map(el => el.getWidth()))
-                    var j = await Jimp.create(w, p.replay.reduce((prev, cur) => prev + cur.getHeight() + 8, 0), 0x000000ff)
-                    var ypos = 0;
-                    for (var img of p.replay) {
-                        await j.blit(img, 0, ypos)
-                        ypos += img.getHeight() + 8;
-                    }
-                    await j.resize(1024, Jimp.AUTO, Jimp.RESIZE_NEAREST_NEIGHBOR)
-                    attachments.push(new MessageAttachment(await j.getBufferAsync(Jimp.MIME_PNG), "status.png"))
-                    if (attachments.length > 0) {
-                        await e.channel.send({ files: attachments })
-                    }
-                } 
-                p.replay = []
-                await e.delete()
-                return;
-            }
-        }
-        for (var u of p.users) {
-            var stats = p.stats[u.id]
-            for (var it of stats.helditem) {
-                var pi = stuff.pvpItems[it.id]
-                if (pi.turn) {
-                    pi.turn(p, u, it)
+                    var g = await e.awaitMessageComponent()
+                    await g.deferUpdate()
+                    if (g.customId == "yes") {
+                        var i = 0;
+                        var attachments = []
+                        var w = Math.max(...p.replay.map(el => el.getWidth()))
+                        var j = await Jimp.create(w, p.replay.reduce((prev, cur) => prev + cur.getHeight() + 8, 0), 0x000000ff)
+                        var ypos = 0;
+                        for (var img of p.replay) {
+                            await j.blit(img, 0, ypos)
+                            ypos += img.getHeight() + 8;
+                        }
+                        await j.resize(1024, Jimp.AUTO, Jimp.RESIZE_NEAREST_NEIGHBOR)
+                        attachments.push(new MessageAttachment(await j.getBufferAsync(Jimp.MIME_PNG), "status.png"))
+                        if (attachments.length > 0) {
+                            await e.channel.send({ files: attachments })
+                        }
+                    } 
+                    p.replay = []
+                    await e.delete()
+                    return;
                 }
             }
-            stats.helditem = stats.helditem.filter(el => !el.remove)
-            if (p.stats[u.id].bloc > 0) {
-                var bloc = Math.max(Math.min(p.stats[u.id].bloc, 5), 0)
-                var dmg = p.stats[u.id].prevhp - stuff.userHealth[u.id]
-                var perc = 0.99
-                p.stats[u.id].bloc = 0
-                p.stats[u.id].blocturns++
-                stuff.userHealth[u.id] += dmg * perc
-                logs.send(`${u.username} Blocked ${Math.floor((dmg * perc))} damage! (${(perc * 100).toFixed()}%)`)
+            for (var u of p.users) {
+                var stats = p.stats[u.id]
+                for (var it of stats.helditem) {
+                    var pi = stuff.pvpItems[it.id]
+                    if (pi.turn) {
+                        pi.turn(p, u, it)
+                    }
+                }
+                stats.helditem = stats.helditem.filter(el => !el.remove)
+                if (p.stats[u.id].bloc > 0) {
+                    var bloc = Math.max(Math.min(p.stats[u.id].bloc, 5), 0)
+                    var dmg = p.stats[u.id].prevhp - stuff.userHealth[u.id]
+                    var perc = 0.99
+                    p.stats[u.id].bloc = 0
+                    p.stats[u.id].blocturns++
+                    stuff.userHealth[u.id] += dmg * perc
+                    logs.send(`${u.username} Blocked ${Math.floor((dmg * perc))} damage! (${(perc * 100).toFixed()}%)`)
+                }
             }
-        }
+            p.choices = []
+            p.turn++;
+            await matchInfo(msg, p)
+            for (var u of p.users) {
+                p.stats[u.id].prevhp = stuff.userHealth[u.id]
+            }
+        } else {}
+    } catch (e) {
+        console.error(e)
         p.choices = []
-        p.turn++;
-        await matchInfo(msg, p)
-        for (var u of p.users) {
-            p.stats[u.id].prevhp = stuff.userHealth[u.id]
-        }
-    } else {}
+        matchInfo(msg, p)
+        return
+    }
 }
 function repeat(char, times) {
     var str = ""

@@ -1,0 +1,1277 @@
+{
+    "users": [
+        {
+            "user": "Sebo2205",
+            "userId": "602651056320675840",
+            "attack": 124,
+            "defense": 124,
+            "health": 2488,
+            "level": 50,
+            "atk": 124,
+            "def": 124,
+            "spd": 124,
+            "evasion": 0,
+            "accuracy": 1,
+            "atkmod": 0,
+            "defmod": 0,
+            "accmod": 0,
+            "spdmod": 0,
+            "evamod": 0,
+            "chgmod": 0,
+            "atkmul": 1,
+            "defmul": 1,
+            "accmul": 1,
+            "spdmul": 1,
+            "evamul": 1,
+            "chgmul": 1,
+            "charge": 0,
+            "speed": 124
+        },
+        {
+            "user": "escapevelocity",
+            "userId": "819577272276484107",
+            "attack": 124,
+            "defense": 124,
+            "health": 2488,
+            "level": 50,
+            "atk": 124,
+            "def": 124,
+            "spd": 124,
+            "evasion": 0,
+            "accuracy": 1,
+            "atkmod": 0,
+            "defmod": 0,
+            "accmod": 0,
+            "spdmod": 0,
+            "evamod": 0,
+            "chgmod": 0,
+            "atkmul": 1,
+            "defmul": 1,
+            "accmul": 1,
+            "spdmul": 1,
+            "evamul": 1,
+            "chgmul": 1,
+            "charge": 0,
+            "speed": 124
+        }
+    ],
+    "turns": [
+        {
+            "moves": [
+                {
+                    "user": "escapevelocity",
+                    "userId": "819577272276484107",
+                    "priority": 0,
+                    "move": "charge",
+                    "missed": false,
+                    "users": {
+                        "602651056320675840": {
+                            "userId": "602651056320675840",
+                            "maxHealth": 2488,
+                            "health": 2488,
+                            "charge": 0,
+                            "attackStages": 0,
+                            "defenseStages": 0,
+                            "speedStages": 0,
+                            "chargeRateStages": 0,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": []
+                        },
+                        "819577272276484107": {
+                            "userId": "819577272276484107",
+                            "maxHealth": 2488,
+                            "health": 2488,
+                            "charge": 1,
+                            "attackStages": 0,
+                            "defenseStages": 0,
+                            "speedStages": 0,
+                            "chargeRateStages": 0,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": []
+                        }
+                    }
+                },
+                {
+                    "user": "Sebo2205",
+                    "userId": "602651056320675840",
+                    "priority": 0,
+                    "move": "twitter",
+                    "missed": false,
+                    "users": {
+                        "602651056320675840": {
+                            "userId": "602651056320675840",
+                            "maxHealth": 2488,
+                            "health": 2488,
+                            "charge": 0,
+                            "attackStages": 0,
+                            "defenseStages": 0,
+                            "speedStages": 0,
+                            "chargeRateStages": 0,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": []
+                        },
+                        "819577272276484107": {
+                            "userId": "819577272276484107",
+                            "maxHealth": 2488,
+                            "health": 2488,
+                            "charge": 1,
+                            "attackStages": -3,
+                            "defenseStages": -3,
+                            "speedStages": 0,
+                            "chargeRateStages": 0,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [
+                                {
+                                    "id": "cringe",
+                                    "turns": 7
+                                }
+                            ]
+                        }
+                    }
+                }
+            ],
+            "time": 1637556266962
+        },
+        {
+            "moves": [
+                {
+                    "user": "Sebo2205",
+                    "userId": "602651056320675840",
+                    "priority": 0,
+                    "move": "charge",
+                    "missed": false,
+                    "users": {
+                        "602651056320675840": {
+                            "userId": "602651056320675840",
+                            "maxHealth": 2488,
+                            "health": 2488,
+                            "charge": 1,
+                            "attackStages": 0,
+                            "defenseStages": 0,
+                            "speedStages": 0,
+                            "chargeRateStages": 0,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [],
+                            "prevhp": 2488
+                        },
+                        "819577272276484107": {
+                            "userId": "819577272276484107",
+                            "maxHealth": 2488,
+                            "health": 2488,
+                            "charge": 1,
+                            "attackStages": -3,
+                            "defenseStages": -3,
+                            "speedStages": 0,
+                            "chargeRateStages": 0,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [
+                                {
+                                    "id": "cringe",
+                                    "turns": 7
+                                }
+                            ],
+                            "prevhp": 2488
+                        }
+                    }
+                },
+                {
+                    "user": "escapevelocity",
+                    "userId": "819577272276484107",
+                    "priority": 0,
+                    "move": "charge",
+                    "missed": false,
+                    "users": {
+                        "602651056320675840": {
+                            "userId": "602651056320675840",
+                            "maxHealth": 2488,
+                            "health": 2488,
+                            "charge": 1,
+                            "attackStages": 0,
+                            "defenseStages": 0,
+                            "speedStages": 0,
+                            "chargeRateStages": 0,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [],
+                            "prevhp": 2488
+                        },
+                        "819577272276484107": {
+                            "userId": "819577272276484107",
+                            "maxHealth": 2488,
+                            "health": 2488,
+                            "charge": 2,
+                            "attackStages": -3,
+                            "defenseStages": -3,
+                            "speedStages": 0,
+                            "chargeRateStages": 0,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [
+                                {
+                                    "id": "cringe",
+                                    "turns": 7
+                                }
+                            ],
+                            "prevhp": 2488
+                        }
+                    }
+                }
+            ],
+            "time": 1637556273898
+        },
+        {
+            "moves": [
+                {
+                    "user": "Sebo2205",
+                    "userId": "602651056320675840",
+                    "priority": 0,
+                    "move": "charge",
+                    "missed": false,
+                    "users": {
+                        "602651056320675840": {
+                            "userId": "602651056320675840",
+                            "maxHealth": 2488,
+                            "health": 2488,
+                            "charge": 2,
+                            "attackStages": 0,
+                            "defenseStages": 0,
+                            "speedStages": 0,
+                            "chargeRateStages": 0,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [],
+                            "prevhp": 2488
+                        },
+                        "819577272276484107": {
+                            "userId": "819577272276484107",
+                            "maxHealth": 2488,
+                            "health": 2483,
+                            "charge": 2,
+                            "attackStages": -3,
+                            "defenseStages": -3,
+                            "speedStages": 0,
+                            "chargeRateStages": 0,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [
+                                {
+                                    "id": "cringe",
+                                    "turns": 7
+                                }
+                            ],
+                            "prevhp": 2483
+                        }
+                    }
+                },
+                {
+                    "user": "escapevelocity",
+                    "userId": "819577272276484107",
+                    "priority": 0,
+                    "move": "charge",
+                    "missed": false,
+                    "users": {
+                        "602651056320675840": {
+                            "userId": "602651056320675840",
+                            "maxHealth": 2488,
+                            "health": 2488,
+                            "charge": 2,
+                            "attackStages": 0,
+                            "defenseStages": 0,
+                            "speedStages": 0,
+                            "chargeRateStages": 0,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [],
+                            "prevhp": 2488
+                        },
+                        "819577272276484107": {
+                            "userId": "819577272276484107",
+                            "maxHealth": 2488,
+                            "health": 2483,
+                            "charge": 3,
+                            "attackStages": -3,
+                            "defenseStages": -3,
+                            "speedStages": 0,
+                            "chargeRateStages": 0,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [
+                                {
+                                    "id": "cringe",
+                                    "turns": 7
+                                }
+                            ],
+                            "prevhp": 2483
+                        }
+                    }
+                }
+            ],
+            "time": 1637556295313
+        },
+        {
+            "moves": [
+                {
+                    "user": "Sebo2205",
+                    "userId": "602651056320675840",
+                    "priority": 0,
+                    "move": "charge",
+                    "missed": false,
+                    "users": {
+                        "602651056320675840": {
+                            "userId": "602651056320675840",
+                            "maxHealth": 2488,
+                            "health": 2488,
+                            "charge": 3,
+                            "attackStages": 0,
+                            "defenseStages": 0,
+                            "speedStages": 0,
+                            "chargeRateStages": 0,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [],
+                            "prevhp": 2488
+                        },
+                        "819577272276484107": {
+                            "userId": "819577272276484107",
+                            "maxHealth": 2488,
+                            "health": 2473,
+                            "charge": 3,
+                            "attackStages": -3,
+                            "defenseStages": -3,
+                            "speedStages": 0,
+                            "chargeRateStages": 0,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [
+                                {
+                                    "id": "cringe",
+                                    "turns": 7
+                                }
+                            ],
+                            "prevhp": 2473
+                        }
+                    }
+                },
+                {
+                    "user": "escapevelocity",
+                    "userId": "819577272276484107",
+                    "priority": 0,
+                    "move": "charge",
+                    "missed": false,
+                    "users": {
+                        "602651056320675840": {
+                            "userId": "602651056320675840",
+                            "maxHealth": 2488,
+                            "health": 2488,
+                            "charge": 3,
+                            "attackStages": 0,
+                            "defenseStages": 0,
+                            "speedStages": 0,
+                            "chargeRateStages": 0,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [],
+                            "prevhp": 2488
+                        },
+                        "819577272276484107": {
+                            "userId": "819577272276484107",
+                            "maxHealth": 2488,
+                            "health": 2473,
+                            "charge": 4,
+                            "attackStages": -3,
+                            "defenseStages": -3,
+                            "speedStages": 0,
+                            "chargeRateStages": 0,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [
+                                {
+                                    "id": "cringe",
+                                    "turns": 7
+                                }
+                            ],
+                            "prevhp": 2473
+                        }
+                    }
+                }
+            ],
+            "time": 1637556310690
+        },
+        {
+            "moves": [
+                {
+                    "user": "escapevelocity",
+                    "userId": "819577272276484107",
+                    "priority": 0,
+                    "move": "charge",
+                    "missed": false,
+                    "users": {
+                        "602651056320675840": {
+                            "userId": "602651056320675840",
+                            "maxHealth": 2488,
+                            "health": 2488,
+                            "charge": 3,
+                            "attackStages": 0,
+                            "defenseStages": 0,
+                            "speedStages": 0,
+                            "chargeRateStages": 0,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [],
+                            "prevhp": 2488
+                        },
+                        "819577272276484107": {
+                            "userId": "819577272276484107",
+                            "maxHealth": 2488,
+                            "health": 2458,
+                            "charge": 5,
+                            "attackStages": -3,
+                            "defenseStages": -3,
+                            "speedStages": 0,
+                            "chargeRateStages": 0,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [
+                                {
+                                    "id": "cringe",
+                                    "turns": 7
+                                }
+                            ],
+                            "prevhp": 2458
+                        }
+                    }
+                },
+                {
+                    "user": "Sebo2205",
+                    "userId": "602651056320675840",
+                    "priority": 0,
+                    "move": "charge",
+                    "missed": false,
+                    "users": {
+                        "602651056320675840": {
+                            "userId": "602651056320675840",
+                            "maxHealth": 2488,
+                            "health": 2488,
+                            "charge": 4,
+                            "attackStages": 0,
+                            "defenseStages": 0,
+                            "speedStages": 0,
+                            "chargeRateStages": 0,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [],
+                            "prevhp": 2488
+                        },
+                        "819577272276484107": {
+                            "userId": "819577272276484107",
+                            "maxHealth": 2488,
+                            "health": 2438,
+                            "charge": 5,
+                            "attackStages": -3,
+                            "defenseStages": -3,
+                            "speedStages": 0,
+                            "chargeRateStages": 0,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [
+                                {
+                                    "id": "cringe",
+                                    "turns": 7
+                                }
+                            ],
+                            "prevhp": 2458
+                        }
+                    }
+                }
+            ],
+            "time": 1637556428954
+        },
+        {
+            "moves": [
+                {
+                    "user": "Sebo2205",
+                    "userId": "602651056320675840",
+                    "priority": 0,
+                    "move": "charge",
+                    "missed": false,
+                    "users": {
+                        "602651056320675840": {
+                            "userId": "602651056320675840",
+                            "maxHealth": 2488,
+                            "health": 2488,
+                            "charge": 5,
+                            "attackStages": 0,
+                            "defenseStages": 0,
+                            "speedStages": 0,
+                            "chargeRateStages": 0,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [],
+                            "prevhp": 2488
+                        },
+                        "819577272276484107": {
+                            "userId": "819577272276484107",
+                            "maxHealth": 2488,
+                            "health": 2438,
+                            "charge": 5,
+                            "attackStages": -3,
+                            "defenseStages": -3,
+                            "speedStages": 0,
+                            "chargeRateStages": 0,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [
+                                {
+                                    "id": "cringe",
+                                    "turns": 7
+                                }
+                            ],
+                            "prevhp": 2438
+                        }
+                    }
+                },
+                {
+                    "user": "escapevelocity",
+                    "userId": "819577272276484107",
+                    "priority": 0,
+                    "move": "stronk",
+                    "missed": false,
+                    "users": {
+                        "602651056320675840": {
+                            "userId": "602651056320675840",
+                            "maxHealth": 2488,
+                            "health": 2488,
+                            "charge": 5,
+                            "attackStages": 0,
+                            "defenseStages": 0,
+                            "speedStages": 0,
+                            "chargeRateStages": 0,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [],
+                            "prevhp": 2488
+                        },
+                        "819577272276484107": {
+                            "userId": "819577272276484107",
+                            "maxHealth": 2488,
+                            "health": 2438,
+                            "charge": 4,
+                            "attackStages": -2,
+                            "defenseStages": -3,
+                            "speedStages": 0,
+                            "chargeRateStages": 0,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [
+                                {
+                                    "id": "cringe",
+                                    "turns": 7
+                                }
+                            ],
+                            "prevhp": 2438
+                        }
+                    }
+                }
+            ],
+            "time": 1637556485859
+        },
+        {
+            "moves": [
+                {
+                    "user": "escapevelocity",
+                    "userId": "819577272276484107",
+                    "priority": 0,
+                    "move": "charge",
+                    "missed": false,
+                    "users": {
+                        "602651056320675840": {
+                            "userId": "602651056320675840",
+                            "maxHealth": 2488,
+                            "health": 2488,
+                            "charge": 5,
+                            "attackStages": 0,
+                            "defenseStages": 0,
+                            "speedStages": 0,
+                            "chargeRateStages": 0,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [],
+                            "prevhp": 2488
+                        },
+                        "819577272276484107": {
+                            "userId": "819577272276484107",
+                            "maxHealth": 2488,
+                            "health": 2413,
+                            "charge": 5,
+                            "attackStages": -2,
+                            "defenseStages": -3,
+                            "speedStages": 0,
+                            "chargeRateStages": 0,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [
+                                {
+                                    "id": "cringe",
+                                    "turns": 7
+                                }
+                            ],
+                            "prevhp": 2413
+                        }
+                    }
+                },
+                {
+                    "user": "Sebo2205",
+                    "userId": "602651056320675840",
+                    "priority": 0,
+                    "move": "charge",
+                    "missed": false,
+                    "users": {
+                        "602651056320675840": {
+                            "userId": "602651056320675840",
+                            "maxHealth": 2488,
+                            "health": 2488,
+                            "charge": 6,
+                            "attackStages": 0,
+                            "defenseStages": 0,
+                            "speedStages": 0,
+                            "chargeRateStages": 0,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [],
+                            "prevhp": 2488
+                        },
+                        "819577272276484107": {
+                            "userId": "819577272276484107",
+                            "maxHealth": 2488,
+                            "health": 2383,
+                            "charge": 5,
+                            "attackStages": -2,
+                            "defenseStages": -3,
+                            "speedStages": 0,
+                            "chargeRateStages": 0,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [
+                                {
+                                    "id": "cringe",
+                                    "turns": 7
+                                }
+                            ],
+                            "prevhp": 2413
+                        }
+                    }
+                }
+            ],
+            "time": 1637556517621
+        },
+        {
+            "moves": [
+                {
+                    "user": "escapevelocity",
+                    "userId": "819577272276484107",
+                    "priority": 0,
+                    "move": "charge",
+                    "missed": false,
+                    "users": {
+                        "602651056320675840": {
+                            "userId": "602651056320675840",
+                            "maxHealth": 2488,
+                            "health": 2488,
+                            "charge": 6,
+                            "attackStages": 0,
+                            "defenseStages": 0,
+                            "speedStages": 0,
+                            "chargeRateStages": 0,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [],
+                            "prevhp": 2488
+                        },
+                        "819577272276484107": {
+                            "userId": "819577272276484107",
+                            "maxHealth": 2488,
+                            "health": 2383,
+                            "charge": 6,
+                            "attackStages": -2,
+                            "defenseStages": -3,
+                            "speedStages": 0,
+                            "chargeRateStages": 0,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [
+                                {
+                                    "id": "cringe",
+                                    "turns": 7
+                                }
+                            ],
+                            "prevhp": 2383
+                        }
+                    }
+                },
+                {
+                    "user": "Sebo2205",
+                    "userId": "602651056320675840",
+                    "priority": 0,
+                    "move": "charge",
+                    "missed": false,
+                    "users": {
+                        "602651056320675840": {
+                            "userId": "602651056320675840",
+                            "maxHealth": 2488,
+                            "health": 2488,
+                            "charge": 7,
+                            "attackStages": 0,
+                            "defenseStages": 0,
+                            "speedStages": 0,
+                            "chargeRateStages": 0,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [],
+                            "prevhp": 2488
+                        },
+                        "819577272276484107": {
+                            "userId": "819577272276484107",
+                            "maxHealth": 2488,
+                            "health": 2348,
+                            "charge": 6,
+                            "attackStages": -2,
+                            "defenseStages": -3,
+                            "speedStages": 0,
+                            "chargeRateStages": 0,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [
+                                {
+                                    "id": "cringe",
+                                    "turns": 7
+                                }
+                            ],
+                            "prevhp": 2383
+                        }
+                    }
+                }
+            ],
+            "time": 1637556528740
+        },
+        {
+            "moves": [
+                {
+                    "user": "escapevelocity",
+                    "userId": "819577272276484107",
+                    "priority": 1,
+                    "move": "charge_boost",
+                    "missed": false,
+                    "users": {
+                        "602651056320675840": {
+                            "userId": "602651056320675840",
+                            "maxHealth": 2488,
+                            "health": 2488,
+                            "charge": 7,
+                            "attackStages": 0,
+                            "defenseStages": 0,
+                            "speedStages": 0,
+                            "chargeRateStages": 0,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [],
+                            "prevhp": 2488
+                        },
+                        "819577272276484107": {
+                            "userId": "819577272276484107",
+                            "maxHealth": 2488,
+                            "health": 2348,
+                            "charge": 0,
+                            "attackStages": 1,
+                            "defenseStages": 0,
+                            "speedStages": 0,
+                            "chargeRateStages": 2,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [
+                                {
+                                    "id": "cringe",
+                                    "turns": 7
+                                }
+                            ],
+                            "prevhp": 2348
+                        }
+                    }
+                },
+                {
+                    "user": "Sebo2205",
+                    "userId": "602651056320675840",
+                    "priority": 0,
+                    "move": "charge",
+                    "missed": false,
+                    "users": {
+                        "602651056320675840": {
+                            "userId": "602651056320675840",
+                            "maxHealth": 2488,
+                            "health": 2488,
+                            "charge": 8,
+                            "attackStages": 0,
+                            "defenseStages": 0,
+                            "speedStages": 0,
+                            "chargeRateStages": 0,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [],
+                            "prevhp": 2488
+                        },
+                        "819577272276484107": {
+                            "userId": "819577272276484107",
+                            "maxHealth": 2488,
+                            "health": 2308,
+                            "charge": 0,
+                            "attackStages": 4,
+                            "defenseStages": 3,
+                            "speedStages": 0,
+                            "chargeRateStages": 2,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [
+                                {
+                                    "id": "cringe",
+                                    "turns": 7
+                                }
+                            ],
+                            "prevhp": 2348
+                        }
+                    }
+                }
+            ],
+            "time": 1637556535580
+        },
+        {
+            "moves": [
+                {
+                    "user": "escapevelocity",
+                    "userId": "819577272276484107",
+                    "priority": 0,
+                    "move": "stronk",
+                    "missed": false,
+                    "users": {
+                        "602651056320675840": {
+                            "userId": "602651056320675840",
+                            "maxHealth": 2488,
+                            "health": 2488,
+                            "charge": 8,
+                            "attackStages": 0,
+                            "defenseStages": 0,
+                            "speedStages": 0,
+                            "chargeRateStages": 0,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [],
+                            "prevhp": 2488
+                        },
+                        "819577272276484107": {
+                            "userId": "819577272276484107",
+                            "maxHealth": 2488,
+                            "health": 2308,
+                            "charge": 0,
+                            "attackStages": 5,
+                            "defenseStages": 3,
+                            "speedStages": 0,
+                            "chargeRateStages": 2,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [
+                                {
+                                    "id": "cringe",
+                                    "turns": 7
+                                }
+                            ],
+                            "prevhp": 2308
+                        }
+                    }
+                },
+                {
+                    "user": "Sebo2205",
+                    "userId": "602651056320675840",
+                    "priority": 0,
+                    "move": "charge",
+                    "missed": false,
+                    "users": {
+                        "602651056320675840": {
+                            "userId": "602651056320675840",
+                            "maxHealth": 2488,
+                            "health": 2488,
+                            "charge": 9,
+                            "attackStages": 0,
+                            "defenseStages": 0,
+                            "speedStages": 0,
+                            "chargeRateStages": 0,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [],
+                            "prevhp": 2488
+                        },
+                        "819577272276484107": {
+                            "userId": "819577272276484107",
+                            "maxHealth": 2488,
+                            "health": 2308,
+                            "charge": 0,
+                            "attackStages": 5,
+                            "defenseStages": 3,
+                            "speedStages": 0,
+                            "chargeRateStages": 2,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [
+                                {
+                                    "id": "cringe",
+                                    "turns": 7
+                                }
+                            ],
+                            "prevhp": 2308
+                        }
+                    }
+                }
+            ],
+            "time": 1637556549447
+        },
+        {
+            "moves": [
+                {
+                    "user": "Sebo2205",
+                    "userId": "602651056320675840",
+                    "priority": 1,
+                    "move": "charge_boost",
+                    "missed": false,
+                    "users": {
+                        "602651056320675840": {
+                            "userId": "602651056320675840",
+                            "maxHealth": 2488,
+                            "health": 2488,
+                            "charge": 0,
+                            "attackStages": 5,
+                            "defenseStages": 5,
+                            "speedStages": 0,
+                            "chargeRateStages": 3,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [],
+                            "prevhp": 2488
+                        },
+                        "819577272276484107": {
+                            "userId": "819577272276484107",
+                            "maxHealth": 2488,
+                            "health": 2308,
+                            "charge": 0,
+                            "attackStages": 5,
+                            "defenseStages": 3,
+                            "speedStages": 0,
+                            "chargeRateStages": 2,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [
+                                {
+                                    "id": "cringe",
+                                    "turns": 7
+                                }
+                            ],
+                            "prevhp": 2308
+                        }
+                    }
+                },
+                {
+                    "user": "escapevelocity",
+                    "userId": "819577272276484107",
+                    "priority": 0,
+                    "move": "twitter",
+                    "missed": false,
+                    "users": {
+                        "602651056320675840": {
+                            "userId": "602651056320675840",
+                            "maxHealth": 2488,
+                            "health": 2488,
+                            "charge": 0,
+                            "attackStages": 2.000000000000001,
+                            "defenseStages": 2.000000000000001,
+                            "speedStages": 0,
+                            "chargeRateStages": 3,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [
+                                {
+                                    "id": "cringe",
+                                    "turns": 7
+                                }
+                            ],
+                            "prevhp": 2488
+                        },
+                        "819577272276484107": {
+                            "userId": "819577272276484107",
+                            "maxHealth": 2488,
+                            "health": 2308,
+                            "charge": 0,
+                            "attackStages": 5,
+                            "defenseStages": 3,
+                            "speedStages": 0,
+                            "chargeRateStages": 2,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [
+                                {
+                                    "id": "cringe",
+                                    "turns": 7
+                                }
+                            ],
+                            "prevhp": 2308
+                        }
+                    }
+                }
+            ],
+            "time": 1637556560879
+        },
+        {
+            "moves": [
+                {
+                    "user": "Sebo2205",
+                    "userId": "602651056320675840",
+                    "priority": 0,
+                    "move": "twitter",
+                    "missed": false,
+                    "users": {
+                        "602651056320675840": {
+                            "userId": "602651056320675840",
+                            "maxHealth": 2488,
+                            "health": 2488,
+                            "charge": 0,
+                            "attackStages": 2.000000000000001,
+                            "defenseStages": 2.000000000000001,
+                            "speedStages": 0,
+                            "chargeRateStages": 3,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [
+                                {
+                                    "id": "cringe",
+                                    "turns": 7
+                                }
+                            ],
+                            "prevhp": 2488
+                        },
+                        "819577272276484107": {
+                            "userId": "819577272276484107",
+                            "maxHealth": 2488,
+                            "health": 2308,
+                            "charge": 0,
+                            "attackStages": 2.000000000000001,
+                            "defenseStages": 0,
+                            "speedStages": 0,
+                            "chargeRateStages": 2,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [
+                                {
+                                    "id": "cringe",
+                                    "turns": 7
+                                }
+                            ],
+                            "prevhp": 2308
+                        }
+                    }
+                },
+                {
+                    "user": "escapevelocity",
+                    "userId": "819577272276484107",
+                    "priority": 0,
+                    "move": "twitter",
+                    "missed": false,
+                    "users": {
+                        "602651056320675840": {
+                            "userId": "602651056320675840",
+                            "maxHealth": 2488,
+                            "health": 2433,
+                            "charge": 0,
+                            "attackStages": 2.000000000000001,
+                            "defenseStages": 2.000000000000001,
+                            "speedStages": 0,
+                            "chargeRateStages": 3,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [
+                                {
+                                    "id": "cringe",
+                                    "turns": 7
+                                }
+                            ],
+                            "prevhp": 2488
+                        },
+                        "819577272276484107": {
+                            "userId": "819577272276484107",
+                            "maxHealth": 2488,
+                            "health": 2308,
+                            "charge": 0,
+                            "attackStages": 2.000000000000001,
+                            "defenseStages": 0,
+                            "speedStages": 0,
+                            "chargeRateStages": 2,
+                            "evasionStages": 0,
+                            "accuracyStages": 0,
+                            "statusEffects": [
+                                {
+                                    "id": "cringe",
+                                    "turns": 7
+                                }
+                            ],
+                            "prevhp": 2308
+                        }
+                    }
+                }
+            ],
+            "time": 1637556568426
+        }
+    ],
+    "rules": {
+        "maxPlayers": 2,
+        "level": 50,
+        "unfair": false,
+        "hpmul": 2
+    },
+    "info": {
+        "moves": {
+            "bonk": {
+                "name": "Bonk",
+                "power": 50,
+                "accuracy": 100,
+                "type": "attack",
+                "category": "attack",
+                "description": "A bonk",
+                "evadable": true
+            },
+            "twitter": {
+                "name": "Twitter",
+                "power": null,
+                "accuracy": 95,
+                "category": "status",
+                "evadable": true,
+                "description": "Makes the target cronge due to twitter, has a chance to poison aswell"
+            },
+            "stronk": {
+                "name": "Stronk",
+                "power": null,
+                "accuracy": 100,
+                "category": "boost",
+                "targetself": true,
+                "description": "Increases the user's attack"
+            },
+            "tonk": {
+                "name": "Tonk",
+                "power": null,
+                "accuracy": 100,
+                "category": "boost",
+                "targetself": true,
+                "description": "Increases the user's defense"
+            },
+            "charge_boost": {
+                "name": "Charge Boost",
+                "power": null,
+                "accuracy": 100,
+                "targetself": true,
+                "speedMul": 1,
+                "category": "boost",
+                "description": "Increases the user's stats depending on charge",
+                "usesCharge": true
+            },
+            "counter": {
+                "name": "Counter",
+                "power": null,
+                "accuracy": 100,
+                "category": "attack",
+                "description": "Deals double the damage taken. This move ignores the target's defense and is always done last",
+                "speedMul": -999
+            },
+            "charge": {
+                "name": "Charge",
+                "power": null,
+                "accuracy": 100,
+                "usesCharge": true,
+                "category": "boost",
+                "targetself": true,
+                "description": "Charges funi attacc"
+            },
+            "release": {
+                "name": "Release",
+                "power": null,
+                "accuracy": 100,
+                "category": "attack",
+                "usesCharge": true,
+                "type": "attack"
+            },
+            "troll": {
+                "name": "Troll",
+                "power": null,
+                "category": "attack",
+                "description": "Does a little trolling and makes the target's hp % be the same as the user's, will fail if the user's hp is greater than 25%",
+                "accuracy": 100
+            },
+            "bloc": {
+                "name": "Bloc",
+                "power": null,
+                "speedMul": 1,
+                "category": "defense",
+                "accuracy": null,
+                "targetself": true,
+                "description": "Blocks incoming damage, success rate is lower if it's used repeatedly"
+            }
+        },
+        "statusEffects": {
+            "poison": {
+                "name": "Poisoned",
+                "short": "PSN",
+                "icon": "🟪",
+                "turns": 7,
+                "color": [
+                    128,
+                    0,
+                    128,
+                    255
+                ]
+            },
+            "cringe": {
+                "name": "Cronge",
+                "short": "CRONG",
+                "turns": 8,
+                "color": [
+                    97,
+                    128,
+                    57,
+                    255
+                ],
+                "icon": "⬜"
+            },
+            "frozen": {
+                "name": "Frozen",
+                "short": "FRZ",
+                "turns": 5,
+                "color": [
+                    0,
+                    128,
+                    255,
+                    255
+                ]
+            },
+            "loser": {
+                "name": "Loser",
+                "short": "LOSER",
+                "color": [
+                    255,
+                    0,
+                    0,
+                    255
+                ],
+                "turns": 69
+            }
+        }
+    },
+    "startedAt": 1637556255761
+}

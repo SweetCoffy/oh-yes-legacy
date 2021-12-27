@@ -94,7 +94,8 @@
         "waiting": 1,
         "timer": true,
         "time": 1,
-        "pingcheck": true
+        "pingcheck": false,
+        "warn": 0
     },
     "commands.eggscript": true,
     "commands.waiting": false,
@@ -147,5 +148,6 @@
             }
         }
     },
-    "pregnant": false
+    "pregnant": false,
+    "quotesChannel": "762482449175150640"
 }

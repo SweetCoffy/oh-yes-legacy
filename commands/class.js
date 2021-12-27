@@ -20,13 +20,17 @@ module.exports = {
                 var width = 15
                 var fill = "🟩"
                 var bg = "⬛"
-                var f = v / max
+                var f = Math.min(v / max, 1)
                 if (f < 0.25) {
                     fill = "🟨"
+                }
+                if (f < 0.18) {
+                    fill = "🟧"
                 }
                 if (f < 0.125) {
                     fill = "🟥"
                 }
+                if (f >= 1) fill = "🟦"
                 var len = Math.ceil(f * width)
                 var str = ""
                 var i = 0
@@ -38,16 +42,22 @@ module.exports = {
                 }
                 return str
             }
+            function statTotal(pclass) {
+                var total = 0
+                for (var s in stuff.stats) {
+                    total += pclass[s]
+                }
+                return total
+            }
             await m.edit({
                 embeds: [{
                     title: `${pclass.icon} ${pclass.name}`,
                     description: 
 `${pclass.description}
-\`HP  ${pclass.hp .toString().padStart(3, " ")}\` ${bar(pclass.hp / 3) } \`600\`
-\`DEF ${pclass.def.toString().padStart(3, " ")}\` ${bar(pclass.def)    } \`200\`
-\`ATK ${pclass.atk.toString().padStart(3, " ")}\` ${bar(pclass.atk)    } \`200\`
-\`SPD ${pclass.spd.toString().padStart(3, " ")}\` ${bar(pclass.spd)    } \`200\`
-Total: ${pclass.hp + pclass.def + pclass.atk + pclass.spd}`
+\`\`\`
+${Object.keys(stuff.stats).map(k => `${stuff.stats[k].name.padEnd(8, " ")} ${pclass[k].toString().padStart(4, " ")} ${bar(pclass[k] / (k == "hp" ? 3 : 1))}`).join("\n")}
+\`\`\`
+Total: ${statTotal(pclass)}`
                 }],
                 components: [
                     new MessageActionRow().addComponents(new MessageSelectMenu().setMinValues(1).setMaxValues(1).setCustomId("class").addOptions(

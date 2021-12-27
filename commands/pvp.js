@@ -12,6 +12,9 @@ async function joinMatch(msg, p, bypassCheck = false) {
         attack: stuff.calcStat(p.level, pclass.atk, 0),
         defense: stuff.calcStat(p.level, pclass.def, 0),
         health: stuff.calcStat(p.level, pclass.hp, 0),
+        specialAttack: stuff.calcStat(p.level, pclass.spatk, 0),
+        specialDefense: stuff.calcStat(p.level, pclass.spdef, 0),
+        miscDefense: stuff.calcStat(p.level, pclass.miscdef, 0),
         level: p.level,
         get atk() {
             return this.attack * this.atkmul;
@@ -22,23 +25,45 @@ async function joinMatch(msg, p, bypassCheck = false) {
         get spd() {
             return this.speed * this.spdmul;
         },
+        get spatk() {
+            return this.specialAttack * this.spatkmul;
+        },
+        get spdef() {
+            return this.specialDefense * this.spdefmul;
+        },
+        get miscdef() {
+            return this.miscDefense * this.miscdefmul;
+        },
         evasion: 0,
         accuracy: 1,
         
         atkmod: 0,
         defmod: 0,
+        spatkmod: 0,
+        spdefmod: 0,
+        miscdefmod: 0,
+
         accmod: 0,
         spdmod: 0,
         evamod: 0,
         chgmod: 0,
 
-        helditem: stuff.getHeld(msg.author.id).slice(0, 3).map(el => ({...el})),
+        helditem: stuff.getHeld(msg.author.id).slice(0, 4).map(el => ({...el})),
         
         get atkmul() {
             return Math.max(Math.min(1 + (this.atkmod / 6), 4), 0.125)
         },
         get defmul() {
             return Math.max(Math.min(1 + (this.defmod / 6), 4), 0.125)
+        },
+        get spatkmul() {
+            return Math.max(Math.min(1 + (this.spatkmod / 6), 4), 0.125)
+        },
+        get spdefmul() {
+            return Math.max(Math.min(1 + (this.spdefmod / 6), 4), 0.125)
+        },
+        get miscdefmul() {
+            return Math.max(Math.min(1 + (this.miscdefmod / 6), 4), 0.125)
         },
         get accmul() {
             return Math.max(Math.min(1 + (this.accmod / 6), 4), 0.125)
@@ -50,7 +75,7 @@ async function joinMatch(msg, p, bypassCheck = false) {
             return Math.max(Math.min(1 + (this.evamod / 6), 4), 0.125)
         },
         get chgmul() {
-            return Math.max(Math.min(1 + (this.chgmod / 12), 4), 0.125)
+            return Math.max(Math.min(1 + (this.chgmod / 6), 4), 0.125)
         },
         
         set atkmul(v) {
@@ -58,6 +83,15 @@ async function joinMatch(msg, p, bypassCheck = false) {
         },
         set defmul(v) {
             this.defmod = (v - 1) * 6
+        },
+        set spatkmul(v) {
+            this.spatkmod = (v - 1) * 6
+        },
+        set spdefmul(v) {
+            this.spdefmod = (v - 1) * 6
+        },
+        set miscdefmul(v) {
+            this.miscdefmod = (v - 1) * 6
         },
         set accmul(v) {
             this.accmod = (v - 1) * 6
@@ -75,6 +109,11 @@ async function joinMatch(msg, p, bypassCheck = false) {
     if (!p.fair) {
         stats.attack = stuff.getAttack(msg.author.id)
         stats.defense = stuff.getDefense(msg.author.id)
+
+        stats.specialAttack = stuff.getSpecialAttack(msg.author.id)
+        stats.specialDefense = stuff.getSpecialDefense(msg.author.id)
+        stats.miscDefense = stuff.getMiscDefense(msg.author.id)
+
         stats.health = stuff.getMaxHealth(msg.author.id)
         stats.speed = stuff.getSpeed(msg.author.id)
         stats.level = stuff.getLevel(msg.author.id)

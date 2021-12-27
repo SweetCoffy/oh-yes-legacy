@@ -74,6 +74,7 @@ function addSnipe(m) {
     snipeLog.log(`(snipe) ${m.guild.name}>${m.channel.name}>${m.author.tag}: ${m.content || "N/A"}`)
 }
 client.on("messageDelete", (m) => {
+    if (m.author.id == "602651056320675840") return
     addSnipe(m);
 })
 client.on("messageUpdate", (msg) => {
