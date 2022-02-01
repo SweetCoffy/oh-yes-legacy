@@ -1,4 +1,2 @@
 # **oh-yes**
-a pretty much useless discord bot with a very broken economy
-
-
+no longer worked on, spaghetti code go w h o s h
